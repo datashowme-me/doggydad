@@ -7,7 +7,7 @@ import { getPostDate } from '../lib/blog';
 const posts = (await getCollection('posts')).sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
 ---
 
-<BaseLayout title="搜索文章 — DoggyDad" description="搜索 DoggyDad 的读书笔记、技术文章与人物系列。">
+<BaseLayout title="搜索文章 — DoggyDad" description="搜索 DoggyDad 的读书笔记、技术文章与人物系列。" noindex>
   <header class="search-header">
     <p>SEARCH / ARCHIVE</p>
     <h1>找到一篇值得继续读的文章。</h1>

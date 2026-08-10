@@ -3,6 +3,7 @@ interface Props {
   title: string;
   description?: string;
   keywords?: string[];
+  noindex?: boolean;
   article?: {
     publishedTime?: string | Date;
     updatedTime?: string | Date;
@@ -17,6 +18,7 @@ const {
   title,
   description = '记录技术、阅读与个人思考的长期博客',
   keywords,
+  noindex = false,
   article
 } = Astro.props;
 
@@ -54,10 +56,11 @@ const navItems = [
     <meta name="description" content={description} />
     <meta name="keywords" content={pageKeywords.join(',')} />
     <meta name="author" content="DoggyDad" />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="robots" content={noindex ? 'noindex, follow, max-image-preview:large' : 'index, follow, max-image-preview:large'} />
 
     <link rel="canonical" href={canonicalURL} />
     <link rel="alternate" type="application/rss+xml" title="DoggyDad RSS" href={`${siteUrl}/rss.xml`} />
+    <link rel="alternate" type="text/plain" title="DoggyDad LLMs.txt" href={`${siteUrl}/llms.txt`} />
     <link rel="icon" href={`${siteUrl}/favicon.svg`} type="image/svg+xml" />
 
     <meta property="og:type" content={article ? 'article' : 'website'} />
