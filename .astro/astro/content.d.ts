@@ -225,6 +225,13 @@ declare module 'astro:content' {
   collection: "posts";
   data: InferEntrySchema<"posts">
 } & { render(): Render[".md"] };
+"tech-learning/mcp-2026-07-28-minus-revolution.md": {
+	id: "tech-learning/mcp-2026-07-28-minus-revolution.md";
+  slug: "tech-learning/mcp-2026-07-28-minus-revolution";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
 "tech-learning/shell-basics-guide.md": {
 	id: "tech-learning/shell-basics-guide.md";
   slug: "tech-learning/shell-basics-guide";
