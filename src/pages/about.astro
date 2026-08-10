@@ -1,82 +1,50 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/blog';
 ---
 
-<BaseLayout title="关于我 - DoggyDad Blog" description="了解 DoggyDad 博客的作者、博客内容和联系方式">
-  <article class="article">
-    <a href="/doggydad/" class="back-button">← 返回首页</a>
-    
-    <header class="article-header">
-      <h1 class="article-title">关于我 👋</h1>
+<BaseLayout title="关于 DoggyDad" description="关于作者、写作方向与这个博客。">
+  <article class="about-page">
+    <header>
+      <p>ABOUT / DOGGYDAD</p>
+      <h1>写作是我理解复杂世界的方式。</h1>
     </header>
-    
-    <div class="article-content">
-      <p>你好！我是 <strong>DoggyDad</strong>，一名热爱技术与思考的软件工程师。</p>
-      
-      <h2>🎯 关于这个博客</h2>
-      <p>这个博客是我记录学习历程、分享技术见解和个人思考的地方。主要内容包括：</p>
-      <ul>
-        <li><strong>🏆 图灵奖系列</strong> - 探索计算机科学先驱们的贡献与思想</li>
-        <li><strong>📚 读书笔记</strong> - 深度阅读笔记，特别关注塔勒布的不确定性系列</li>
-        <li><strong>💻 技术学习</strong> - Git 工作流、开发最佳实践、工具使用技巧</li>
-        <li><strong>📝 通用分享</strong> - 博客教程、个人思考和其他有趣的话题</li>
-      </ul>
-      
-      <h2>💡 我的兴趣</h2>
-      <ul>
-        <li><strong>计算机科学历史</strong> - 相信了解历史能帮助我们更好地理解现在和未来</li>
-        <li><strong>系统思维与风险管理</strong> - 对反脆弱性、黑天鹅事件、概率思维有浓厚兴趣</li>
-        <li><strong>高效工程实践</strong> - 追求用更聪明的方式工作</li>
-        <li><strong>持续学习</strong> - 相信写作是最好的学习方式之一</li>
-      </ul>
-      
-      <h2>🛠️ 技术栈</h2>
-      <p>这个博客使用 <strong>Astro</strong> 构建，部署在 GitHub Pages。</p>
-      
-      <h2>📬 联系我</h2>
-      <ul>
-        <li>💼 <a href="https://linkedin.com/in/peng-zhao-mei" target="_blank">LinkedIn</a></li>
-        <li>𝕏 <a href="https://x.com/Hjfjfjsj" target="_blank">Twitter / X</a></li>
-        <li>🐙 <a href="https://github.com/pzhao16me" target="_blank">GitHub</a></li>
-      </ul>
-      
-      <hr>
-      <p><em>感谢你的访问！希望这里的内容对你有所帮助。</em> ✨</p>
+
+    <div class="about-grid">
+      <aside>
+        <span aria-hidden="true">犬</span>
+        <p>软件工程师<br />长期学习者<br />DoggyDad</p>
+      </aside>
+
+      <div class="prose">
+        <p class="lead">你好，我是 DoggyDad，一名软件工程师。我在这里记录技术演进、计算机科学人物，以及那些改变了我思考方式的书。</p>
+
+        <h2>为什么写这个博客</h2>
+        <p>技术文章很容易过期，读书笔记也很容易变成摘抄。我更想留下的是一条可以追溯的理解路径：一个概念从哪里来、解决了什么问题、今天还能怎样使用。</p>
+
+        <h2>这里有什么</h2>
+        <ul>
+          <li><strong>图灵奖系列：</strong>沿着重要人物和工作理解计算机科学史。</li>
+          <li><strong>读书笔记：</strong>提炼观点，也记录我同意和不同意的地方。</li>
+          <li><strong>技术学习：</strong>记录工具、工程实践和正在形成的新范式。</li>
+          <li><strong>随笔：</strong>关于学习、工作和日常观察。</li>
+        </ul>
+
+        <h2>联系与关注</h2>
+        <p>可以在 <a href="https://github.com/pzhao16me" target="_blank" rel="noopener">GitHub</a>、<a href="https://x.com/Hjfjfjsj" target="_blank" rel="noopener">X</a> 或 <a href="https://linkedin.com/in/peng-zhao-mei" target="_blank" rel="noopener">LinkedIn</a> 找到我，也可以通过 <a href={withBase('/rss.xml')}>RSS</a> 订阅更新。</p>
+      </div>
     </div>
   </article>
 </BaseLayout>
 
 <style>
-  .article { max-width: 800px; margin: 0 auto; }
-  
-  .back-button {
-    display: inline-flex;
-    align-items: center;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    padding: 0.5rem 1.5rem;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--color-text);
-    margin-bottom: 2rem;
-    transition: all 0.15s;
-  }
-  
-  .back-button:hover {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
-  }
-  
-  .article-header { margin-bottom: 3rem; padding-bottom: 3rem; border-bottom: 2px solid var(--color-border); }
-  
-  .article-title {
-    font-size: 2rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .article-content { font-size: 1.125rem; line-height: 1.8; }
+  .about-page > header { max-width: 920px; padding-bottom: clamp(3.5rem, 8vw, 7rem); }
+  header > p { margin: 0 0 1rem; color: var(--color-accent); font-size: .7rem; font-weight: 700; letter-spacing: .15em; }
+  h1 { max-width: 13ch; margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(3rem, 8vw, 6.5rem); letter-spacing: -.055em; line-height: 1.05; text-wrap: balance; }
+  .about-grid { display: grid; grid-template-columns: 13rem minmax(0, 720px); gap: clamp(3rem, 9vw, 8rem); }
+  aside { padding-top: .4rem; border-top: 1px solid var(--color-border); }
+  aside span { display: grid; width: 3.2rem; height: 3.2rem; margin: 1.4rem 0 1rem; place-items: center; border: 1px solid var(--color-accent); color: var(--color-accent); font-family: var(--font-serif); }
+  aside p { color: var(--color-text-muted); font-size: .78rem; line-height: 1.8; }
+  .lead { color: var(--color-heading); font-family: var(--font-serif); font-size: 1.3rem; }
+  @media (max-width: 700px) { .about-grid { grid-template-columns: 1fr; } aside { display: none; } }
 </style>

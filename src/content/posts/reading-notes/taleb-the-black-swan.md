@@ -6,6 +6,13 @@ keywords: [黑天鹅, 塔勒布, The Black Swan, 极端斯坦, 风险管理, 认
 tags: [黑天鹅事件, 极端斯坦, 认识论, 风险管理]
 author: DoggyDad
 category: reading-notes
+bookTitle: The Black Swan
+bookAuthor: Nassim Nicholas Taleb
+recommendedFor: 投资者、研究者、战略决策者
+takeaways:
+  - 真正改变世界的事件通常罕见、影响巨大，并且只能在事后被合理化。
+  - 平均斯坦适合用历史数据推断，极端斯坦却可能被一个异常值彻底改变。
+  - 与其执着于预测黑天鹅，不如建立能够承受意外甚至从意外中获益的结构。
 ---
 
 # 黑天鹅：重新认识不确定性与极端事件

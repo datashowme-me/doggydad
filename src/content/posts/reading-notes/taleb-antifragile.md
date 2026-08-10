@@ -6,6 +6,13 @@ keywords: [反脆弱, 塔勒布, Antifragile, 杠铃策略, 风险管理, 系统
 tags: [反脆弱, 系统思维, 风险管理, 进化论]
 author: DoggyDad
 category: reading-notes
+bookTitle: Antifragile
+bookAuthor: Nassim Nicholas Taleb
+recommendedFor: 创业者、产品经理、风险管理者
+takeaways:
+  - 反脆弱不是抵抗波动，而是能够从压力、试错和变化中获得收益。
+  - 杠铃策略把大部分资源放在安全端，同时保留小部分高上行空间的选择权。
+  - 与其试图预测所有风险，不如限制下行损失并让系统保留迭代空间。
 ---
 
 # 反脆弱：从不确定性中获益的生存哲学

@@ -39,7 +39,7 @@ const techStack = {
   styling: 'CSS (with CSS Variables)',
   markdown: 'Astro Content Collections',
   highlighting: 'Shiki',
-  deployment: 'GitHub Pages',
+  deployment: 'Cloudflare Pages',
   dns: 'Cloudflare'
 };
 ```

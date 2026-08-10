@@ -1,290 +1,103 @@
-# 🐕 DoggyDad Blog
+# DoggyDad Blog
 
-一个现代化的个人博客网站，使用 Vite + Markdown 构建，部署在 GitHub Pages 上。
+一个使用 Astro 构建、发布到 Cloudflare Pages 的中文个人博客，内容包括读书笔记、技术学习和图灵奖人物系列。
 
-## ✨ 特性
+## 已有能力
 
-- 📝 支持 Markdown 格式的博客文章
-- 🎨 现代化设计，支持暗黑模式
-- 🚀 基于 Vite 的快速构建
-- 💻 代码语法高亮
-- 📱 完全响应式设计
-- 🔍 SEO 优化
-- ⚡ 自动部署到 GitHub Pages
+- Astro Content Collections 管理 Markdown 内容
+- 响应式首页、分类页和文章页
+- 读书笔记元数据与一分钟速览
+- 自动阅读时间、文章目录和目录滚动高亮
+- 相关文章、上一篇与下一篇
+- 客户端静态搜索
+- RSS、Sitemap、结构化数据与社交分享元数据
+- 跟随系统的浅色／深色主题
+- Giscus 评论
+- 键盘焦点、跳到正文和响应式导航
 
-## 🛠️ 技术栈
+## 本地运行
 
-- **Vite** - 快速的前端构建工具
-- **marked.js** - Markdown 解析
-- **highlight.js** - 代码语法高亮
-- **gray-matter** - Frontmatter 解析
-- **GitHub Pages** - 静态网站托管
-- **Cloudflare** - DNS 管理
-
-## 🚀 快速开始
-
-### 前提条件
-
-- Node.js (推荐 v18 或更高版本)
-- npm 或 yarn
-- Git
-
-### 本地开发
-
-1. **克隆仓库**
-
-```bash
-git clone https://github.com/你的用户名/doggydad.git
-cd doggydad
-```
-
-2. **安装依赖**
+需要 Node.js 18.17 或更高版本。
 
 ```bash
 npm install
-```
-
-3. **启动开发服务器**
-
-```bash
 npm run dev
 ```
 
-然后在浏览器中打开 `http://localhost:5173` 查看博客。
+开发地址：`http://localhost:4321/`
 
-4. **构建生产版本**
+## 构建与预览
 
 ```bash
 npm run build
-```
-
-构建后的文件将在 `dist/` 目录中。
-
-5. **预览生产构建**
-
-```bash
 npm run preview
 ```
 
-## 📝 添加新文章
+构建产物位于 `dist/`。
 
-1. 在 `posts/` 目录下创建新的 `.md` 文件：
+## 添加文章
 
-```bash
-touch posts/my-new-article.md
-```
-
-2. 在文件开头添加 frontmatter：
+在 `src/content/posts/<category>/` 下创建 Markdown 文件。基础字段：
 
 ```yaml
 ---
-title: 我的新文章
-date: 2024-12-11
-description: 这是一篇新文章的简短描述
-tags: [标签1, 标签2]
+title: 文章标题
+date: 2026-08-07
+description: 用一两句话说明文章价值。
+tags: [标签一, 标签二]
+author: DoggyDad
+category: reading-notes
 ---
 ```
 
-3. 使用 Markdown 撰写文章内容
+读书笔记还可以使用：
 
-4. 在 `main.js` 中的 `postFiles` 数组里添加新文件名：
-
-```javascript
-const postFiles = [
-  'welcome.md',
-  'getting-started.md',
-  'my-new-article.md'  // 添加这行
-];
+```yaml
+bookTitle: The Effective Engineer
+bookAuthor: Edmond Lau
+recommendedFor: 软件工程师、技术负责人
+rating: 5
+takeaways:
+  - 第一条核心结论
+  - 第二条核心结论
+  - 第三条核心结论
 ```
 
-5. 提交并推送到 GitHub：
+Markdown 正文可以从 `#` 开始；构建时会自动将正文中的第一个一级标题降为二级标题，保证页面只有一个主标题。
+
+## 内容分类
+
+- `reading-notes`：读书笔记
+- `turing-award`：图灵奖系列
+- `tech-learning`：技术学习
+- `general`：随笔
+
+## 代码托管与部署
+
+项目代码继续托管在 GitHub，线上部署交给 Cloudflare Pages：
+
+- 代码仓库：GitHub
+- 部署平台：Cloudflare Pages
+- 站点：`https://doggydad.pages.dev`
+- 基础路径：`/`
+- 输出模式：静态页面
+- 构建产物：`dist/`
+
+推荐在 Cloudflare Dashboard 中连接 GitHub 仓库，由 Cloudflare Pages 监听 `main` 分支并自动构建：
+
+- Production branch：`main`
+- Build command：`npm run build`
+- Build output directory：`dist`
+- Root directory：留空
+
+项目不需要 GitHub Pages，也不需要 GitHub Actions 部署 workflow。
+
+需要手动发布时，也可以使用 Wrangler 直接上传当前构建产物：
 
 ```bash
-git add .
-git commit -m "Add new article: 我的新文章"
-git push origin main
+npm run deploy
 ```
 
-GitHub Actions 会自动构建并部署！
+如果绑定自定义域名，设置 `SITE_URL=https://你的域名` 后重新构建并部署，以便 Canonical URL、Sitemap、RSS 和分享信息指向正式域名。
 
-## 🌐 部署到 GitHub Pages
-
-### 第一次设置
-
-1. **创建 GitHub 仓库**
-   - 在 GitHub 上创建一个新仓库，名为 `doggydad`（或你喜欢的名字）
-
-2. **推送代码**
-
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/你的用户名/doggydad.git
-git push -u origin main
-```
-
-3. **配置 GitHub Pages**
-   - 进入仓库的 Settings → Pages
-   - 在 "Source" 下选择 "GitHub Actions"
-   - 保存设置
-
-4. **更新 Vite 配置**
-   - 打开 `vite.config.js`
-   - 将 `base` 设置为你的仓库名：`base: '/doggydad/'`
-
-5. **触发部署**
-   - 推送任何更改到 `main` 分支都会自动触发部署
-   - 或在 GitHub 仓库的 Actions 标签页手动触发工作流
-
-### 访问你的博客
-
-部署成功后，你的博客将在以下地址可访问：
-
-```
-https://你的用户名.github.io/doggydad/
-```
-
-## 🔧 使用 Cloudflare 自定义域名
-
-如果你想使用自定义域名（如 `blog.example.com`）：
-
-### 1. 在 GitHub 设置自定义域名
-
-1. 进入仓库的 Settings → Pages
-2. 在 "Custom domain" 中输入你的域名（如 `blog.example.com`）
-3. 点击 Save
-4. 等待 DNS 检查完成
-
-### 2. 在 Cloudflare 配置 DNS
-
-1. 登录 Cloudflare 控制台
-2. 选择你的域名
-3. 进入 DNS 设置
-4. 添加以下记录：
-
-**方式一：使用 CNAME（推荐）**
-
-| Type  | Name | Target                        | Proxy status |
-|-------|------|-------------------------------|--------------|
-| CNAME | blog | 你的用户名.github.io          | Proxied      |
-
-**方式二：使用 A 记录**
-
-添加以下 4 条 A 记录，都指向 `blog`（或 `@` 如果是根域名）：
-
-```
-185.199.108.153
-185.199.109.153
-185.199.110.153
-185.199.111.153
-```
-
-### 3. 更新 Vite 配置
-
-如果使用自定义域名，将 `vite.config.js` 中的 `base` 改为：
-
-```javascript
-export default defineConfig({
-  base: '/',  // 使用根路径
-  // ...
-})
-```
-
-### 4. 等待 DNS 传播
-
-DNS 更改可能需要几分钟到几小时才能全球生效。你可以使用以下命令检查：
-
-```bash
-nslookup blog.example.com
-```
-
-### 5. 启用 HTTPS
-
-GitHub Pages 会自动为自定义域名提供免费的 HTTPS 证书（通过 Let's Encrypt）。在 GitHub Pages 设置中勾选 "Enforce HTTPS" 选项。
-
-## 📁 项目结构
-
-```
-doggydad/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml       # GitHub Actions 部署配置
-├── posts/                   # 博客文章目录
-│   ├── welcome.md
-│   └── getting-started.md
-├── index.html              # 主 HTML 文件
-├── index.css               # 样式文件
-├── main.js                 # 应用逻辑
-├── vite.config.js          # Vite 配置
-├── package.json
-└── README.md
-```
-
-## 🎨 自定义
-
-### 修改主题颜色
-
-在 `index.css` 中找到 `:root` 部分，修改 CSS 变量：
-
-```css
-:root {
-  --color-primary: hsl(210, 100%, 60%);  /* 主色调 */
-  --color-accent: hsl(280, 80%, 65%);    /* 强调色 */
-  /* ... */
-}
-```
-
-### 修改网站标题和描述
-
-在 `index.html` 中修改 meta 标签：
-
-```html
-<title>你的博客名称</title>
-<meta name="description" content="你的博客描述">
-```
-
-在 `index.html` 中修改 logo：
-
-```html
-<div class="logo" id="logo">🐕 你的名字</div>
-```
-
-## 🐛 故障排除
-
-### 部署失败
-
-1. 检查 GitHub Actions 日志查看错误信息
-2. 确保 `vite.config.js` 中的 `base` 路径正确
-3. 验证所有依赖都在 `package.json` 中
-
-### 自定义域名无法访问
-
-1. 检查 DNS 记录是否正确配置
-2. 等待 DNS 传播（最多 48 小时，通常更快）
-3. 确保在 GitHub Pages 设置中正确添加了自定义域名
-4. 检查 Cloudflare 的代理状态（橙色云朵）
-
-### 样式或脚本加载失败
-
-1. 检查浏览器控制台的错误信息
-2. 确保 `base` 路径与实际部署路径匹配
-3. 清除浏览器缓存并刷新
-
-## 📄 许可证
-
-MIT License - 随意使用和修改！
-
-## 🤝 贡献
-
-欢迎提交 Issues 和 Pull Requests！
-
-## 📞 联系方式
-
-- GitHub: [@你的用户名](https://github.com/你的用户名)
-- Email: your.email@example.com
-
----
-
-⭐ 如果这个项目对你有帮助，请给它一个星标！
+`wrangler.jsonc` 和 `public/_headers` 分别保存 Pages 输出目录与基础安全／缓存响应头。

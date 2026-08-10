@@ -1,163 +1,85 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { categories, getPostDate, withBase } from '../lib/blog';
 
 const posts = await getCollection('posts');
-const sortedPosts = posts.sort((a, b) => 
-  new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
-);
-
-const categories = {
-  'reading-notes': { name: '📚 读书笔记', icon: '📚📖', color: '#e74c3c' },
-  'turing-award': { name: '🏆 图灵奖系列', icon: '🏆🎖️', color: '#f39c12' },
-  'tech-learning': { name: '💻 技术学习', icon: '💻🖥️', color: '#3498db' },
-  'general': { name: '📝 通用', icon: '📝📄', color: '#9b59b6' }
-};
-
-function getCategoryInfo(cat: string) {
-  return categories[cat] || { name: cat, icon: '📄', color: '#666' };
-}
+const sortedPosts = posts.sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
+const featuredPost = sortedPosts[0];
+const latestPosts = sortedPosts.slice(1, 9);
 ---
 
-<BaseLayout title="DoggyDad Blog - 个人技术博客">
-  <div class="hero">
-    <h1>欢迎来到我的博客 👋</h1>
-    <p>分享技术见解、编程经验和个人思考</p>
-  </div>
-  
-  <div class="category-filter">
-    <a href="/doggydad/" class="category-btn active">全部</a>
-    {Object.entries(categories).map(([key, cat]) => (
-      <a href={`/doggydad/category/${key}/`} class="category-btn">
-        {cat.icon.split('')[0]} {cat.name.replace(/^[^\s]+ /, '')}
+<BaseLayout title="DoggyDad — 读书、技术与计算机科学人物" description="把复杂的技术与思想，写成可以反复读的笔记。">
+  <section class="home-hero">
+    <div>
+      <p class="eyebrow">DOGGYDAD / LONG-TERM NOTES</p>
+      <h1>把复杂的技术与思想，<em>写成可以反复读的笔记。</em></h1>
+    </div>
+    <p class="hero-intro">这里记录读过的书、正在变化的技术，以及塑造计算机科学的人。少一点结论堆砌，多一点来龙去脉。</p>
+  </section>
+
+  <nav class="category-index" aria-label="内容分类">
+    {Object.entries(categories).map(([key, category], index) => (
+      <a href={withBase(`/category/${key}/`)}>
+        <span>0{index + 1}</span>
+        <strong>{category.name}</strong>
+        <small>{category.description}</small>
       </a>
     ))}
-  </div>
-  
-  <div class="posts-grid">
-    {sortedPosts.map(post => {
-      const catInfo = getCategoryInfo(post.data.category || post.slug.split('/')[0]);
-      return (
-        <a href={`/doggydad/posts/${post.slug}/`} class="post-card">
-          <div class="post-category" style={`color: ${catInfo.color}`}>
-            {catInfo.icon} {catInfo.name}
-          </div>
-          <div class="post-meta">
-            <span>📅 {new Date(post.data.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-            {post.data.tags && post.data.tags.length > 0 && (
-              <span>🏷️ {post.data.tags.slice(0, 3).join(', ')}</span>
-            )}
-          </div>
-          <h2>{post.data.title}</h2>
-          <p>{post.data.description}</p>
-        </a>
-      );
-    })}
-  </div>
+  </nav>
+
+  {featuredPost && (
+    <section class="featured-section" aria-labelledby="featured-title">
+      <div class="section-heading">
+        <p>最近更新</p>
+        <h2 id="featured-title">从这里开始</h2>
+      </div>
+      <PostCard post={featuredPost} featured />
+    </section>
+  )}
+
+  <section class="latest-section" aria-labelledby="latest-title">
+    <div class="section-heading">
+      <p>ARCHIVE</p>
+      <h2 id="latest-title">最近文章</h2>
+    </div>
+    <div class="post-list">
+      {latestPosts.map((post) => <PostCard post={post} />)}
+    </div>
+    <a class="all-posts-link" href={withBase('/search/')}>浏览全部文章 <span aria-hidden="true">→</span></a>
+  </section>
 </BaseLayout>
 
 <style>
-  .hero {
-    text-align: center;
-    padding: 4rem 0;
-    background: linear-gradient(135deg, hsl(210, 100%, 98%), hsl(280, 100%, 98%));
-    border-radius: var(--radius-xl);
-    margin-bottom: 4rem;
+  .home-hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(16rem, .55fr); align-items: end; gap: 3rem; padding: clamp(1rem, 4vw, 3rem) 0 clamp(4rem, 9vw, 7.5rem); }
+  .eyebrow, .section-heading p { margin: 0 0 1rem; color: var(--color-accent); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
+  h1 { max-width: 18ch; margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(2.7rem, 7.4vw, 6.5rem); font-weight: 700; letter-spacing: -.055em; line-height: 1.02; text-wrap: balance; }
+  h1 em { color: var(--color-accent); font-weight: 400; }
+  .hero-intro { margin: 0 0 .7rem; color: var(--color-text-soft); font-size: 1rem; line-height: 1.85; text-wrap: pretty; }
+
+  .category-index { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+  .category-index a { display: grid; min-height: 11rem; align-content: start; padding: 1.35rem 1.4rem 1.5rem; border-right: 1px solid var(--color-border); color: var(--color-heading); text-decoration: none; transition: background .2s ease; }
+  .category-index a:last-child { border-right: 0; }
+  .category-index a:hover { background: var(--color-surface-raised); }
+  .category-index span { color: var(--color-text-muted); font-size: .7rem; font-variant-numeric: tabular-nums; }
+  .category-index strong { margin-top: 1.8rem; font-family: var(--font-serif); font-size: 1.2rem; }
+  .category-index small { margin-top: .5rem; color: var(--color-text-muted); line-height: 1.6; }
+
+  .featured-section, .latest-section { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(2rem, 7vw, 6rem); padding-top: clamp(4rem, 9vw, 7.5rem); }
+  .section-heading h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: 1.7rem; letter-spacing: -.025em; }
+  .post-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
+  .all-posts-link { grid-column: 2; justify-self: start; margin-top: 2.5rem; color: var(--color-heading); font-weight: 700; text-decoration: none; }
+  .all-posts-link span { color: var(--color-accent); }
+
+  @media (max-width: 820px) {
+    .home-hero { grid-template-columns: 1fr; gap: 1.5rem; }
+    h1 { font-size: clamp(2.6rem, 14vw, 4.7rem); }
+    .category-index { grid-template-columns: repeat(2, 1fr); }
+    .category-index a:nth-child(2) { border-right: 0; }
+    .category-index a:nth-child(-n+2) { border-bottom: 1px solid var(--color-border); }
+    .featured-section, .latest-section { grid-template-columns: 1fr; gap: 1rem; }
+    .post-list { grid-template-columns: 1fr; }
+    .all-posts-link { grid-column: auto; }
   }
-  
-  [data-theme="dark"] .hero {
-    background: linear-gradient(135deg, hsl(210, 30%, 15%), hsl(280, 30%, 15%));
-  }
-  
-  .hero h1 {
-    font-size: 2.5rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .hero p { color: var(--color-text-muted); font-size: 1.125rem; }
-  
-  .category-filter {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 3rem;
-  }
-  
-  .category-btn {
-    background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: 0.5rem 1.5rem;
-    font-weight: 500;
-    color: var(--color-text);
-    text-decoration: none;
-    transition: all 0.15s;
-  }
-  
-  .category-btn:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-  }
-  
-  .category-btn.active {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    border-color: transparent;
-    color: white;
-  }
-  
-  .posts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
-  }
-  
-  .post-card {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-    border: 1px solid var(--color-border);
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.25s;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .post-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.25s;
-  }
-  
-  .post-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--color-primary);
-  }
-  
-  .post-card:hover::before { transform: scaleX(1); }
-  
-  .post-category { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; }
-  
-  .post-meta {
-    display: flex;
-    gap: 1rem;
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-    margin-bottom: 1rem;
-  }
-  
-  .post-card h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
-  .post-card p { color: var(--color-text-muted); margin: 0; }
 </style>

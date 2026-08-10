@@ -6,6 +6,13 @@ keywords: [随机漫步的傻瓜, 塔勒布, 黑天鹅, 幸存者偏差, 概率�
 tags: [概率论, 认知偏差, 投资哲学, 随机性]
 author: DoggyDad
 category: reading-notes
+bookTitle: Fooled by Randomness
+bookAuthor: Nassim Nicholas Taleb
+recommendedFor: 投资者、管理者、决策者
+takeaways:
+  - 人们经常把运气误认为能力，也会系统性忽略没有被看见的失败者。
+  - 判断一个决策不能只看结果，还要观察它在其他可能历史中的表现。
+  - 面对随机性，重点不是精准预测，而是避免一次坏运气带来不可逆损失。
 ---
 
 # 随机性的智慧：重新理解运气、技能与成功的真相

@@ -11,7 +11,7 @@ tags: [教程, Markdown, 博客]
 
 ## 步骤一：创建 Markdown 文件
 
-在 `posts/` 目录下创建一个新的 `.md` 文件。文件名将成为文章的 URL slug（例如：`my-article.md` → `/doggydad/#my-article`）。
+在 `src/content/posts/<category>/` 目录下创建新的 `.md` 文件。文件名和分类目录会共同组成文章 URL（例如：`general/my-article.md` → `/posts/general/my-article/`）。
 
 ```bash
 # 在项目根目录下执行
@@ -132,9 +132,9 @@ npm run dev
 
 然后在浏览器中打开 `http://localhost:5173` 查看效果。
 
-## 步骤六：部署到 GitHub Pages
+## 步骤六：部署到 Cloudflare Pages
 
-当你对文章满意后，提交更改并推送到 GitHub：
+当你对文章满意后，把代码提交并推送到 GitHub：
 
 ```bash
 git add .
@@ -142,7 +142,7 @@ git commit -m "Add new article: [文章标题]"
 git push origin main
 ```
 
-GitHub Actions 会自动构建并部署你的博客到 GitHub Pages！
+Cloudflare Pages 会监听 GitHub 仓库的 `main` 分支，自动构建并部署到线上站点。这里使用的是 Cloudflare Pages，不是 GitHub Pages。
 
 ## 写作建议 ✍️
 
@@ -182,6 +182,6 @@ GitHub Actions 会自动构建并部署你的博客到 GitHub Pages！
 2. ✅ 添加 frontmatter
 3. ✅ 用 Markdown 撰写内容
 4. ✅ 更新文件列表
-5. ✅ 推送到 GitHub
+5. ✅ 部署到 Cloudflare Pages
 
 祝你写作愉快！🎉

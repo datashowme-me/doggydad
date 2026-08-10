@@ -1,175 +1,70 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { categories, getPostDate, withBase, type CategoryKey } from '../../lib/blog';
 
-export async function getStaticPaths() {
-  const categories = ['reading-notes', 'turing-award', 'tech-learning', 'general'];
-  return categories.map(category => ({
-    params: { category },
-    props: { category }
-  }));
+export function getStaticPaths() {
+  return Object.keys(categories).map((category) => ({ params: { category }, props: { category } }));
 }
 
-const { category } = Astro.props;
-
+const { category } = Astro.props as { category: CategoryKey };
+const categoryInfo = categories[category];
 const allPosts = await getCollection('posts');
 const posts = allPosts
-  .filter(post => post.slug.startsWith(category + '/'))
-  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
-
-const categories = {
-  'reading-notes': { name: '📚 读书笔记', icon: '📚📖', color: '#e74c3c' },
-  'turing-award': { name: '🏆 图灵奖系列', icon: '🏆🎖️', color: '#f39c12' },
-  'tech-learning': { name: '💻 技术学习', icon: '💻🖥️', color: '#3498db' },
-  'general': { name: '📝 通用', icon: '📝📄', color: '#9b59b6' }
-};
-
-const catInfo = categories[category] || { name: category, icon: '📄', color: '#666' };
-
-function getCategoryInfo(cat: string) {
-  return categories[cat] || { name: cat, icon: '📄', color: '#666' };
-}
+  .filter((post) => (post.data.category || post.slug.split('/')[0]) === category)
+  .sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
 ---
 
-<BaseLayout title={`${catInfo.name} - DoggyDad Blog`} description={`${catInfo.name}分类下的所有文章`}>
-  <div class="hero">
-    <h1>{catInfo.name}</h1>
-    <p>共 {posts.length} 篇文章</p>
-  </div>
-  
-  <div class="category-filter">
-    <a href="/doggydad/" class="category-btn">全部</a>
-    {Object.entries(categories).map(([key, cat]) => (
-      <a href={`/doggydad/category/${key}/`} class={`category-btn ${key === category ? 'active' : ''}`}>
-        {cat.icon.split('')[0]} {cat.name.replace(/^[^\s]+ /, '')}
-      </a>
+<BaseLayout title={`${categoryInfo.name} — DoggyDad`} description={categoryInfo.description}>
+  <header class="category-header" style={`--category-accent:${categoryInfo.accent}`}>
+    <p class="eyebrow">CATEGORY / {category.toUpperCase()}</p>
+    <div>
+      <h1>{categoryInfo.name}</h1>
+      <p>{categoryInfo.description}</p>
+    </div>
+    <span>{String(posts.length).padStart(2, '0')} 篇</span>
+  </header>
+
+  <nav class="category-switcher" aria-label="切换分类">
+    <a href={withBase('/')}>全部</a>
+    {Object.entries(categories).map(([key, item]) => (
+      <a href={withBase(`/category/${key}/`)} aria-current={key === category ? 'page' : undefined}>{item.name}</a>
     ))}
-  </div>
-  
-  <div class="posts-grid">
-    {posts.map(post => {
-      const postCatInfo = getCategoryInfo(post.slug.split('/')[0]);
-      return (
-        <a href={`/doggydad/posts/${post.slug}/`} class="post-card">
-          <div class="post-category" style={`color: ${postCatInfo.color}`}>
-            {postCatInfo.icon} {postCatInfo.name}
-          </div>
-          <div class="post-meta">
-            <span>📅 {new Date(post.data.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-            {post.data.tags && post.data.tags.length > 0 && (
-              <span>🏷️ {post.data.tags.slice(0, 3).join(', ')}</span>
-            )}
-          </div>
-          <h2>{post.data.title}</h2>
-          <p>{post.data.description}</p>
-        </a>
-      );
-    })}
-  </div>
+  </nav>
+
+  {posts.length > 0 ? (
+    <section class="category-posts" aria-label={`${categoryInfo.name}文章`}>
+      {posts.map((post, index) => <PostCard post={post} featured={index === 0} />)}
+    </section>
+  ) : (
+    <section class="empty-state">
+      <p>这个分类还没有文章。</p>
+      <a href={withBase('/')}>返回首页</a>
+    </section>
+  )}
 </BaseLayout>
 
 <style>
-  .hero {
-    text-align: center;
-    padding: 4rem 0;
-    background: linear-gradient(135deg, hsl(210, 100%, 98%), hsl(280, 100%, 98%));
-    border-radius: var(--radius-xl);
-    margin-bottom: 4rem;
+  .category-header { --category-accent: var(--color-accent); display: grid; grid-template-columns: 11rem 1fr auto; align-items: end; gap: 2rem; padding: 1rem 0 clamp(3.5rem, 8vw, 6.5rem); border-bottom: 1px solid var(--color-border); }
+  .eyebrow { align-self: start; margin: .35rem 0 0; color: var(--category-accent); font-size: .7rem; font-weight: 700; letter-spacing: .13em; }
+  h1 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(3rem, 8vw, 6.3rem); letter-spacing: -.055em; line-height: 1; }
+  .category-header div p { max-width: 32rem; margin: 1.2rem 0 0; color: var(--color-text-soft); line-height: 1.8; }
+  .category-header > span { color: var(--color-text-muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
+
+  .category-switcher { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding: 1.1rem 0; border-bottom: 1px solid var(--color-border); }
+  .category-switcher a { color: var(--color-text-muted); font-size: .84rem; font-weight: 600; text-decoration: none; }
+  .category-switcher a:hover, .category-switcher a[aria-current='page'] { color: var(--color-heading); }
+  .category-switcher a[aria-current='page']::before { content: '●'; margin-right: .4rem; color: var(--category-accent); font-size: .6rem; }
+
+  .category-posts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(2rem, 7vw, 6rem); padding-top: 2rem; }
+  .category-posts :global(.featured) { grid-column: 1 / -1; }
+  .empty-state { padding: 5rem 0; }
+
+  @media (max-width: 760px) {
+    .category-header { grid-template-columns: 1fr auto; }
+    .category-header .eyebrow { grid-column: 1 / -1; }
+    .category-posts { grid-template-columns: 1fr; }
+    .category-posts :global(.featured) { grid-column: auto; }
   }
-  
-  [data-theme="dark"] .hero {
-    background: linear-gradient(135deg, hsl(210, 30%, 15%), hsl(280, 30%, 15%));
-  }
-  
-  .hero h1 {
-    font-size: 2.5rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .hero p { color: var(--color-text-muted); font-size: 1.125rem; }
-  
-  .category-filter {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-bottom: 3rem;
-  }
-  
-  .category-btn {
-    background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: 0.5rem 1.5rem;
-    font-weight: 500;
-    color: var(--color-text);
-    text-decoration: none;
-    transition: all 0.15s;
-  }
-  
-  .category-btn:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-  }
-  
-  .category-btn.active {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    border-color: transparent;
-    color: white;
-  }
-  
-  .posts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
-  }
-  
-  .post-card {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-    border: 1px solid var(--color-border);
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.25s;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .post-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.25s;
-  }
-  
-  .post-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--color-primary);
-  }
-  
-  .post-card:hover::before { transform: scaleX(1); }
-  
-  .post-category { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; }
-  
-  .post-meta {
-    display: flex;
-    gap: 1rem;
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-    margin-bottom: 1rem;
-  }
-  
-  .post-card h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
-  .post-card p { color: var(--color-text-muted); margin: 0; }
 </style>

@@ -1,0 +1,113 @@
+---
+import { categories, formatDate, getPostCategory, getPostDate, readingTime, withBase } from '../lib/blog';
+
+const { post, featured = false } = Astro.props;
+const categoryKey = getPostCategory(post);
+const category = categories[categoryKey];
+---
+
+<article class:list={['post-card', { featured }]} style={`--category-accent:${category.accent}`}>
+  <a class="post-card__link" href={withBase(`/posts/${post.slug}/`)}>
+    <div class="post-card__meta">
+      <span class="post-card__category">{category.name}</span>
+      <span>{formatDate(getPostDate(post))}</span>
+      <span>{readingTime(post.body)} 分钟阅读</span>
+    </div>
+    <h2>{post.data.title}</h2>
+    <p>{post.data.description}</p>
+    {post.data.tags?.length > 0 && (
+      <div class="post-card__tags" aria-label="文章标签">
+        {post.data.tags.slice(0, 3).map((tag) => <span>{tag}</span>)}
+      </div>
+    )}
+    <span class="post-card__cta" aria-hidden="true">阅读全文 <span>→</span></span>
+  </a>
+</article>
+
+<style>
+  .post-card {
+    --category-accent: var(--color-accent);
+    border-top: 1px solid var(--color-border);
+    min-width: 0;
+  }
+
+  .post-card__link {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    padding: 1.5rem 0 1.75rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .post-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem 1rem;
+    margin-bottom: .9rem;
+    color: var(--color-text-muted);
+    font-size: .78rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .02em;
+  }
+
+  .post-card__category {
+    color: var(--category-accent);
+    font-weight: 700;
+  }
+
+  h2 {
+    max-width: 28ch;
+    margin: 0 0 .75rem;
+    color: var(--color-heading);
+    font-family: var(--font-serif);
+    font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+    font-weight: 700;
+    letter-spacing: -.025em;
+    line-height: 1.35;
+    text-wrap: balance;
+    transition: color .2s ease;
+  }
+
+  p {
+    max-width: 58ch;
+    margin: 0;
+    color: var(--color-text-soft);
+    font-size: .95rem;
+    line-height: 1.75;
+    text-wrap: pretty;
+  }
+
+  .post-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem .75rem;
+    margin-top: 1rem;
+    color: var(--color-text-muted);
+    font-size: .78rem;
+  }
+
+  .post-card__tags span::before { content: '#'; color: var(--color-border-strong); }
+
+  .post-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    margin-top: 1.1rem;
+    color: var(--color-accent);
+    font-size: .86rem;
+    font-weight: 700;
+  }
+
+  .post-card__cta span { transition: transform .2s ease; }
+  .post-card__link:hover h2 { color: var(--color-accent); }
+  .post-card__link:hover .post-card__cta span { transform: translateX(.25rem); }
+  .post-card__link:active { transform: translateY(1px); }
+
+  .featured .post-card__link { padding-top: 2rem; }
+  .featured h2 { font-size: clamp(1.7rem, 3vw, 2.4rem); }
+
+  @media (prefers-reduced-motion: reduce) {
+    h2, .post-card__cta span { transition: none; }
+  }
+</style>

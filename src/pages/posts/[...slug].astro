@@ -1,103 +1,232 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Comments from '../../components/Comments.astro';
+import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { categories, formatDate, getPostCategory, getPostDate, readingTime, relatedPosts, withBase } from '../../lib/blog';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
-  return posts.map(post => ({
-    params: { slug: post.slug },
-    props: { post }
-  }));
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
-
-const categories = {
-  'reading-notes': { name: '📚 读书笔记', color: '#e74c3c' },
-  'turing-award': { name: '🏆 图灵奖系列', color: '#f39c12' },
-  'tech-learning': { name: '💻 技术学习', color: '#3498db' },
-  'general': { name: '📝 通用', color: '#9b59b6' }
-};
-
-const category = post.slug.split('/')[0];
-const catInfo = categories[category] || { name: category, color: '#666' };
+const { Content, headings } = await post.render();
+const allPosts = await getCollection('posts');
+const categoryKey = getPostCategory(post);
+const category = categories[categoryKey];
+const minutes = readingTime(post.body);
+const related = relatedPosts(post, allPosts, 3);
+const categoryPosts = allPosts
+  .filter((item) => getPostCategory(item) === categoryKey)
+  .sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
+const currentIndex = categoryPosts.findIndex((item) => item.slug === post.slug);
+const newerPost = currentIndex > 0 ? categoryPosts[currentIndex - 1] : undefined;
+const olderPost = currentIndex >= 0 ? categoryPosts[currentIndex + 1] : undefined;
+const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const published = post.data.date || post.data.publishDate;
+const updated = post.data.updatedDate;
+const showUpdated = updated && new Date(updated).getTime() !== new Date(published).getTime();
 ---
 
-<BaseLayout 
-  title={`${post.data.title} - DoggyDad Blog`}
+<BaseLayout
+  title={`${post.data.title} — DoggyDad`}
   description={post.data.description}
-  keywords={post.data.tags}
-  article={{ publishedTime: post.data.date, tags: post.data.tags }}
+  keywords={post.data.keywords?.length ? post.data.keywords : post.data.tags}
+  article={{
+    publishedTime: published,
+    updatedTime: updated,
+    tags: post.data.tags,
+    section: category.name
+  }}
 >
-  <article class="article">
-    <a href="/doggydad/" class="back-button">← 返回首页</a>
-    
-    <header class="article-header">
-      <div class="article-category" style={`color: ${catInfo.color}`}>
-        {catInfo.name}
-      </div>
-      <h1 class="article-title">{post.data.title}</h1>
-      <div class="post-meta">
-        <span>📅 发布于 {new Date(post.data.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-        {post.data.tags && post.data.tags.length > 0 && (
-          <span>🏷️ {post.data.tags.join(', ')}</span>
-        )}
+  <article class="article-page">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href={withBase('/')}>首页</a><span aria-hidden="true">/</span>
+      <a href={withBase(`/category/${categoryKey}/`)}>{category.name}</a>
+    </nav>
+
+    <header class="article-header" style={`--category-accent:${category.accent}`}>
+      <p class="article-kicker">{category.name} · DoggyDad 原创</p>
+      <h1>{post.data.title}</h1>
+      <p class="article-deck">{post.data.description}</p>
+      <div class="article-meta">
+        <span>发布于 {formatDate(published)}</span>
+        {showUpdated && <span>更新于 {formatDate(updated)}</span>}
+        <span>{minutes} 分钟阅读</span>
+        <span>{post.data.author || 'DoggyDad'}</span>
       </div>
     </header>
-    
-    <div class="article-content">
-      <Content />
+
+    {post.data.bookTitle && (
+      <section class="book-facts" aria-label="书籍信息">
+        <div><span>原书</span><strong>{post.data.bookTitle}</strong></div>
+        {post.data.bookAuthor && <div><span>作者</span><strong>{post.data.bookAuthor}</strong></div>}
+        {post.data.recommendedFor && <div><span>适合</span><strong>{post.data.recommendedFor}</strong></div>}
+        {typeof post.data.rating === 'number' && <div><span>推荐</span><strong>{post.data.rating.toFixed(1)} / 5</strong></div>}
+      </section>
+    )}
+
+    {post.data.takeaways?.length > 0 && (
+      <section class="quick-read" aria-labelledby="quick-read-title">
+        <div>
+          <p>60-SECOND BRIEF</p>
+          <h2 id="quick-read-title">一分钟速览</h2>
+        </div>
+        <ol>
+          {post.data.takeaways.map((takeaway) => <li>{takeaway}</li>)}
+        </ol>
+      </section>
+    )}
+
+    <div class="reading-layout">
+      <div class="article-main">
+        <div class="prose">
+          <Content />
+        </div>
+
+        <aside class="author-card" aria-label="关于作者">
+          <span class="author-mark" aria-hidden="true">犬</span>
+          <div>
+            <p>作者</p>
+            <h2>DoggyDad</h2>
+            <p>软件工程师。长期记录技术演进、计算机科学人物与不确定性相关的阅读笔记。</p>
+            <a href={withBase('/about/')}>了解作者 →</a>
+          </div>
+        </aside>
+
+        {(olderPost || newerPost) && (
+          <nav class="post-navigation" aria-label="相邻文章">
+            {olderPost ? (
+              <a href={withBase(`/posts/${olderPost.slug}/`)}><span>上一篇</span><strong>{olderPost.data.title}</strong></a>
+            ) : <span></span>}
+            {newerPost && (
+              <a class="next" href={withBase(`/posts/${newerPost.slug}/`)}><span>下一篇</span><strong>{newerPost.data.title}</strong></a>
+            )}
+          </nav>
+        )}
+
+        <Comments />
+      </div>
+
+      {tocHeadings.length > 1 && (
+        <aside class="article-toc" aria-label="文章目录">
+          <details open>
+            <summary>本文目录</summary>
+            <nav>
+              {tocHeadings.map((heading) => (
+                <a class:list={[`depth-${heading.depth}`]} href={`#${heading.slug}`}>{heading.text}</a>
+              ))}
+            </nav>
+          </details>
+        </aside>
+      )}
     </div>
-    
-    <Comments />
   </article>
+
+  {related.length > 0 && (
+    <section class="related-section" aria-labelledby="related-title">
+      <div class="related-heading">
+        <p>KEEP READING</p>
+        <h2 id="related-title">继续阅读</h2>
+      </div>
+      <div class="related-grid">
+        {related.map((item) => <PostCard post={item} />)}
+      </div>
+    </section>
+  )}
+
+  <script>
+    const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('.article-toc a')];
+    const headings = tocLinks
+      .map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))))
+      .filter((heading): heading is Element => Boolean(heading));
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        tocLinks.forEach((link) => link.removeAttribute('aria-current'));
+        tocLinks
+          .find((link) => decodeURIComponent(link.hash.slice(1)) === entry.target.id)
+          ?.setAttribute('aria-current', 'location');
+      });
+    }, { rootMargin: '-15% 0px -70%' });
+
+    headings.forEach((heading) => observer.observe(heading));
+  </script>
 </BaseLayout>
 
 <style>
-  .article { max-width: 800px; margin: 0 auto; }
-  
-  .back-button {
-    display: inline-flex;
-    align-items: center;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    padding: 0.5rem 1.5rem;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--color-text);
-    margin-bottom: 2rem;
-    transition: all 0.15s;
+  .article-page { --category-accent: var(--color-accent); }
+  .breadcrumbs { display: flex; gap: .55rem; margin-bottom: clamp(2.5rem, 6vw, 5rem); color: var(--color-text-muted); font-size: .78rem; }
+  .breadcrumbs a { color: inherit; text-decoration: none; }
+  .breadcrumbs a:hover { color: var(--color-heading); }
+
+  .article-header { max-width: 970px; padding-bottom: clamp(3rem, 7vw, 5.8rem); }
+  .article-kicker { margin: 0 0 1.2rem; color: var(--category-accent); font-size: .73rem; font-weight: 700; letter-spacing: .12em; }
+  .article-header h1 { max-width: 21ch; margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(2.45rem, 6.2vw, 5.3rem); font-weight: 700; letter-spacing: -.052em; line-height: 1.08; text-wrap: balance; }
+  .article-deck { max-width: 48rem; margin: 1.75rem 0 0; color: var(--color-text-soft); font-family: var(--font-serif); font-size: clamp(1.05rem, 2vw, 1.3rem); line-height: 1.75; text-wrap: pretty; }
+  .article-meta { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin-top: 1.6rem; color: var(--color-text-muted); font-size: .78rem; font-variant-numeric: tabular-nums; }
+  .article-meta span + span::before { margin-right: 1.2rem; color: var(--color-border-strong); content: '·'; }
+
+  .book-facts { display: grid; grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+  .book-facts div { min-width: 0; padding: 1.2rem 1rem 1.3rem 0; }
+  .book-facts div + div { padding-left: 1.2rem; border-left: 1px solid var(--color-border); }
+  .book-facts span, .book-facts strong { display: block; }
+  .book-facts span { margin-bottom: .45rem; color: var(--color-text-muted); font-size: .7rem; letter-spacing: .08em; }
+  .book-facts strong { color: var(--color-heading); font-family: var(--font-serif); font-size: .98rem; line-height: 1.5; }
+
+  .quick-read { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; margin: clamp(3rem, 7vw, 5.5rem) 0; padding: 2rem; border-left: 3px solid var(--category-accent); background: var(--color-surface-raised); box-shadow: var(--shadow-raised); }
+  .quick-read p { margin: 0 0 .5rem; color: var(--category-accent); font-size: .65rem; font-weight: 700; letter-spacing: .14em; }
+  .quick-read h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: 1.65rem; }
+  .quick-read ol { margin: 0; padding-left: 1.25rem; }
+  .quick-read li { margin-bottom: .75rem; padding-left: .3rem; line-height: 1.7; }
+  .quick-read li:last-child { margin-bottom: 0; }
+
+  .reading-layout { display: grid; grid-template-columns: minmax(0, 760px) minmax(12rem, 1fr); align-items: start; gap: clamp(3rem, 8vw, 8rem); }
+  .article-main { min-width: 0; }
+  .article-toc { position: sticky; top: 7rem; min-width: 0; padding-top: .5rem; }
+  .article-toc details { border-top: 1px solid var(--color-border); }
+  .article-toc summary { padding: .85rem 0; color: var(--color-heading); font-size: .82rem; font-weight: 700; cursor: pointer; }
+  .article-toc nav { display: flex; flex-direction: column; padding: .5rem 0 1rem; border-top: 1px solid var(--color-border); }
+  .article-toc a { padding: .32rem 0; color: var(--color-text-muted); font-size: .76rem; line-height: 1.45; text-decoration: none; transition: color .15s ease; }
+  .article-toc a.depth-3 { padding-left: .9rem; font-size: .72rem; }
+  .article-toc a:hover, .article-toc a[aria-current='location'] { color: var(--category-accent); }
+
+  .author-card { display: grid; grid-template-columns: auto 1fr; gap: 1.3rem; margin-top: 4rem; padding: 1.7rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+  .author-mark { display: grid; width: 3rem; height: 3rem; place-items: center; border: 1px solid var(--category-accent); color: var(--category-accent); font-family: var(--font-serif); }
+  .author-card p { margin: 0; color: var(--color-text-soft); font-size: .85rem; line-height: 1.7; }
+  .author-card div > p:first-child { color: var(--color-text-muted); font-size: .68rem; letter-spacing: .12em; }
+  .author-card h2 { margin: .15rem 0 .45rem; color: var(--color-heading); font-family: var(--font-serif); }
+  .author-card a { display: inline-block; margin-top: .65rem; font-size: .82rem; font-weight: 700; text-decoration: none; }
+
+  .post-navigation { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 3rem; }
+  .post-navigation a { display: flex; min-width: 0; flex-direction: column; padding-top: 1rem; border-top: 1px solid var(--color-border); color: var(--color-heading); text-decoration: none; }
+  .post-navigation a.next { text-align: right; }
+  .post-navigation span { margin-bottom: .35rem; color: var(--color-text-muted); font-size: .7rem; }
+  .post-navigation strong { overflow: hidden; font-family: var(--font-serif); font-size: .9rem; line-height: 1.5; text-overflow: ellipsis; }
+  .post-navigation a:hover strong { color: var(--category-accent); }
+
+  .related-section { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(2rem, 7vw, 6rem); margin-top: clamp(5rem, 11vw, 9rem); padding-top: 2rem; border-top: 1px solid var(--color-border); }
+  .related-heading p { margin: 0 0 .6rem; color: var(--color-accent); font-size: .66rem; font-weight: 700; letter-spacing: .14em; }
+  .related-heading h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: 1.65rem; }
+  .related-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2.5rem; }
+
+  @media (max-width: 900px) {
+    .reading-layout { grid-template-columns: 1fr; }
+    .article-toc { position: static; grid-row: 1; }
+    .article-toc details { border-bottom: 1px solid var(--color-border); }
   }
-  
-  .back-button:hover {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
+
+  @media (max-width: 700px) {
+    .article-meta span + span::before { display: none; }
+    .book-facts { grid-template-columns: repeat(2, 1fr); }
+    .book-facts div:nth-child(3) { border-left: 0; border-top: 1px solid var(--color-border); }
+    .book-facts div:nth-child(4) { border-top: 1px solid var(--color-border); }
+    .quick-read { grid-template-columns: 1fr; gap: 1.2rem; padding: 1.5rem; }
+    .post-navigation { grid-template-columns: 1fr; }
+    .post-navigation a.next { text-align: left; }
+    .related-section { grid-template-columns: 1fr; }
+    .related-grid { grid-template-columns: 1fr; }
   }
-  
-  .article-header { margin-bottom: 3rem; padding-bottom: 3rem; border-bottom: 2px solid var(--color-border); }
-  
-  .article-category { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
-  
-  .article-title {
-    font-size: 2rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 1rem;
-  }
-  
-  .post-meta {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-  }
-  
-  .article-content { font-size: 1.125rem; line-height: 1.8; }
-  .article-content :global(img) { max-width: 100%; border-radius: var(--radius-md); margin: 2rem 0; }
 </style>

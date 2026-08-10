@@ -5,6 +5,15 @@ description: 深度解读《The Effective Engineer》核心理念：杠杆率思
 keywords: [高效工程师, 杠杆率, 软件工程效率, 读书笔记, Edmond Lau, 工程师效能]
 tags: [读书笔记, 效率, 软件工程]
 author: DoggyDad
+category: reading-notes
+bookTitle: The Effective Engineer
+bookAuthor: Edmond Lau
+recommendedFor: 软件工程师、技术负责人
+rating: 5
+takeaways:
+  - 用“产生的影响 ÷ 投入的时间”评估任务，优先做高杠杆率工作。
+  - 把学习、反馈和向优秀同事观察当作长期投资，而不是额外负担。
+  - 自动化、文档化和模板化重复工作，让一次投入持续产生价值。
 ---
 
 # 高效工程师的杠杆率思维：从时间管理到价值创造
@@ -97,7 +106,3 @@ git push origin main
 - 《深度工作》- Cal Newport
 - 《与时间做朋友》- 李笑来
 - 《程序员修炼之道》- Andrew Hunt, David Thomas
-
----
-
-*最后更新：2024-12-10*
