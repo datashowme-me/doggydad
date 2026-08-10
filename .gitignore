@@ -10,6 +10,9 @@ dist-ssr/
 audit-comparison/
 verification/
 
+# Local draft/example posts
+src/content/posts/general/getting-started.md
+
 # Editor directories
 .vscode/*
 !.vscode/extensions.json
