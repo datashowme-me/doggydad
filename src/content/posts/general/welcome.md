@@ -51,7 +51,7 @@ const techStack = {
 如果你对我的文章有任何想法或建议，欢迎通过以下方式联系我：
 
 - 💼 LinkedIn: [Peng Zhao](https://linkedin.com/in/peng-zhao-mei)
-- 🐦 X (Twitter): [@Hjfjfjsj](https://x.com/Hjfjfjsj)
+- 🐦 X (Twitter): [@zhaodatagrowth](https://x.com/zhaodatagrowth)
 - 💻 GitHub: [pzhao16me](https://github.com/pzhao16me)
 
 ## 最后
