@@ -4,6 +4,8 @@ interface Props {
   description?: string;
   keywords?: string[];
   noindex?: boolean;
+  breadcrumbs?: { name: string; url: string }[];
+  structuredData?: Record<string, unknown>[];
   article?: {
     publishedTime?: string | Date;
     updatedTime?: string | Date;
@@ -19,6 +21,8 @@ const {
   description = '记录技术、阅读与个人思考的长期博客',
   keywords,
   noindex = false,
+  breadcrumbs = [],
+  structuredData = [],
   article
 } = Astro.props;
 
@@ -36,6 +40,77 @@ const toISO = (value?: string | Date) => {
 
 const publishedTimeISO = toISO(article?.publishedTime);
 const updatedTimeISO = toISO(article?.updatedTime) || publishedTimeISO;
+const websiteId = `${siteUrl}/#website`;
+const personId = `${siteUrl}/#person`;
+const pageId = `${canonicalURL.toString()}#webpage`;
+const articleId = `${canonicalURL.toString()}#article`;
+const breadcrumbId = `${canonicalURL.toString()}#breadcrumb`;
+
+const breadcrumbSchema = breadcrumbs.length > 0 ? {
+  '@type': 'BreadcrumbList',
+  '@id': breadcrumbId,
+  itemListElement: breadcrumbs.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: item.name,
+    item: new URL(item.url, Astro.site).toString()
+  }))
+} : undefined;
+
+const jsonLdGraph = [
+  {
+    '@type': 'WebSite',
+    '@id': websiteId,
+    name: 'DoggyDad',
+    url: siteUrl,
+    description: '把复杂的技术与思想，写成可以反复读的中文长期笔记。',
+    inLanguage: 'zh-CN',
+    publisher: { '@id': personId },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}/search/?q={search_term_string}`,
+      'query-input': 'required name=search_term_string'
+    }
+  },
+  {
+    '@type': 'Person',
+    '@id': personId,
+    name: 'DoggyDad',
+    url: `${siteUrl}/about/`,
+    sameAs: ['https://x.com/zhaodatagrowth', 'https://github.com/pzhao16me', 'https://linkedin.com/in/peng-zhao-mei'],
+    knowsAbout: ['软件工程', 'AI 工具', '读书笔记', '计算机科学史', '图灵奖']
+  },
+  {
+    '@type': 'WebPage',
+    '@id': pageId,
+    url: canonicalURL.toString(),
+    name: title,
+    description,
+    isPartOf: { '@id': websiteId },
+    inLanguage: 'zh-CN',
+    author: { '@id': personId },
+    ...(breadcrumbSchema ? { breadcrumb: { '@id': breadcrumbId } } : {})
+  },
+  ...(article ? [{
+    '@type': 'BlogPosting',
+    '@id': articleId,
+    mainEntityOfPage: { '@id': pageId },
+    headline: title,
+    name: title,
+    description,
+    url: canonicalURL.toString(),
+    inLanguage: 'zh-CN',
+    author: { '@id': personId },
+    publisher: { '@id': personId },
+    datePublished: publishedTimeISO,
+    dateModified: updatedTimeISO,
+    keywords: article.tags?.join(', '),
+    articleSection: article.section,
+    image: `${siteUrl}/og-image.svg`
+  }] : []),
+  ...(breadcrumbSchema ? [breadcrumbSchema] : []),
+  ...structuredData
+];
 
 const navItems = [
   { href: withBase('/'), label: '首页', active: pathname === withBase('/') },
@@ -87,33 +162,7 @@ const navItems = [
 
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': article ? 'BlogPosting' : 'WebSite',
-      name: title,
-      headline: title,
-      description,
-      url: canonicalURL.toString(),
-      inLanguage: 'zh-CN',
-      author: {
-        '@type': 'Person',
-        name: 'DoggyDad',
-        url: 'https://linkedin.com/in/peng-zhao-mei',
-        sameAs: ['https://x.com/zhaodatagrowth', 'https://github.com/pzhao16me']
-      },
-      publisher: { '@type': 'Person', name: 'DoggyDad' },
-      ...(article ? {
-        datePublished: publishedTimeISO,
-        dateModified: updatedTimeISO,
-        keywords: article.tags?.join(', '),
-        articleSection: article.section,
-        image: `${siteUrl}/og-image.svg`,
-        mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.toString() }
-      } : {
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: `${siteUrl}/search/?q={search_term_string}`,
-          'query-input': 'required name=search_term_string'
-        }
-      })
+      '@graph': jsonLdGraph
     })} />
 
     <!-- Google tag (gtag.js) -->

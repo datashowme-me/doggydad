@@ -27,6 +27,65 @@ const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.
 const published = post.data.date || post.data.publishDate;
 const updated = post.data.updatedDate;
 const showUpdated = updated && new Date(updated).getTime() !== new Date(published).getTime();
+const postUrl = new URL(withBase(`/posts/${post.slug}/`), Astro.site).toString();
+const bookId = `${postUrl}#book`;
+const reviewId = `${postUrl}#review`;
+const profileId = `${postUrl}#profile`;
+const personId = `${postUrl}#person`;
+const extractProfileName = (title = '') => title
+  .replace(/^图灵奖第[^|｜]+[|｜]\s*/, '')
+  .split(/[：:—-]/)[0]
+  .trim();
+const profileName = extractProfileName(post.data.title);
+const structuredData = [
+  ...(post.data.bookTitle ? [
+    {
+      '@type': 'Book',
+      '@id': bookId,
+      name: post.data.bookTitle,
+      author: post.data.bookAuthor ? { '@type': 'Person', name: post.data.bookAuthor } : undefined,
+      inLanguage: 'en',
+      url: post.data.sourceUrl
+    },
+    {
+      '@type': 'Review',
+      '@id': reviewId,
+      url: postUrl,
+      name: post.data.title,
+      reviewBody: post.data.description,
+      datePublished: new Date(published).toISOString(),
+      author: { '@type': 'Person', name: post.data.author || 'DoggyDad' },
+      itemReviewed: { '@id': bookId },
+      ...(typeof post.data.rating === 'number' ? {
+        reviewRating: {
+          '@type': 'Rating',
+          ratingValue: post.data.rating,
+          bestRating: 5,
+          worstRating: 0
+        }
+      } : {})
+    }
+  ] : []),
+  ...(categoryKey === 'turing-award' && profileName ? [
+    {
+      '@type': 'ProfilePage',
+      '@id': profileId,
+      url: postUrl,
+      name: post.data.title,
+      description: post.data.description,
+      inLanguage: 'zh-CN',
+      about: { '@id': personId }
+    },
+    {
+      '@type': 'Person',
+      '@id': personId,
+      name: profileName,
+      description: post.data.description,
+      subjectOf: { '@id': profileId },
+      knowsAbout: post.data.tags
+    }
+  ] : [])
+];
 ---
 
 <BaseLayout
@@ -39,6 +98,12 @@ const showUpdated = updated && new Date(updated).getTime() !== new Date(publishe
     tags: post.data.tags,
     section: category.name
   }}
+  breadcrumbs={[
+    { name: '首页', url: withBase('/') },
+    { name: category.name, url: withBase(`/category/${categoryKey}/`) },
+    { name: post.data.title, url: withBase(`/posts/${post.slug}/`) }
+  ]}
+  structuredData={structuredData}
 >
   <article class="article-page">
     <nav class="breadcrumbs" aria-label="面包屑">
@@ -78,6 +143,22 @@ const showUpdated = updated && new Date(updated).getTime() !== new Date(publishe
         </ol>
       </section>
     )}
+
+    <section class="ai-readable-summary" aria-labelledby="ai-readable-summary-title">
+      <div>
+        <p>ANSWER-FIRST SUMMARY</p>
+        <h2 id="ai-readable-summary-title">本文回答什么问题</h2>
+      </div>
+      <div>
+        <p>{post.data.description}</p>
+        <ul>
+          <li>主题分类：{category.name}</li>
+          {post.data.tags?.length > 0 && <li>关键词：{post.data.tags.join('、')}</li>}
+          {post.data.bookTitle && <li>关联书籍：{post.data.bookTitle}{post.data.bookAuthor ? `，作者 ${post.data.bookAuthor}` : ''}</li>}
+          {categoryKey === 'turing-award' && profileName && <li>人物实体：{profileName}</li>}
+        </ul>
+      </div>
+    </section>
 
     <div class="reading-layout">
       <div class="article-main">
@@ -182,6 +263,12 @@ const showUpdated = updated && new Date(updated).getTime() !== new Date(publishe
   .quick-read ol { margin: 0; padding-left: 1.25rem; }
   .quick-read li { margin-bottom: .75rem; padding-left: .3rem; line-height: 1.7; }
   .quick-read li:last-child { margin-bottom: 0; }
+
+  .ai-readable-summary { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; margin: 0 0 clamp(3rem, 7vw, 5.5rem); padding: 1.5rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+  .ai-readable-summary p { margin: 0; color: var(--color-text-soft); line-height: 1.75; }
+  .ai-readable-summary div > p:first-child { margin: 0 0 .5rem; color: var(--category-accent); font-size: .65rem; font-weight: 700; letter-spacing: .14em; }
+  .ai-readable-summary h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: 1.45rem; }
+  .ai-readable-summary ul { margin: 1rem 0 0; padding-left: 1.1rem; color: var(--color-text-muted); font-size: .86rem; line-height: 1.7; }
 
   .reading-layout { display: grid; grid-template-columns: minmax(0, 760px) minmax(12rem, 1fr); align-items: start; gap: clamp(3rem, 8vw, 8rem); }
   .article-main { min-width: 0; }
