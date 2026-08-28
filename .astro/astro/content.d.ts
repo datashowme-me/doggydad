@@ -239,6 +239,13 @@ declare module 'astro:content' {
   collection: "posts";
   data: InferEntrySchema<"posts">
 } & { render(): Render[".md"] };
+"tech-learning/microduck-china-buying-usage-guide.md": {
+	id: "tech-learning/microduck-china-buying-usage-guide.md";
+  slug: "tech-learning/microduck-china-buying-usage-guide";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
 "tech-learning/omarchy-ai-developer-os.md": {
 	id: "tech-learning/omarchy-ai-developer-os.md";
   slug: "tech-learning/omarchy-ai-developer-os";
