@@ -104,6 +104,8 @@ const structuredData = [
     { name: post.data.title, url: withBase(`/posts/${post.slug}/`) }
   ]}
   structuredData={structuredData}
+  previousUrl={olderPost ? withBase(`/posts/${olderPost.slug}/`) : undefined}
+  nextUrl={newerPost ? withBase(`/posts/${newerPost.slug}/`) : undefined}
 >
   <article class="article-page">
     <nav class="breadcrumbs" aria-label="面包屑">

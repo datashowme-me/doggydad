@@ -8,9 +8,25 @@ const posts = await getCollection('posts');
 const sortedPosts = posts.sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
 const featuredPost = sortedPosts[0];
 const latestPosts = sortedPosts.slice(1, 9);
+const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
+  '@type': 'ListItem',
+  position: index + 1,
+  url: new URL(withBase(`/posts/${post.slug}/`), Astro.site).toString(),
+  name: post.data.title
+}));
 ---
 
-<BaseLayout title="DoggyDad — 读书、技术与计算机科学人物" description="把复杂的技术与思想，写成可以反复读的笔记。">
+<BaseLayout
+  title="DoggyDad — 读书、技术与计算机科学人物"
+  description="把复杂的技术与思想，写成可以反复读的笔记。"
+  structuredData={[{
+    '@type': 'CollectionPage',
+    '@id': `${new URL(withBase('/'), Astro.site).toString()}#collection`,
+    name: 'DoggyDad 最新文章',
+    description: '读书笔记、技术学习与计算机科学人物文章。',
+    mainEntity: { '@type': 'ItemList', itemListElement: homeItems }
+  }]}
+>
   <section class="home-hero">
     <div>
       <p class="eyebrow">DOGGYDAD / LONG-TERM NOTES</p>

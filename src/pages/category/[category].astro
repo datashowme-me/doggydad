@@ -14,9 +14,26 @@ const allPosts = await getCollection('posts');
 const posts = allPosts
   .filter((post) => (post.data.category || post.slug.split('/')[0]) === category)
   .sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
+const categoryUrl = new URL(withBase(`/category/${category}/`), Astro.site).toString();
+const categoryItems = posts.map((post, index) => ({
+  '@type': 'ListItem',
+  position: index + 1,
+  url: new URL(withBase(`/posts/${post.slug}/`), Astro.site).toString(),
+  name: post.data.title
+}));
 ---
 
-<BaseLayout title={`${categoryInfo.name} — DoggyDad`} description={categoryInfo.description}>
+<BaseLayout
+  title={`${categoryInfo.name} — DoggyDad`}
+  description={categoryInfo.description}
+  structuredData={[{
+    '@type': 'CollectionPage',
+    '@id': `${categoryUrl}#collection`,
+    name: categoryInfo.name,
+    description: categoryInfo.description,
+    mainEntity: { '@type': 'ItemList', itemListElement: categoryItems }
+  }]}
+>
   <header class="category-header" style={`--category-accent:${categoryInfo.accent}`}>
     <p class="eyebrow">CATEGORY / {category.toUpperCase()}</p>
     <div>
