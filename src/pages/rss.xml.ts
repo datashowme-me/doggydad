@@ -8,7 +8,7 @@ const escapeXml = (value: string) => value.replace(/[<>&'\"]/g, (character) => (
 
 export const GET: APIRoute = async ({ site: astroSite }) => {
   const posts = (await getCollection('posts')).sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
-  const origin = astroSite || new URL('https://doggydad.pages.dev');
+  const origin = astroSite || new URL('https://wordsmaster.app');
   const site = new URL(import.meta.env.BASE_URL, origin).toString().replace(/\/$/, '');
   const items = posts.map((post) => `
     <item>

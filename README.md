@@ -78,7 +78,8 @@ Markdown 正文可以从 `#` 开始；构建时会自动将正文中的第一个
 
 - 代码仓库：GitHub
 - 部署平台：Cloudflare Pages
-- 站点：`https://doggydad.pages.dev`
+- 正式站点：`https://wordsmaster.app`
+- Pages 默认地址：`https://doggydad.pages.dev`
 - 基础路径：`/`
 - 输出模式：静态页面
 - 构建产物：`dist/`
@@ -98,6 +99,6 @@ Markdown 正文可以从 `#` 开始；构建时会自动将正文中的第一个
 npm run deploy
 ```
 
-如果绑定自定义域名，设置 `SITE_URL=https://你的域名` 后重新构建并部署，以便 Canonical URL、Sitemap、RSS 和分享信息指向正式域名。
+默认 `SITE_URL` 为 `https://wordsmaster.app`，以便 Canonical URL、Sitemap、RSS 和分享信息指向正式域名；需要预览其他域名时可通过 `SITE_URL` 覆盖。
 
 `wrangler.jsonc` 和 `public/_headers` 分别保存 Pages 输出目录与基础安全／缓存响应头。

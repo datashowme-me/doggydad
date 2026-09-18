@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = ({ site }) => {
-  const sitemap = new URL(`${import.meta.env.BASE_URL}sitemap-index.xml`, site || 'https://doggydad.pages.dev');
-  const llms = new URL(`${import.meta.env.BASE_URL}llms.txt`, site || 'https://doggydad.pages.dev');
+  const sitemap = new URL(`${import.meta.env.BASE_URL}sitemap-index.xml`, site || 'https://wordsmaster.app');
+  const llms = new URL(`${import.meta.env.BASE_URL}llms.txt`, site || 'https://wordsmaster.app');
   const robotsTxt = `User-agent: *
 Allow: /
 

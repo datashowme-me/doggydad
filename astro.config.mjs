@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import remarkDemoteFirstHeading from './src/lib/remark-demote-first-heading.mjs';
 
-const site = process.env.SITE_URL || 'https://doggydad.pages.dev';
+const site = process.env.SITE_URL || 'https://wordsmaster.app';
 
 export default defineConfig({
   site,

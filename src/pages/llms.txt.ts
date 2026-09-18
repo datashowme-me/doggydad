@@ -8,7 +8,7 @@ const SITE_DESCRIPTION = 'DoggyDad 是一个中文长期笔记博客，主题包
 const escapeText = (value = '') => value.replace(/\s+/g, ' ').trim();
 
 export const GET: APIRoute = async ({ site: astroSite }) => {
-  const origin = astroSite || new URL('https://doggydad.pages.dev');
+  const origin = astroSite || new URL('https://wordsmaster.app');
   const posts = (await getCollection('posts'))
     .sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
 

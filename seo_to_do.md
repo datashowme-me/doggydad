@@ -6,20 +6,20 @@
 
 ## 1. Google Search Console
 
-- 添加站点资源：`https://doggydad.pages.dev/`
-- 提交 sitemap：`https://doggydad.pages.dev/sitemap-index.xml`
+- 添加站点资源：`https://wordsmaster.app/`
+- 提交 sitemap：`https://wordsmaster.app/sitemap-index.xml`
 - 检查「网页索引」中的未收录原因。
 - 检查「抓取统计信息」里是否存在 4xx、5xx、重定向异常或 robots 拦截。
 - 用「网址检查」测试以下关键 URL：
-  - `https://doggydad.pages.dev/`
-  - `https://doggydad.pages.dev/category/reading-notes/`
-  - `https://doggydad.pages.dev/posts/reading-notes/effective-engineer/`
-  - `https://doggydad.pages.dev/llms.txt`
+  - `https://wordsmaster.app/`
+  - `https://wordsmaster.app/category/reading-notes/`
+  - `https://wordsmaster.app/posts/reading-notes/effective-engineer/`
+  - `https://wordsmaster.app/llms.txt`
 
 ## 2. Bing Webmaster Tools
 
-- 添加站点资源：`https://doggydad.pages.dev/`
-- 提交 sitemap：`https://doggydad.pages.dev/sitemap-index.xml`
+- 添加站点资源：`https://wordsmaster.app/`
+- 提交 sitemap：`https://wordsmaster.app/sitemap-index.xml`
 - 检查 Bingbot 抓取错误、索引覆盖、重复标题/描述等提示。
 
 ## 3. Cloudflare crawler / bot 访问检查
@@ -72,10 +72,10 @@
 
 ## 6. 自定义域名
 
-当前站点使用 `doggydad.pages.dev`。如果后续有独立域名，建议：
+正式站点使用 `wordsmaster.app`。域名切换后检查：
 
-- 将 Astro `SITE_URL` 和 Cloudflare Pages 生产域名切到正式域名。
-- 301 从旧域名跳到正式域名。
+- 确认 Astro `SITE_URL` 和 Cloudflare Pages 生产域名均为正式域名。
+- 评估是否需要从 `doggydad.pages.dev` 301 跳转到正式域名。
 - 在 GSC / Bing 里重新提交正式域名。
 - 检查 canonical、sitemap、RSS、OG URL 是否全部变成正式域名。
 
