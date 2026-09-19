@@ -13,13 +13,16 @@
 - 首页和分类页补充 CollectionPage + ItemList，帮助搜索引擎理解内容集合和文章层级。
 - 文章页补充 `rel="prev"` / `rel="next"`、作者和更新时间元数据。
 - 文章页具备面包屑、目录、相关文章、相邻文章和作者介绍等内部链接入口。
+- Google Search Console 已验证站点并提交 `https://wordsmaster.app/sitemap-index.xml`。
+- GA4 数据流 `G-MH2WPDF6VY` 已收到站点过去 48 小时的数据。
+- 关键词与内容集群规划已记录在 `seo_keyword_map.md`。
 
 ## 阶段一：索引基础（上线后立即执行）
 
 ### Google Search Console
 
-1. 添加网址资源：`https://wordsmaster.app/`
-2. 提交：`https://wordsmaster.app/sitemap-index.xml`
+1. 已添加网址资源：`https://wordsmaster.app/`
+2. 已提交：`https://wordsmaster.app/sitemap-index.xml`
 3. 用网址检查测试首页、四个分类页、至少三篇文章和 `/llms.txt`。
 4. 记录未收录原因、抓取错误和重复 canonical 页面。
 
@@ -85,7 +88,7 @@ https://wordsmaster.app/llms.txt
 
 - Google Search Console 验证和 sitemap 提交。
 - Bing Webmaster Tools 验证和 sitemap 提交。
-- GA4 与 Search Console 关联。
+- GA4 与 Search Console 关联（当前 GA4 中没有可用的 Search Console 属性，需确认两个服务使用的是同一个 Google 账号和站点资源）。
 - Cloudflare crawler / WAF / AI Crawl Control 检查。
 - 训练型 AI crawler 的允许或阻止策略决策。
 
