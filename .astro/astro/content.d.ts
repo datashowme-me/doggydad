@@ -155,6 +155,216 @@ declare module 'astro:content' {
   collection: "posts";
   data: InferEntrySchema<"posts">
 } & { render(): Render[".md"] };
+"investment/01-value-investing-vs-speculation.md": {
+	id: "investment/01-value-investing-vs-speculation.md";
+  slug: "investment/01-value-investing-vs-speculation";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/02-circle-of-competence.md": {
+	id: "investment/02-circle-of-competence.md";
+  slug: "investment/02-circle-of-competence";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/03-investor-temperament.md": {
+	id: "investment/03-investor-temperament.md";
+  slug: "investment/03-investor-temperament";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/04-investing-as-entropy-reduction.md": {
+	id: "investment/04-investing-as-entropy-reduction.md";
+  slug: "investment/04-investing-as-entropy-reduction";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/05-mr-market.md": {
+	id: "investment/05-mr-market.md";
+  slug: "investment/05-mr-market";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/06-margin-of-safety.md": {
+	id: "investment/06-margin-of-safety.md";
+  slug: "investment/06-margin-of-safety";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/07-opportunity-cost-and-fiduciary-duty.md": {
+	id: "investment/07-opportunity-cost-and-fiduciary-duty.md";
+  slug: "investment/07-opportunity-cost-and-fiduciary-duty";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/08-civilization-2-5-and-confusion.md": {
+	id: "investment/08-civilization-2-5-and-confusion.md";
+  slug: "investment/08-civilization-2-5-and-confusion";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/09-middle-income-trap.md": {
+	id: "investment/09-middle-income-trap.md";
+  slug: "investment/09-middle-income-trap";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/10-hong-kong-credit-system.md": {
+	id: "investment/10-hong-kong-credit-system.md";
+  slug: "investment/10-hong-kong-credit-system";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/11-consumption-and-sustainable-growth.md": {
+	id: "investment/11-consumption-and-sustainable-growth.md";
+  slug: "investment/11-consumption-and-sustainable-growth";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/12-ai-macro-and-micro-investing.md": {
+	id: "investment/12-ai-macro-and-micro-investing.md";
+  slug: "investment/12-ai-macro-and-micro-investing";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/13-five-principles-of-stock-investing.md": {
+	id: "investment/13-five-principles-of-stock-investing.md";
+  slug: "investment/13-five-principles-of-stock-investing";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/14-four-sources-of-economic-moat.md": {
+	id: "investment/14-four-sources-of-economic-moat.md";
+  slug: "investment/14-four-sources-of-economic-moat";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/15-industry-moat-differences.md": {
+	id: "investment/15-industry-moat-differences.md";
+  slug: "investment/15-industry-moat-differences";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/16-moat-and-compound-growth.md": {
+	id: "investment/16-moat-and-compound-growth.md";
+  slug: "investment/16-moat-and-compound-growth";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/17-when-to-sell-stocks.md": {
+	id: "investment/17-when-to-sell-stocks.md";
+  slug: "investment/17-when-to-sell-stocks";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/18-four-financial-moat-metrics.md": {
+	id: "investment/18-four-financial-moat-metrics.md";
+  slug: "investment/18-four-financial-moat-metrics";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/19-reading-financial-statements.md": {
+	id: "investment/19-reading-financial-statements.md";
+  slug: "investment/19-reading-financial-statements";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/20-dcf-intrinsic-value.md": {
+	id: "investment/20-dcf-intrinsic-value.md";
+  slug: "investment/20-dcf-intrinsic-value";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/21-value-traps-and-fraud.md": {
+	id: "investment/21-value-traps-and-fraud.md";
+  slug: "investment/21-value-traps-and-fraud";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/22-quant-alpha.md": {
+	id: "investment/22-quant-alpha.md";
+  slug: "investment/22-quant-alpha";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/23-backtesting-and-overfitting.md": {
+	id: "investment/23-backtesting-and-overfitting.md";
+  slug: "investment/23-backtesting-and-overfitting";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/24-quant-black-box-modules.md": {
+	id: "investment/24-quant-black-box-modules.md";
+  slug: "investment/24-quant-black-box-modules";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/25-derivatives-basics.md": {
+	id: "investment/25-derivatives-basics.md";
+  slug: "investment/25-derivatives-basics";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/26-derivatives-market-participants.md": {
+	id: "investment/26-derivatives-market-participants.md";
+  slug: "investment/26-derivatives-market-participants";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/27-probability-and-kelly.md": {
+	id: "investment/27-probability-and-kelly.md";
+  slug: "investment/27-probability-and-kelly";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/28-common-investment-pitfalls.md": {
+	id: "investment/28-common-investment-pitfalls.md";
+  slug: "investment/28-common-investment-pitfalls";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/29-partnership-and-project-risks.md": {
+	id: "investment/29-partnership-and-project-risks.md";
+  slug: "investment/29-partnership-and-project-risks";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
+"investment/30-personal-wealth-building.md": {
+	id: "investment/30-personal-wealth-building.md";
+  slug: "investment/30-personal-wealth-building";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
 "reading-notes/effective-engineer.md": {
 	id: "reading-notes/effective-engineer.md";
   slug: "reading-notes/effective-engineer";
