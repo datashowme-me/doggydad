@@ -14,6 +14,11 @@ export const categories = {
     description: '记录工具、工程实践与正在形成的新技术范式。',
     accent: '#315f59'
   },
+  investment: {
+    name: '投资笔记',
+    description: '从价值投资、企业分析到量化交易，建立可复用的投资判断框架。',
+    accent: '#41633f'
+  },
   general: {
     name: '随笔',
     description: '关于学习、工作与日常观察的零散记录。',
