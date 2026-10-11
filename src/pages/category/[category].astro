@@ -13,7 +13,9 @@ const categoryInfo = categories[category];
 const allPosts = await getCollection('posts');
 const posts = allPosts
   .filter((post) => (post.data.category || post.slug.split('/')[0]) === category)
-  .sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
+  .sort((a, b) => category === 'investment'
+    ? a.slug.localeCompare(b.slug, 'en', { numeric: true })
+    : getPostDate(b).getTime() - getPostDate(a).getTime());
 const categoryUrl = new URL(withBase(`/category/${category}/`), Astro.site).toString();
 const categoryItems = posts.map((post, index) => ({
   '@type': 'ListItem',

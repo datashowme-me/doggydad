@@ -19,7 +19,9 @@ const minutes = readingTime(post.body);
 const related = relatedPosts(post, allPosts, 3);
 const categoryPosts = allPosts
   .filter((item) => getPostCategory(item) === categoryKey)
-  .sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
+  .sort((a, b) => categoryKey === 'investment'
+    ? b.slug.localeCompare(a.slug, 'en', { numeric: true })
+    : getPostDate(b).getTime() - getPostDate(a).getTime());
 const currentIndex = categoryPosts.findIndex((item) => item.slug === post.slug);
 const newerPost = currentIndex > 0 ? categoryPosts[currentIndex - 1] : undefined;
 const olderPost = currentIndex >= 0 ? categoryPosts[currentIndex + 1] : undefined;
