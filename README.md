@@ -35,6 +35,23 @@ npm run preview
 
 构建产物位于 `dist/`。
 
+## WordKey 英语练习模块
+
+源码位于 `apps/wordkey/`，以普通目录纳入当前仓库管理，不包含独立 `.git`、原仓库提交历史或 Git 子模块。模块保留自己的依赖和构建产物，不改变主站的 Astro 构建及部署。
+
+```bash
+npm --prefix apps/wordkey install
+npm run dev:wordkey
+npm run check:wordkey
+npm run build:wordkey
+```
+
+WordKey 构建产物位于 `apps/wordkey/dist/`，独立发布到 `learn.wordsmaster.app`，不会随主站构建发布。会员、兑换码和付费次数限制已移除。AI 接口使用限流和 D1 原子预算预留保护，每月全站预算按 ¥30 保守控制；详见 `apps/wordkey/README.md`。实际部署状态以 Cloudflare 和线上验证为准。
+
+执行 `npm --prefix apps/wordkey run test:free-access` 可检查源码未重新引入付费限制（不替代浏览器交互测试）。
+
+不要提交真实环境变量；模块的 `.env.example` 仅作为配置模板。
+
 ## 添加文章
 
 在 `src/content/posts/<category>/` 下创建 Markdown 文件。基础字段：

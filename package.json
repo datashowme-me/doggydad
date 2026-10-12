@@ -3,6 +3,9 @@
   "type": "module",
   "version": "2.0.0",
   "scripts": {
+    "dev:wordkey": "npm --prefix apps/wordkey run dev",
+    "build:wordkey": "npm --prefix apps/wordkey run build",
+    "check:wordkey": "npm --prefix apps/wordkey run lint",
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",

@@ -1,0 +1,6 @@
+{
+  "name": "Qwerty Article Learner",
+  "description": "输入文章链接，智能解析文章生词并提供美音/英音发音、释义、例句与Qwerty打字默写练习。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
