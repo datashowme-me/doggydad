@@ -8,6 +8,7 @@ takeaways: ['护城河是抵抗竞争的机制，不是优秀公司的形容词�
 ---
 
 公司赚钱，可能因为需求突然增加，也可能因为竞争者暂时缺货。护城河要回答一个更难的问题：当别人看到这里有利润并尝试进入时，这家公司凭什么还能保持有吸引力的回报？
+![企业护城河保护核心业务免受竞争侵蚀](/images/posts/investment/14-four-sources-of-economic-moat.jpg)
 
 常见讨论会列出无形资产、转换成本、网络效应和成本优势。需要补充的是，[Morningstar 的分类](https://www.morningstar.com/investing-definitions/economic-moat)还包括“有效规模”，因此“四大来源”是一个方便的分析入口，并不是完整且唯一的定律。下面的情景，是对这些机制的分析示例。
 
