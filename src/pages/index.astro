@@ -45,6 +45,22 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     ))}
   </nav>
 
+  <section class="game-module" aria-labelledby="game-module-title">
+    <div class="game-copy">
+      <p class="eyebrow">WORDKEY / PLAY &amp; LEARN</p>
+      <h2 id="game-module-title">把单词练习，变成一场键盘挑战。</h2>
+      <p>跟着节奏敲出单词，在真实词库与文章语境中练习拼写、听力和词义。练习免费，打开就能开始。</p>
+      <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer">开始单词游戏 <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="game-preview" aria-hidden="true">
+      <div class="game-preview-top"><span>WORDKEY</span><span>练习中</span></div>
+      <div class="game-word"><span>learn</span><i></i></div>
+      <div class="game-keys"><kbd>L</kbd><kbd>E</kbd><kbd>A</kbd><kbd>R</kbd><kbd>N</kbd></div>
+      <div class="game-progress"><span></span></div>
+      <div class="game-meta"><span>准确率 <strong>98%</strong></span><span>连续 <strong>12</strong></span></div>
+    </div>
+  </section>
+
   {featuredPost && (
     <section class="featured-section" aria-labelledby="featured-title">
       <div class="section-heading">
@@ -82,6 +98,28 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
   .category-index strong { margin-top: 1.8rem; font-family: var(--font-serif); font-size: 1.2rem; }
   .category-index small { margin-top: .5rem; color: var(--color-text-muted); line-height: 1.6; }
 
+  .game-module { position: relative; display: grid; grid-template-columns: 1fr minmax(16rem, .72fr); align-items: center; gap: clamp(2rem, 8vw, 7rem); overflow: hidden; margin-top: clamp(3rem, 7vw, 6rem); padding: clamp(2rem, 6vw, 4.5rem); border: 1px solid var(--color-border); border-radius: .35rem; background: var(--color-surface-raised); }
+  .game-copy { max-width: 36rem; }
+  .game-copy .eyebrow { margin-bottom: 1.1rem; }
+  .game-copy h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(1.9rem, 4vw, 3.3rem); letter-spacing: -.04em; line-height: 1.12; text-wrap: balance; }
+  .game-copy > p:not(.eyebrow) { max-width: 34rem; margin: 1.1rem 0 1.7rem; color: var(--color-text-soft); line-height: 1.8; }
+  .game-copy > a { display: inline-flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-radius: .2rem; background: var(--color-heading); color: var(--color-bg); font-size: .9rem; font-weight: 700; text-decoration: none; transition: transform .2s ease, opacity .2s ease; }
+  .game-copy > a:hover { transform: translateY(-2px); opacity: .9; }
+  .game-copy > a span { color: #d6aa67; font-size: 1.15rem; }
+  .game-preview { max-width: 25rem; width: 100%; justify-self: end; padding: 1.15rem 1.25rem 1rem; border: 1px solid var(--color-border); border-radius: .3rem; background: var(--color-bg); box-shadow: 0 1.2rem 3rem rgb(40 36 29 / 9%); transform: rotate(1.5deg); }
+  .game-preview-top, .game-meta { display: flex; align-items: center; justify-content: space-between; color: var(--color-text-muted); font-size: .65rem; letter-spacing: .08em; }
+  .game-preview-top span:first-child { color: var(--color-accent); font-weight: 800; }
+  .game-word { display: flex; align-items: center; gap: .16rem; margin: 1.5rem 0 1rem; color: var(--color-heading); font-family: var(--font-serif); font-size: 2.6rem; font-weight: 700; letter-spacing: .08em; }
+  .game-word i { width: .08rem; height: 2.35rem; background: var(--color-accent); animation: game-caret 1s steps(2, start) infinite; }
+  .game-keys { display: flex; gap: .38rem; }
+  .game-keys kbd { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border: 1px solid var(--color-border); border-bottom-width: 3px; border-radius: .25rem; color: var(--color-heading); font: 700 .8rem var(--font-sans); }
+  .game-keys kbd:nth-child(2), .game-keys kbd:nth-child(3) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg)); }
+  .game-progress { height: .22rem; margin: 1rem 0 .8rem; overflow: hidden; border-radius: 1rem; background: var(--color-border); }
+  .game-progress span { display: block; width: 68%; height: 100%; border-radius: inherit; background: var(--color-accent); }
+  .game-meta { font-size: .7rem; letter-spacing: 0; }
+  .game-meta strong { margin-left: .2rem; color: var(--color-heading); font-variant-numeric: tabular-nums; }
+  @keyframes game-caret { to { visibility: hidden; } }
+
   .featured-section, .latest-section { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(2rem, 7vw, 6rem); padding-top: clamp(4rem, 9vw, 7.5rem); }
   .section-heading h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: 1.7rem; letter-spacing: -.025em; }
   .post-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
@@ -94,6 +132,8 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     .category-index { grid-template-columns: repeat(2, 1fr); }
     .category-index a:nth-child(2) { border-right: 0; }
     .category-index a:nth-child(-n+2) { border-bottom: 1px solid var(--color-border); }
+    .game-module { grid-template-columns: 1fr; gap: 2.5rem; padding: 1.5rem; }
+    .game-preview { justify-self: start; }
     .featured-section, .latest-section { grid-template-columns: 1fr; gap: 1rem; }
     .post-list { grid-template-columns: 1fr; }
     .all-posts-link { grid-column: auto; }
