@@ -148,6 +148,13 @@ declare module 'astro:content' {
   collection: "posts";
   data: InferEntrySchema<"posts">
 } & { render(): Render[".md"] };
+"general/uric-acid-fructose-metabolism.md": {
+	id: "general/uric-acid-fructose-metabolism.md";
+  slug: "general/uric-acid-fructose-metabolism";
+  body: string;
+  collection: "posts";
+  data: InferEntrySchema<"posts">
+} & { render(): Render[".md"] };
 "general/welcome.md": {
 	id: "general/welcome.md";
   slug: "general/welcome";
