@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --game-controls-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  --browser-ui-bottom: 0px;
+  --game-controls-bottom: max(0.5rem, calc(env(safe-area-inset-bottom, 0px) + var(--browser-ui-bottom)));
 }
 
 @layer utilities {
@@ -63,7 +64,10 @@ body {
    visual viewport. Keep primary game actions above that chrome in portrait. */
 @media (max-width: 767px) and (orientation: portrait) {
   :root {
-    --game-controls-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(3.75rem, 8dvh, 4.75rem));
+    --game-controls-bottom: max(
+      calc(env(safe-area-inset-bottom, 0px) + var(--browser-ui-bottom)),
+      calc(env(safe-area-inset-bottom, 0px) + clamp(3.75rem, 8dvh, 4.75rem))
+    );
   }
 }
 

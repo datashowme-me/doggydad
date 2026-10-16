@@ -100,6 +100,30 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(claimedAchievements));
   }, [claimedAchievements]);
 
+  // iOS Safari and Chrome can overlay variable-height browser chrome on top
+  // of the layout viewport. Track the visual viewport so controls stay clear.
+  useEffect(() => {
+    const viewport = window.visualViewport;
+
+    const syncBrowserUiInset = () => {
+      const visibleBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+      const bottomOcclusion = Math.max(0, window.innerHeight - visibleBottom);
+      document.documentElement.style.setProperty('--browser-ui-bottom', `${Math.ceil(bottomOcclusion)}px`);
+    };
+
+    syncBrowserUiInset();
+    window.addEventListener('resize', syncBrowserUiInset);
+    viewport?.addEventListener('resize', syncBrowserUiInset);
+    viewport?.addEventListener('scroll', syncBrowserUiInset);
+
+    return () => {
+      window.removeEventListener('resize', syncBrowserUiInset);
+      viewport?.removeEventListener('resize', syncBrowserUiInset);
+      viewport?.removeEventListener('scroll', syncBrowserUiInset);
+      document.documentElement.style.removeProperty('--browser-ui-bottom');
+    };
+  }, []);
+
   const showNotice = (msg: string) => {
     setNoticeMessage(msg);
     setTimeout(() => {
