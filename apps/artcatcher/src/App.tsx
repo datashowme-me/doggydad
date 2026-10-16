@@ -266,8 +266,8 @@ export default function App() {
       )}
 
       {/* Floating Status & Instruction Pills */}
-      <div className="absolute top-20 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 backdrop-blur-md text-xs text-slate-300">
+      <div className="absolute top-16 sm:top-20 left-2 right-2 sm:left-4 sm:right-4 flex items-center justify-end sm:justify-between pointer-events-none z-10">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 backdrop-blur-md text-xs text-slate-300">
           <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
           <span>
             {gameState === 'IDLE' && (lockedPrize ? `🎯 准心已锁定 [${lockedPrize.name}]，按空格键或红钮下爪！` : '使用摇杆/WASD移动天车，空白处可 360° 拖动旋转视角')}
@@ -287,9 +287,10 @@ export default function App() {
             sound.playClick();
             setIsHowToPlayOpen(true);
           }}
-          className="pointer-events-auto px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 backdrop-blur-md text-xs text-slate-300 hover:text-white hover:border-amber-500/50 transition-colors"
+          className="pointer-events-auto min-h-10 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 backdrop-blur-md text-xs text-slate-300 hover:text-white hover:border-amber-500/50 transition-colors"
         >
-          操作指引 💡
+          <span className="sm:hidden">帮助</span>
+          <span className="hidden sm:inline">操作指引 💡</span>
         </button>
       </div>
 

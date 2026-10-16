@@ -93,7 +93,8 @@ export class ClawMachineGame {
     // 2. Camera: pulled back slightly and looking at center so resting claw and gantry are 100% visible!
     const aspect = container.clientWidth / container.clientHeight;
     this.camera = new THREE.PerspectiveCamera(46, aspect, 0.1, 50);
-    this.camera.position.set(0, 2.3, 5.1);
+    this.applyCameraPose(new THREE.Vector3(0, 2.3, 5.1), new THREE.Vector3(0, 1.85, 0));
+    this.camera.position.copy(this.targetCamPos);
 
     // 3. Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -107,9 +108,9 @@ export class ClawMachineGame {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
-    this.controls.target.set(0, 1.85, 0);
+    this.controls.target.copy(this.targetCamLookAt);
     this.controls.minDistance = 2.4;
-    this.controls.maxDistance = 6.8;
+    this.controls.maxDistance = aspect < 0.75 ? 11 : 6.8;
     this.controls.minPolarAngle = 0.15; // Avoid going under ceiling/floor
     this.controls.maxPolarAngle = Math.PI * 0.48; // Avoid looking from underground
 
@@ -714,30 +715,39 @@ export class ClawMachineGame {
     switch (angle) {
       case 'FRONT':
         // Front view comfortably frames entire cabinet from bottom floor to gantry & resting claw
-        this.targetCamPos.set(0, 2.3, 5.1);
-        this.targetCamLookAt.set(0, 1.85, 0);
+        this.applyCameraPose(new THREE.Vector3(0, 2.3, 5.1), new THREE.Vector3(0, 1.85, 0));
         break;
       case 'ISOMETRIC':
         // 45 degree isometric perspective gives immediate, crystal-clear 3D depth perception!
-        this.targetCamPos.set(2.7, 3.1, 3.7);
-        this.targetCamLookAt.set(0, 1.7, 0);
+        this.applyCameraPose(new THREE.Vector3(2.7, 3.1, 3.7), new THREE.Vector3(0, 1.7, 0));
         break;
       case 'TOP_DOWN':
         // Top-down overhead view for precise (X, Z) coordinate alignment
-        this.targetCamPos.set(0, 5.5, 0.3);
-        this.targetCamLookAt.set(0, 1.0, 0);
+        this.applyCameraPose(new THREE.Vector3(0, 5.5, 0.3), new THREE.Vector3(0, 1.0, 0));
         break;
       case 'SIDE':
         // Side glass view for inspecting front-to-back depth
-        this.targetCamPos.set(4.6, 2.4, 0.0);
-        this.targetCamLookAt.set(0, 1.8, 0);
+        this.applyCameraPose(new THREE.Vector3(4.6, 2.4, 0), new THREE.Vector3(0, 1.8, 0));
         break;
       case 'CLOSE_UP':
         // Close-up follow camera focused right on the claw
-        this.targetCamPos.set(this.gantryPos.x + 0.6, this.clawY + 0.5, this.gantryPos.z + 1.6);
-        this.targetCamLookAt.set(this.gantryPos.x, this.clawY - 0.2, this.gantryPos.z);
+        this.applyCameraPose(
+          new THREE.Vector3(this.gantryPos.x + 0.6, this.clawY + 0.5, this.gantryPos.z + 1.6),
+          new THREE.Vector3(this.gantryPos.x, this.clawY - 0.2, this.gantryPos.z),
+        );
         break;
     }
+  }
+
+  private applyCameraPose(position: THREE.Vector3, lookAt: THREE.Vector3) {
+    const portraitScale = this.getPortraitCameraScale();
+    this.targetCamLookAt.copy(lookAt);
+    this.targetCamPos.copy(lookAt).add(position.sub(lookAt).multiplyScalar(portraitScale));
+  }
+
+  private getPortraitCameraScale() {
+    const aspect = this.container.clientWidth / this.container.clientHeight;
+    return aspect < 0.75 ? Math.min(1.75, 0.82 / Math.max(aspect, 0.35)) : 1;
   }
 
   // --- Animation and Physics Update ---
@@ -1119,6 +1129,10 @@ export class ClawMachineGame {
     if (this.currentCameraAngle === 'CLOSE_UP') {
       this.targetCamPos.set(this.gantryPos.x + 0.5, this.clawY + 0.5, this.gantryPos.z + 1.6);
       this.targetCamLookAt.set(this.gantryPos.x, this.clawY - 0.2, this.gantryPos.z);
+      this.targetCamPos
+        .sub(this.targetCamLookAt)
+        .multiplyScalar(this.getPortraitCameraScale())
+        .add(this.targetCamLookAt);
       this.camera.position.lerp(this.targetCamPos, Math.min(dt * 5, 1));
       this.controls.target.lerp(this.targetCamLookAt, Math.min(dt * 5, 1));
       this.controls.update();
@@ -1143,6 +1157,10 @@ export class ClawMachineGame {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.controls.maxDistance = this.camera.aspect < 0.75 ? 11 : 6.8;
+    if (this.currentCameraAngle !== 'FREE') {
+      this.setCameraAngle(this.currentCameraAngle);
+    }
   };
 
   public resetToIdle() {

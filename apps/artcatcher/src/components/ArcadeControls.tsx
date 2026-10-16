@@ -128,13 +128,13 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
 
   const isBusy = gameState !== 'IDLE' && gameState !== 'MOVING';
 
-  const cameraButtons: { id: CameraAngle; label: string; badge?: string }[] = [
-    { id: 'ISOMETRIC', label: '45° 黄金立体', badge: '荐' },
-    { id: 'FRONT', label: '正面全景' },
-    { id: 'TOP_DOWN', label: '俯视对齐' },
-    { id: 'SIDE', label: '侧视进深' },
-    { id: 'CLOSE_UP', label: '爪斗特写' },
-    { id: 'FREE', label: '360° 自由' },
+  const cameraButtons: { id: CameraAngle; label: string; shortLabel: string; badge?: string }[] = [
+    { id: 'ISOMETRIC', label: '45° 黄金立体', shortLabel: '45°', badge: '荐' },
+    { id: 'FRONT', label: '正面全景', shortLabel: '正面' },
+    { id: 'TOP_DOWN', label: '俯视对齐', shortLabel: '俯视' },
+    { id: 'SIDE', label: '侧视进深', shortLabel: '侧面' },
+    { id: 'CLOSE_UP', label: '爪斗特写', shortLabel: '特写' },
+    { id: 'FREE', label: '360° 自由', shortLabel: '自由' },
   ];
 
   // Convert normalized [-1, 1] coords to radar percentage [5%, 95%]
@@ -143,22 +143,22 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
   const radarZPercent = Math.max(8, Math.min(92, ((clawCoords.normZ + 1) / 2) * 100));
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-2 pointer-events-none z-20">
+    <div className="absolute bottom-[max(.5rem,env(safe-area-inset-bottom))] left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 flex flex-col gap-2 pointer-events-none z-20">
       {/* Top Banner: Targeting Lock Status or Rotation Hint */}
       <div className="flex items-center justify-between pointer-events-none px-1">
         {lockedPrize ? (
-          <div className="pointer-events-auto flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/90 border border-emerald-500/70 shadow-lg shadow-emerald-900/40 text-emerald-200 text-xs font-semibold backdrop-blur-md animate-pulse">
-            <Target className="w-4 h-4 text-emerald-400" />
-            <span>准心已精准对齐: </span>
-            <span className="text-white font-bold">{lockedPrize.name}</span>
-            <span className="text-[10px] bg-emerald-500/30 px-2 py-0.5 rounded text-emerald-100">
+          <div className="pointer-events-auto flex min-w-0 items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950/90 border border-emerald-500/70 shadow-lg shadow-emerald-900/40 text-emerald-200 text-[11px] sm:text-xs font-semibold backdrop-blur-md animate-pulse">
+            <Target className="w-4 h-4 shrink-0 text-emerald-400" />
+            <span className="hidden sm:inline">准心已精准对齐: </span>
+            <span className="truncate text-white font-bold">{lockedPrize.name}</span>
+            <span className="hidden sm:inline text-[10px] bg-emerald-500/30 px-2 py-0.5 rounded text-emerald-100">
               进深锁定 ★ 可直接下爪
             </span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/75 border border-slate-700/50 backdrop-blur-md text-[11px] text-slate-300">
-            <Navigation className="w-3.5 h-3.5 text-cyan-400" />
-            <span>提示: 在画面空白处滑动/拖拽，可 360° 自由旋转视角确认进深</span>
+          <div className="flex min-w-0 items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/75 border border-slate-700/50 backdrop-blur-md text-[11px] text-slate-300">
+            <Navigation className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+            <span className="truncate"><span className="hidden sm:inline">提示: </span>滑动画面可旋转视角</span>
           </div>
         )}
 
@@ -172,9 +172,9 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
       </div>
 
       {/* Main Control Console Bar */}
-      <div className="flex flex-col md:flex-row items-end md:items-center justify-between gap-3 pointer-events-none">
+      <div className="grid w-full min-w-0 grid-cols-[9.75rem_minmax(0,1fr)] gap-2 md:flex md:flex-row md:items-center md:justify-between md:gap-3 pointer-events-none">
         {/* Left: Joystick + 2D Top-Down Depth Radar Station */}
-        <div className="pointer-events-auto bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl p-3 sm:p-4 shadow-2xl flex items-center gap-4">
+        <div className="pointer-events-auto col-start-1 row-start-2 bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl p-2 sm:p-4 shadow-2xl flex items-center gap-2 sm:gap-4 md:order-none">
           {/* Virtual Joystick */}
           <div className="flex flex-col items-center">
             <div
@@ -183,7 +183,7 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
-              className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-950 border-2 border-amber-500/40 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none transition-shadow ${
+              className={`relative w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-slate-950 border-2 border-amber-500/40 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none transition-shadow ${
                 isBusy ? 'opacity-50 cursor-not-allowed' : 'hover:border-amber-400 shadow-inner'
               }`}
             >
@@ -196,19 +196,20 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
                 style={{
                   transform: `translate(${stickPos.x}px, ${stickPos.y}px)`,
                 }}
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-2 border-amber-200 shadow-lg flex items-center justify-center transition-transform duration-75"
+                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-2 border-amber-200 shadow-lg flex items-center justify-center transition-transform duration-75"
               >
                 <Compass className="w-5 h-5 text-amber-950" />
               </div>
             </div>
             <span className="text-[10px] sm:text-[11px] text-slate-400 mt-1 font-medium">
-              3D 摇杆 / WASD
+              <span className="sm:hidden">移动</span>
+              <span className="hidden sm:inline">3D 摇杆 / WASD</span>
             </span>
           </div>
 
           {/* Top-Down Mini Depth Radar (Resolves 2D/3D depth ambiguity) */}
-          <div className="flex flex-col items-center border-l border-slate-800 pl-3">
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-950 border border-slate-700/80 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+          <div className="flex flex-col items-center border-l border-slate-800 pl-2 sm:pl-3">
+            <div className="relative w-14 h-14 sm:w-20 sm:h-20 bg-slate-950 border border-slate-700/80 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
               {/* Grid marks */}
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:10px_10px] opacity-40 pointer-events-none" />
 
@@ -235,7 +236,8 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
             </div>
             <span className="text-[10px] text-cyan-400 mt-1 font-semibold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              进深雷达
+              <span className="sm:hidden">进深</span>
+              <span className="hidden sm:inline">进深雷达</span>
             </span>
           </div>
 
@@ -279,7 +281,7 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
         </div>
 
         {/* Center: Multi-angle Camera Switcher with 45° Isometric & 360 Free Rotation */}
-        <div className="pointer-events-auto bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl px-2.5 py-1.5 sm:px-3 sm:py-2 shadow-2xl flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
+        <div className="pointer-events-auto col-span-2 row-start-1 min-w-0 max-w-full overflow-x-auto bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl px-1.5 py-1.5 sm:px-3 sm:py-2 shadow-2xl flex flex-nowrap items-center gap-1 sm:gap-1.5 justify-start md:w-auto md:flex-wrap md:justify-center md:overflow-visible">
           <div className="flex items-center gap-1 text-xs text-slate-400 mr-1 pl-1">
             <Eye className="w-3.5 h-3.5 text-amber-400" />
             <span className="hidden xl:inline font-medium">视角:</span>
@@ -291,13 +293,14 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
                 sound.playClick();
                 onSetCameraAngle(btn.id);
               }}
-              className={`relative px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+              className={`relative min-h-10 shrink-0 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
                 cameraAngle === btn.id
                   ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/30'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800'
               }`}
             >
-              <span>{btn.label}</span>
+              <span className="sm:hidden">{btn.shortLabel}</span>
+              <span className="hidden sm:inline">{btn.label}</span>
               {btn.badge && (
                 <span className="text-[9px] bg-rose-600 text-white font-bold px-1 rounded-full leading-tight">
                   {btn.badge}
@@ -308,17 +311,18 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
         </div>
 
         {/* Right: Big Illuminated Drop Arcade Button */}
-        <div className="pointer-events-auto flex items-center gap-3">
+        <div className="pointer-events-auto col-start-2 row-start-2 min-w-0 w-full self-center flex items-center justify-end">
           {coins <= 0 ? (
             <button
               onClick={() => {
                 sound.playCoin();
                 onInsertCoin();
               }}
-              className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-xl flex items-center gap-2 transition-all transform active:scale-95"
+              className="min-h-14 w-full max-w-36 justify-center px-2 sm:w-auto sm:max-w-none sm:px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2 transition-all transform active:scale-95"
             >
               <RotateCcw className="w-4 h-4" />
-              投币续局 (免费获取 5 币)
+              <span className="sm:hidden">免费投币</span>
+              <span className="hidden sm:inline">投币续局 (免费获取 5 币)</span>
             </button>
           ) : (
             <button
@@ -328,7 +332,7 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
                 }
               }}
               disabled={isBusy}
-              className={`group relative px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-black text-sm sm:text-base tracking-wide flex items-center gap-2.5 shadow-2xl transition-all transform active:scale-95 ${
+              className={`group relative min-h-14 w-full max-w-36 justify-center px-2 sm:w-auto sm:max-w-none sm:px-8 py-3 sm:py-4 rounded-2xl font-black text-sm sm:text-base tracking-wide flex items-center gap-1.5 sm:gap-2 shadow-2xl transition-all transform active:scale-95 ${
                 isBusy
                   ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
                   : 'bg-gradient-to-b from-rose-500 via-rose-600 to-rose-700 hover:from-rose-400 hover:to-rose-600 text-white border-2 border-rose-300/40 shadow-rose-900/50 hover:shadow-rose-600/40'
@@ -339,7 +343,8 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
                   !isBusy ? 'group-hover:translate-y-0.5' : ''
                 }`}
               />
-              <span>{isBusy ? '抓斗运作中...' : '下 爪 (DROP)'}</span>
+              <span className="sm:hidden">{isBusy ? '运作中' : '下爪'}</span>
+              <span className="hidden sm:inline">{isBusy ? '抓斗运作中...' : '下 爪 (DROP)'}</span>
               <span className="text-xs bg-black/25 px-2 py-0.5 rounded-md font-mono text-rose-200 hidden sm:inline">
                 SPACE
               </span>
