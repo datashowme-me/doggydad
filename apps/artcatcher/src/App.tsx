@@ -241,7 +241,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-950 font-sans select-none">
+    <div className="game-viewport relative overflow-hidden bg-slate-950 font-sans select-none">
       {/* Top Bar Header */}
       <Header
         coins={coins}

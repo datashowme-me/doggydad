@@ -143,7 +143,10 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
   const radarZPercent = Math.max(8, Math.min(92, ((clawCoords.normZ + 1) / 2) * 100));
 
   return (
-    <div className="absolute bottom-[max(.5rem,env(safe-area-inset-bottom))] left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 flex flex-col gap-2 pointer-events-none z-20">
+    <div
+      className="absolute left-2 right-2 sm:left-4 sm:right-4 flex flex-col gap-2 pointer-events-none z-20"
+      style={{ bottom: 'var(--game-controls-bottom)' }}
+    >
       {/* Top Banner: Targeting Lock Status or Rotation Hint */}
       <div className="flex items-center justify-between pointer-events-none px-1">
         {lockedPrize ? (
