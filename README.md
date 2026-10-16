@@ -17,7 +17,7 @@
 
 ## 本地运行
 
-需要 Node.js 18.17 或更高版本。
+需要 Node.js 20.19 或更高版本。
 
 ```bash
 npm install
@@ -51,6 +51,18 @@ WordKey 构建产物位于 `apps/wordkey/dist/`，独立发布到 `learn.wordsma
 执行 `npm --prefix apps/wordkey run test:free-access` 可检查源码未重新引入付费限制（不替代浏览器交互测试）。
 
 不要提交真实环境变量；模块的 `.env.example` 仅作为配置模板。
+
+## ArtCatcher 3D 游戏模块
+
+源码位于 `apps/artcatcher/`，以普通目录纳入当前仓库管理，不包含独立 `.git` 或 Git 子模块。主站构建时会先构建游戏，再将产物发布到 `/games/artcatcher/`。
+
+```bash
+npm run dev:artcatcher
+npm run check:artcatcher
+npm run build:artcatcher
+```
+
+上游仓库、固定提交号及导入说明记录在 `apps/artcatcher/README.md`。
 
 ## 添加文章
 

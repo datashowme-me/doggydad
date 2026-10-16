@@ -45,19 +45,42 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     ))}
   </nav>
 
-  <section class="game-module" aria-labelledby="game-module-title">
-    <div class="game-copy">
-      <p class="eyebrow">WORDKEY / PLAY &amp; LEARN</p>
-      <h2 id="game-module-title">把单词练习，变成一场键盘挑战。</h2>
-      <p>跟着节奏敲出单词，在真实词库与文章语境中练习拼写、听力和词义。练习免费，打开就能开始。</p>
-      <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer">开始单词游戏 <span aria-hidden="true">↗</span></a>
+  <section class="games-section" aria-labelledby="games-title">
+    <div class="section-heading games-heading">
+      <p>PLAYGROUND</p>
+      <h2 id="games-title">游戏实验室</h2>
     </div>
-    <div class="game-preview" aria-hidden="true">
-      <div class="game-preview-top"><span>WORDKEY</span><span>练习中</span></div>
-      <div class="game-word"><span>learn</span><i></i></div>
-      <div class="game-keys"><kbd>L</kbd><kbd>E</kbd><kbd>A</kbd><kbd>R</kbd><kbd>N</kbd></div>
-      <div class="game-progress"><span></span></div>
-      <div class="game-meta"><span>准确率 <strong>98%</strong></span><span>连续 <strong>12</strong></span></div>
+    <div class="game-grid">
+      <article class="game-card game-card-art">
+        <div class="game-card-copy">
+          <p class="eyebrow">ARTCATCHER / 3D ARCADE</p>
+          <h3>把世界名画，抓进你的收藏柜。</h3>
+          <p>操纵 3D 抓娃娃机，在不同视角中瞄准艺术手办，收集藏品并解锁成就。</p>
+          <a href={withBase('/games/artcatcher/')}>开始抓取 <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="claw-preview" aria-hidden="true">
+          <span class="claw-light"></span>
+          <span class="claw-arm"></span>
+          <span class="claw-prize">★</span>
+          <span class="claw-floor"></span>
+        </div>
+      </article>
+
+      <article class="game-card game-card-word">
+        <div class="game-card-copy">
+          <p class="eyebrow">WORDKEY / PLAY &amp; LEARN</p>
+          <h3>把单词练习，变成键盘挑战。</h3>
+          <p>跟着节奏敲出单词，在真实词库与文章语境中练习拼写、听力和词义。</p>
+          <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer">开始练习 <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="game-preview" aria-hidden="true">
+          <div class="game-preview-top"><span>WORDKEY</span><span>练习中</span></div>
+          <div class="game-word"><span>learn</span><i></i></div>
+          <div class="game-keys"><kbd>L</kbd><kbd>E</kbd><kbd>A</kbd><kbd>R</kbd><kbd>N</kbd></div>
+          <div class="game-progress"><span></span></div>
+          <div class="game-meta"><span>准确率 <strong>98%</strong></span><span>连续 <strong>12</strong></span></div>
+        </div>
+      </article>
     </div>
   </section>
 
@@ -98,14 +121,28 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
   .category-index strong { margin-top: 1.8rem; font-family: var(--font-serif); font-size: 1.2rem; }
   .category-index small { margin-top: .5rem; color: var(--color-text-muted); line-height: 1.6; }
 
-  .game-module { position: relative; display: grid; grid-template-columns: 1fr minmax(16rem, .72fr); align-items: center; gap: clamp(2rem, 8vw, 7rem); overflow: hidden; margin-top: clamp(3rem, 7vw, 6rem); padding: clamp(2rem, 6vw, 4.5rem); border: 1px solid var(--color-border); border-radius: .35rem; background: var(--color-surface-raised); }
-  .game-copy { max-width: 36rem; }
-  .game-copy .eyebrow { margin-bottom: 1.1rem; }
-  .game-copy h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(1.9rem, 4vw, 3.3rem); letter-spacing: -.04em; line-height: 1.12; text-wrap: balance; }
-  .game-copy > p:not(.eyebrow) { max-width: 34rem; margin: 1.1rem 0 1.7rem; color: var(--color-text-soft); line-height: 1.8; }
-  .game-copy > a { display: inline-flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-radius: .2rem; background: var(--color-heading); color: var(--color-bg); font-size: .9rem; font-weight: 700; text-decoration: none; transition: transform .2s ease, opacity .2s ease; }
-  .game-copy > a:hover { transform: translateY(-2px); opacity: .9; }
-  .game-copy > a span { color: #d6aa67; font-size: 1.15rem; }
+  .games-section { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(2rem, 7vw, 6rem); margin-top: clamp(3rem, 7vw, 6rem); }
+  .games-heading { align-self: start; }
+  .game-grid { display: grid; gap: 1rem; }
+  .game-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(13rem, .65fr); align-items: center; gap: 2rem; overflow: hidden; min-height: 21rem; padding: clamp(1.5rem, 4vw, 3rem); border: 1px solid var(--color-border); border-radius: .35rem; background: var(--color-surface-raised); }
+  .game-card-copy { position: relative; z-index: 1; max-width: 31rem; }
+  .game-card-copy .eyebrow { margin-bottom: 1rem; }
+  .game-card-copy h3 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(1.7rem, 3.5vw, 2.8rem); letter-spacing: -.04em; line-height: 1.12; text-wrap: balance; }
+  .game-card-copy > p:not(.eyebrow) { margin: 1rem 0 1.5rem; color: var(--color-text-soft); line-height: 1.75; }
+  .game-card-copy > a { display: inline-flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-radius: .2rem; background: var(--color-heading); color: var(--color-bg); font-size: .9rem; font-weight: 700; text-decoration: none; transition: transform .2s ease, opacity .2s ease; }
+  .game-card-copy > a:hover { transform: translateY(-2px); opacity: .9; }
+  .game-card-copy > a span { color: #d6aa67; font-size: 1.15rem; }
+  .game-card-art { background: linear-gradient(135deg, #171b28, #30283f); }
+  .game-card-art .eyebrow { color: #f4bd5f; }
+  .game-card-art h3 { color: #fff7e6; }
+  .game-card-art .game-card-copy > p:not(.eyebrow) { color: #c8c3d2; }
+  .game-card-art .game-card-copy > a { background: #f4bd5f; color: #211a18; }
+  .claw-preview { position: relative; width: min(100%, 16rem); aspect-ratio: 4 / 5; justify-self: center; border: 1px solid rgb(255 255 255 / 18%); border-radius: 6rem 6rem .5rem .5rem; background: radial-gradient(circle at 50% 72%, rgb(244 189 95 / 30%), transparent 36%), linear-gradient(rgb(255 255 255 / 8%), transparent); box-shadow: inset 0 0 2rem rgb(255 255 255 / 6%), 0 1.5rem 3rem rgb(0 0 0 / 25%); }
+  .claw-light { position: absolute; top: 1rem; left: 50%; width: 4.5rem; height: .45rem; border-radius: 1rem; background: #f4bd5f; box-shadow: 0 0 1.5rem #f4bd5f; transform: translateX(-50%); }
+  .claw-arm { position: absolute; top: 1.4rem; left: 50%; width: .2rem; height: 7.4rem; background: #d7d2c9; transform: translateX(-50%); }
+  .claw-arm::after { position: absolute; bottom: -.9rem; left: 50%; width: 3rem; height: 1.8rem; border: .28rem solid #d7d2c9; border-top: 0; border-radius: 0 0 3rem 3rem; content: ''; transform: translateX(-50%); }
+  .claw-prize { position: absolute; right: 22%; bottom: 2.3rem; display: grid; width: 4.2rem; height: 4.2rem; place-items: center; border-radius: 42% 52% 45% 55%; background: #5468a9; color: #f4bd5f; font-size: 1.5rem; transform: rotate(8deg); }
+  .claw-floor { position: absolute; right: 8%; bottom: 1.3rem; left: 8%; height: .35rem; border-radius: 50%; background: rgb(244 189 95 / 45%); box-shadow: 0 0 1.5rem rgb(244 189 95 / 25%); }
   .game-preview { max-width: 25rem; width: 100%; justify-self: end; padding: 1.15rem 1.25rem 1rem; border: 1px solid var(--color-border); border-radius: .3rem; background: var(--color-bg); box-shadow: 0 1.2rem 3rem rgb(40 36 29 / 9%); transform: rotate(1.5deg); }
   .game-preview-top, .game-meta { display: flex; align-items: center; justify-content: space-between; color: var(--color-text-muted); font-size: .65rem; letter-spacing: .08em; }
   .game-preview-top span:first-child { color: var(--color-accent); font-weight: 800; }
@@ -132,7 +169,9 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     .category-index { grid-template-columns: repeat(2, 1fr); }
     .category-index a:nth-child(2) { border-right: 0; }
     .category-index a:nth-child(-n+2) { border-bottom: 1px solid var(--color-border); }
-    .game-module { grid-template-columns: 1fr; gap: 2.5rem; padding: 1.5rem; }
+    .games-section { grid-template-columns: 1fr; gap: 1rem; }
+    .game-card { grid-template-columns: 1fr; }
+    .claw-preview { width: min(13rem, 75%); }
     .game-preview { justify-self: start; }
     .featured-section, .latest-section { grid-template-columns: 1fr; gap: 1rem; }
     .post-list { grid-template-columns: 1fr; }

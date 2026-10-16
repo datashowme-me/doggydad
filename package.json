@@ -2,13 +2,20 @@
   "name": "doggydad-blog",
   "type": "module",
   "version": "2.0.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
+    "postinstall": "npm --prefix apps/artcatcher ci",
     "dev:wordkey": "npm --prefix apps/wordkey run dev",
     "build:wordkey": "npm --prefix apps/wordkey run build",
     "check:wordkey": "npm --prefix apps/wordkey run lint",
+    "dev:artcatcher": "npm --prefix apps/artcatcher run dev",
+    "build:artcatcher": "npm --prefix apps/artcatcher run build",
+    "check:artcatcher": "npm --prefix apps/artcatcher run lint",
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "npm run build:artcatcher && astro build",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=doggydad",
     "deploy:cloudflare": "npm run deploy",
     "preview": "astro preview",
