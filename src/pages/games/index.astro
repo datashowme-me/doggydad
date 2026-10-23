@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="游戏模块 | DoggyDad"
+  description="DoggyDad 游戏模块：浏览器里就能玩的小游戏，支持摄像头手势与鼠标 / 触控操作，全部本地运行。"
+  keywords={['小游戏', '切水果', '体感游戏', '手势识别', '浏览器游戏']}
+>
+  <section class="games-page">
+    <div class="games-hero">
+      <h1>🎮 游戏模块</h1>
+      <p>浏览器里就能玩的小游戏。支持摄像头手势识别与鼠标 / 触控板操作，全部在本地运行，无需安装。</p>
+    </div>
+
+    <div class="game-grid">
+      <a class="game-card" href="/doggydad/games/fruitwave/">
+        <div class="game-cover">🍉🍓🍍</div>
+        <div class="game-body">
+          <h2>FruitWave · 切水果</h2>
+          <p>90 秒极限切水果，12 种水果等你挑战。有摄像头就伸出食指挥砍，没有摄像头用鼠标 / 触控板一样能玩。</p>
+          <div class="game-tags">
+            <span>手势识别</span>
+            <span>鼠标 / 触控</span>
+            <span>本地运行</span>
+          </div>
+          <div class="game-cta">开始游戏 →</div>
+        </div>
+      </a>
+
+      <a class="game-card" href="/doggydad/games/artcatcher/">
+        <div class="game-cover">🧸🎁🦄</div>
+        <div class="game-body">
+          <h2>ArtCatcher · 3D 抓娃娃</h2>
+          <p>Three.js 打造的 3D 艺术抓娃娃机：投币、操控机械爪、收集艺术手办，还有成就和图鉴等着你。</p>
+          <div class="game-tags">
+            <span>3D</span>
+            <span>键盘 / 触屏摇杆</span>
+            <span>收藏图鉴</span>
+          </div>
+          <div class="game-cta">开始游戏 →</div>
+        </div>
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .games-hero {
+    margin-bottom: 2.5rem;
+  }
+
+  .games-hero h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .games-hero p {
+    color: var(--color-text-muted);
+    max-width: 720px;
+  }
+
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .game-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  a.game-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .game-cover {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 4rem;
+    background: linear-gradient(135deg, #0f1c36, #16264a);
+  }
+
+  .game-body {
+    padding: 1.25rem;
+  }
+
+  .game-body h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+  }
+
+  .game-body p {
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .game-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+  }
+
+  .game-tags span {
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  .game-cta {
+    color: var(--color-primary);
+    font-weight:600;
+    font-size: 0.92rem;
+  }
+</style>
