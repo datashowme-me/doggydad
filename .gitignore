@@ -35,3 +35,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# AI Studio & Local runtime
+.astro/
+.aistudio/
+metadata.json
+public/assets/
+bun.lock
+

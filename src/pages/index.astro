@@ -2,12 +2,20 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
-import { categories, getPostDate, withBase } from '../lib/blog';
+import { categories, getPostCategory, getPostDate, withBase } from '../lib/blog';
 
 const posts = await getCollection('posts');
 const sortedPosts = posts.sort((a, b) => getPostDate(b).getTime() - getPostDate(a).getTime());
 const featuredPost = sortedPosts[0];
 const latestPosts = sortedPosts.slice(1, 9);
+
+// 统计各大分类真实文章数量
+const categoryCounts = posts.reduce((acc, post) => {
+  const cat = getPostCategory(post);
+  acc[cat] = (acc[cat] || 0) + 1;
+  return acc;
+}, {} as Record<string, number>);
+
 const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
   '@type': 'ListItem',
   position: index + 1,
@@ -17,164 +25,2191 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
 ---
 
 <BaseLayout
-  title="DoggyDad — 读书、技术与计算机科学人物"
-  description="把复杂的技术与思想，写成可以反复读的笔记。"
+  title="WordsMaster — 读书、技术与计算机科学先驱"
+  description="WordsMaster (wordsmaster.app)：把复杂的技术与思想，写成可以反复读的笔记。包含深度博客长文、ArtCatcher 3D 游戏与 WordKey 单词键盘挑战。"
   structuredData={[{
     '@type': 'CollectionPage',
     '@id': `${new URL(withBase('/'), Astro.site).toString()}#collection`,
-    name: 'DoggyDad 最新文章',
-    description: '读书笔记、技术学习与计算机科学人物文章。',
+    name: 'WordsMaster 首页',
+    description: '读书笔记、技术学习、计算机科学先驱人物、3D 游戏与单词挑战。',
     mainEntity: { '@type': 'ItemList', itemListElement: homeItems }
   }]}
 >
-  <section class="home-hero">
-    <div>
-      <p class="eyebrow">DOGGYDAD / LONG-TERM NOTES</p>
-      <h1>把复杂的技术与思想，<em>写成可以反复读的笔记。</em></h1>
-    </div>
-    <p class="hero-intro">这里记录读过的书、正在变化的技术，以及塑造计算机科学的人。少一点结论堆砌，多一点来龙去脉。</p>
-  </section>
-
-  <nav class="category-index" aria-label="内容分类">
-    {Object.entries(categories).map(([key, category], index) => (
-      <a href={withBase(`/category/${key}/`)}>
-        <span>0{index + 1}</span>
-        <strong>{category.name}</strong>
-        <small>{category.description}</small>
-      </a>
-    ))}
-  </nav>
-
-  <section class="games-section" aria-labelledby="games-title">
-    <div class="section-heading games-heading">
-      <p>PLAYGROUND</p>
-      <h2 id="games-title">游戏实验室</h2>
-    </div>
-    <div class="game-grid">
-      <article class="game-card game-card-art">
-        <div class="game-card-copy">
-          <p class="eyebrow">ARTCATCHER / 3D ARCADE</p>
-          <h3>把世界名画，抓进你的收藏柜。</h3>
-          <p>操纵 3D 抓娃娃机，在不同视角中瞄准艺术手办，收集藏品并解锁成就。</p>
-          <a href={withBase('/games/artcatcher/')}>开始抓取 <span aria-hidden="true">→</span></a>
+  <!-- 左右平衡的精致 Editorial Hero 区域 -->
+  <header class="home-hero">
+    <div class="hero-grid">
+      <!-- 左侧：网站叙事与定位 -->
+      <div class="hero-left">
+        <div class="hero-kicker">
+          <span class="kicker-brand">WORDSMASTER</span>
+          <span class="kicker-divider" aria-hidden="true">/</span>
+          <span class="kicker-subtitle">读书 · 技术 · 实验室</span>
         </div>
-        <div class="claw-preview" aria-hidden="true">
-          <span class="claw-light"></span>
-          <span class="claw-arm"></span>
-          <span class="claw-prize">★</span>
-          <span class="claw-floor"></span>
+        <h1 class="hero-title">
+          把复杂的技术与思想，<span class="hero-highlight">写成可以反复读的笔记。</span>
+        </h1>
+        <p class="hero-desc">
+          记录读过的经典著作、正在演进的技术范式与塑造计算机科学的人。少一点浮躁结论，多一点来龙去脉与可交互动手的实践。
+        </p>
+        <div class="hero-meta-bar" aria-label="全站统计">
+          <span class="meta-stat"><strong>{posts.length}</strong> 篇长期长文</span>
+          <span class="meta-sep" aria-hidden="true">·</span>
+          <span class="meta-stat"><strong>5</strong> 大知识专栏</span>
+          <span class="meta-sep" aria-hidden="true">·</span>
+          <span class="meta-stat"><strong>2</strong> 个可交互实验</span>
         </div>
-      </article>
-
-      <article class="game-card game-card-word">
-        <div class="game-card-copy">
-          <p class="eyebrow">WORDKEY / PLAY &amp; LEARN</p>
-          <h3>把单词练习，变成键盘挑战。</h3>
-          <p>跟着节奏敲出单词，在真实词库与文章语境中练习拼写、听力和词义。</p>
-          <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer">开始练习 <span aria-hidden="true">↗</span></a>
-        </div>
-        <div class="game-preview" aria-hidden="true">
-          <div class="game-preview-top"><span>WORDKEY</span><span>练习中</span></div>
-          <div class="game-word"><span>learn</span><i></i></div>
-          <div class="game-keys"><kbd>L</kbd><kbd>E</kbd><kbd>A</kbd><kbd>R</kbd><kbd>N</kbd></div>
-          <div class="game-progress"><span></span></div>
-          <div class="game-meta"><span>准确率 <strong>98%</strong></span><span>连续 <strong>12</strong></span></div>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  {featuredPost && (
-    <section class="featured-section" aria-labelledby="featured-title">
-      <div class="section-heading">
-        <p>最近更新</p>
-        <h2 id="featured-title">从这里开始</h2>
       </div>
-      <PostCard post={featuredPost} featured />
-    </section>
-  )}
 
-  <section class="latest-section" aria-labelledby="latest-title">
-    <div class="section-heading">
-      <p>ARCHIVE</p>
-      <h2 id="latest-title">最近文章</h2>
+      <!-- 右侧：每日先驱灵感卡（Echoes of Pioneers） -->
+      <div class="hero-right">
+        <div class="pioneer-quote-card" id="pioneer-card">
+          <div class="quote-header">
+            <div class="quote-badge">
+              <span class="quote-spark">✦</span>
+              <span>先驱回响 · PIONEER ECHOES</span>
+            </div>
+            <button type="button" class="quote-refresh-btn" id="quote-refresh-btn" title="换一条先驱思考" aria-label="切换下一条格言">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+              </svg>
+              <span>换一条</span>
+            </button>
+          </div>
+          <blockquote class="quote-body">
+            <p id="quote-text">“Simplicity is prerequisite for reliability.”</p>
+            <cite id="quote-translation">“简单，是软件系统可靠性的首要前提。”</cite>
+          </blockquote>
+          <div class="quote-footer">
+            <div class="quote-author-info">
+              <strong id="quote-author">Edsger W. Dijkstra</strong>
+              <small id="quote-award">1972 图灵奖得主 · 结构化程序设计先驱</small>
+            </div>
+            <a href={withBase('/posts/turing-award/07_1972_edsger_w_dijkstra/')} id="quote-link" class="quote-article-link">
+              <span>人物专访</span>
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="post-list">
-      {latestPosts.map((post) => <PostCard post={post} />)}
+  </header>
+
+  <!-- 首页三大核心 Tab 控制器 (Fluid Segmented Dock) -->
+  <div class="tabs-container">
+    <div class="tabs-sticky-dock">
+      <div class="tabs-toolbar">
+        <nav class="segmented-control" role="tablist" aria-label="首页内容板块切换">
+          <!-- 平滑滑动背景滑块 -->
+          <div class="segmented-indicator" id="segmented-indicator" aria-hidden="true"></div>
+
+          <button
+            type="button"
+            id="tab-btn-blog"
+            class="segmented-btn active"
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-blog"
+            data-tab="blog"
+          >
+            <svg class="btn-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+              <path d="M6 6h10"></path>
+              <path d="M6 10h10"></path>
+            </svg>
+            <span class="btn-title">博客文章</span>
+            <span class="btn-counter">{posts.length}</span>
+            <kbd class="key-shortcut" title="按键盘数字键 1 快速切换">1</kbd>
+          </button>
+
+          <button
+            type="button"
+            id="tab-btn-games"
+            class="segmented-btn"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-games"
+            data-tab="games"
+          >
+            <svg class="btn-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="12" x="2" y="6" rx="2"></rect>
+              <path d="M6 12h4"></path>
+              <path d="M8 10v4"></path>
+              <circle cx="15" cy="11" r="1"></circle>
+              <circle cx="18" cy="13" r="1"></circle>
+            </svg>
+            <span class="btn-title">游戏实验室</span>
+            <span class="btn-counter">3D 爪机</span>
+            <kbd class="key-shortcut" title="按键盘数字键 2 快速切换">2</kbd>
+          </button>
+
+          <button
+            type="button"
+            id="tab-btn-words"
+            class="segmented-btn"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-words"
+            data-tab="words"
+          >
+            <svg class="btn-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+              <path d="M6 10h.01"></path>
+              <path d="M10 10h.01"></path>
+              <path d="M14 10h.01"></path>
+              <path d="M18 10h.01"></path>
+              <path d="M8 14h8"></path>
+            </svg>
+            <span class="btn-title">单词练习</span>
+            <span class="btn-counter">WordKey</span>
+            <kbd class="key-shortcut" title="按键盘数字键 3 快速切换">3</kbd>
+          </button>
+        </nav>
+      </div>
     </div>
-    <a class="all-posts-link" href={withBase('/search/')}>浏览全部文章 <span aria-hidden="true">→</span></a>
-  </section>
+
+    <!-- ================= Tab 1: 博客文章 ================= -->
+    <section id="panel-blog" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-blog">
+      <!-- 5 大分类导航条（带精确收录篇数透出） -->
+      <nav class="category-strip" aria-label="内容专栏分类">
+        {Object.entries(categories).map(([key, category], index) => {
+          const count = categoryCounts[key] || 0;
+          return (
+            <a href={withBase(`/category/${key}/`)} class="category-strip-item" style={`--cat-color:${category.accent}`}>
+              <div class="cat-top">
+                <span class="cat-num">0{index + 1}</span>
+                <span class="cat-count-badge">{count} 篇</span>
+              </div>
+              <span class="cat-name">{category.name}</span>
+              <span class="cat-desc">{category.description}</span>
+            </a>
+          );
+        })}
+      </nav>
+
+      <!-- 精选推荐 -->
+      {featuredPost && (
+        <div class="featured-block">
+          <div class="block-header">
+            <span class="block-kicker">FEATURED HIGHLIGHT</span>
+            <h2 class="block-title">从这里开始</h2>
+          </div>
+          <PostCard post={featuredPost} featured />
+        </div>
+      )}
+
+      <!-- 最新文章列表 -->
+      <div class="archive-block">
+        <div class="block-header">
+          <span class="block-kicker">RECENT ARTICLES</span>
+          <h2 class="block-title">最新归档</h2>
+        </div>
+        <div class="post-grid">
+          {latestPosts.map((post) => <PostCard post={post} />)}
+        </div>
+        <div class="all-link-wrapper">
+          <a class="all-posts-btn" href={withBase('/search/')}>
+            <span>浏览全部 {posts.length} 篇归档文章</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Tab 2: 游戏实验室 ================= -->
+    <section id="panel-games" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-games">
+      <div class="games-hero-card">
+        <div class="game-info-col">
+          <div class="game-tag">
+            <span class="tag-accent">THREE.JS 3D ARCADE</span>
+            <span class="tag-sep">·</span>
+            <span class="tag-title">ARTCATCHER 物理爪机</span>
+          </div>
+          <h2 class="game-main-title">把世界名画，抓进你的私人收藏柜</h2>
+          <p class="game-main-desc">
+            基于真实 3D 物理引擎打造的抓娃娃机模拟器。在自由视角中操控机械爪精确下抓，收集梵高《星夜》、达芬奇《蒙娜丽莎》与限定潮玩手办，打造属于你的 3D 艺术展馆。
+          </p>
+          <div class="game-actions">
+            <a class="action-btn-primary" href={withBase('/games/artcatcher/')}>
+              <span>进入全屏独立游戏</span>
+              <span aria-hidden="true">→</span>
+            </a>
+            <button type="button" id="toggle-embed-game-btn" class="action-btn-outline">
+              <span id="embed-btn-text">在当前页快速试玩 ▾</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="game-visual-col" aria-hidden="true">
+          <div class="arcade-cabinet-silhouette">
+            <div class="arcade-glow"></div>
+            <div class="arcade-claw-rod"></div>
+            <div class="arcade-claw-head"></div>
+            <div class="arcade-prize-orb">🎨</div>
+            <div class="arcade-base-light"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 嵌入试玩视窗 (默认折叠) -->
+      <div id="embed-game-container" class="embed-game-box hidden">
+        <div class="embed-box-bar">
+          <div class="bar-left">
+            <span class="online-indicator"></span>
+            <span>ArtCatcher 3D 实时渲染沙盒</span>
+          </div>
+          <div class="bar-right">
+            <a href={withBase('/games/artcatcher/')} target="_blank" class="bar-btn">全屏新窗口 ↗</a>
+            <button type="button" id="close-embed-game-btn" class="bar-btn">收起试玩 ✕</button>
+          </div>
+        </div>
+        <div class="embed-box-viewport">
+          <iframe id="game-iframe" src="about:blank" data-src={withBase('/games/artcatcher/')} title="ArtCatcher 3D Game" loading="lazy"></iframe>
+        </div>
+      </div>
+
+      <!-- 游戏核心特性与按键控制指南 -->
+      <div class="features-trio">
+        <div class="trio-card">
+          <div class="trio-badge">01 · 真实物理</div>
+          <h3>双视角微调瞄准</h3>
+          <p>支持顶视全局机位与平视深度机位自由切换，精准把控抓手下潜深度与机械开合时机。</p>
+        </div>
+        <div class="trio-card">
+          <div class="trio-badge">02 · 名画图鉴</div>
+          <h3>微缩艺术展品</h3>
+          <p>收录梵高《星夜》、达芬奇《蒙娜丽莎》、向日葵名作手办，以及天线宝宝与小马宝莉限量玩偶。</p>
+        </div>
+        <div class="trio-card">
+          <div class="trio-badge">03 · 成就展柜</div>
+          <h3>360° 旋转博物馆</h3>
+          <p>成功抓获的手办永久入驻个人藏宝阁，支持实时旋转微距赏析，结算代币与成就奖励。</p>
+        </div>
+      </div>
+
+      <!-- 街机物理控台键位说明卡 -->
+      <div class="arcade-controls-guide">
+        <div class="guide-header">
+          <span class="guide-icon">🕹️</span>
+          <strong>街机控台键位说明 (Controls Guide)</strong>
+        </div>
+        <div class="guide-keys-row">
+          <div class="key-guide-item">
+            <kbd class="kbd-key">W</kbd><kbd class="kbd-key">A</kbd><kbd class="kbd-key">S</kbd><kbd class="kbd-key">D</kbd>
+            <span>平移机械抓臂</span>
+          </div>
+          <div class="key-guide-sep">|</div>
+          <div class="key-guide-item">
+            <kbd class="kbd-key kbd-space">Space 空格键</kbd>
+            <span>下潜落爪抓取</span>
+          </div>
+          <div class="key-guide-sep">|</div>
+          <div class="key-guide-item">
+            <kbd class="kbd-key">C</kbd>
+            <span>切换视角 (Cam)</span>
+          </div>
+          <div class="key-guide-sep">|</div>
+          <div class="key-guide-item">
+            <kbd class="kbd-key">Q</kbd> / <kbd class="kbd-key">E</kbd>
+            <span>旋转机位</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 游戏开发复盘深度文章推荐 -->
+      <div class="article-callout-card">
+        <div class="callout-badge">深度开发复盘</div>
+        <h3 class="callout-heading">Vibe Coding 游戏开发失败记：我让 AI 做一个苹果，最后得到了一套验收系统</h3>
+        <p class="callout-summary">
+          从 AI 提示词狂欢到 3D 抓娃娃机落地的工程反思：为什么技术验证会替代产品判断，又该如何把开发拉回真实体验？
+        </p>
+        <a href={withBase('/posts/tech-learning/vibe-coding-game-development-apple-failure/')} class="callout-action">
+          <span>阅读技术复盘长文</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ================= Tab 3: 单词练习 (WordKey) ================= -->
+    <section id="panel-words" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-words">
+      <div class="words-split-layout">
+        <!-- 左侧：理念与完整平台入口 -->
+        <div class="words-concept-col">
+          <div class="game-tag">
+            <span class="tag-accent">WORDKEY</span>
+            <span class="tag-sep">·</span>
+            <span class="tag-title">KEYBOARD DRILLS</span>
+          </div>
+          <h2 class="words-heading">把单词练习，变成有节奏的肌肉记忆</h2>
+          <p class="words-desc">
+            告别死记硬背。敲击真实键盘按键，在打字节奏与例句语境中掌握拼写、发音与词义。
+          </p>
+
+          <div class="pro-platform-box">
+            <div class="pro-box-header">
+              <span class="pro-crown">⚡</span>
+              <span class="pro-label">WordKey 独立全功能平台</span>
+            </div>
+            <p class="pro-box-desc">
+              收录 CET-4/6、考研英语、雅思托福与计算机专业真题语境短文，带艾宾浩斯复习曲线与生词本。
+            </p>
+            <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer" class="pro-link-btn">
+              <span>进入 WordKey 学习平台</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+            <span class="pro-extra-hint">零广告 · 无需登录 · 纯粹开放</span>
+          </div>
+        </div>
+
+        <!-- 右侧：首页即刻运行的高性能交互打字练习机 -->
+        <div class="words-trainer-col">
+          <div class="terminal-card" id="wordkey-trainer">
+            <!-- 终端顶部状态栏 -->
+            <div class="terminal-top">
+              <div class="terminal-status">
+                <span class="status-pulse"></span>
+                <span class="status-text">即时键盘挑战</span>
+              </div>
+              <div class="terminal-metrics">
+                <button type="button" class="sound-toggle-btn" id="sound-toggle-btn" title="开关机械按键音效" aria-label="切换按键音效">
+                  <span id="sound-icon">🔊</span>
+                  <span id="sound-label">按键音效</span>
+                </button>
+                <div class="metric-cell">
+                  <span class="metric-label">连击</span>
+                  <span class="metric-val" id="streak-counter">🔥 0</span>
+                </div>
+                <div class="metric-cell">
+                  <span class="metric-label">准确率</span>
+                  <span class="metric-val" id="accuracy-counter">100%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 词库主题切换标签 -->
+            <div class="deck-selector" role="radiogroup" aria-label="选择练习词库">
+              <button type="button" class="deck-btn active" data-deck="coder">💻 计算机技术</button>
+              <button type="button" class="deck-btn" data-deck="cognitive">🧠 认知模型</button>
+              <button type="button" class="deck-btn" data-deck="academic">🎓 雅思学术</button>
+            </div>
+
+            <!-- 单词拼写主展示区 -->
+            <div class="word-focus-area">
+              <div class="phonetic-row">
+                <span class="phonetic-text" id="display-phonetic">/ˈpærədaɪm/</span>
+                <button type="button" class="pronounce-icon-btn" id="pronounce-btn" aria-label="朗读发音" title="听真人发音 (TTS)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- 字母输入槽 -->
+              <div class="letters-row" id="letters-track"></div>
+
+              <!-- 释义与例句 -->
+              <div class="meaning-block">
+                <p class="meaning-text" id="display-translation">n. 范式；范例；认知框架</p>
+                <p class="sentence-text" id="display-sentence">
+                  "The shift to agentic AI signals a fundamental paradigm shift."
+                </p>
+              </div>
+            </div>
+
+            <!-- 终端底部操作与键盘捕获提示 -->
+            <div class="terminal-bottom">
+              <div class="input-catcher">
+                <kbd class="key-hint">物理键盘直接敲击输入</kbd>
+                <input type="text" id="hidden-word-input" class="hidden-field" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="打字输入框" />
+              </div>
+              <div class="terminal-controls">
+                <button type="button" id="skip-word-btn" class="ctrl-link">下一个 (Skip)</button>
+                <button type="button" id="reset-stats-btn" class="ctrl-link">重置统计</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 词库体系导览 -->
+      <div class="vocab-trio">
+        <div class="vocab-card">
+          <span class="vocab-tag">基础进阶</span>
+          <h3>CET-4 / CET-6 & 考研英语</h3>
+          <p>覆盖真题高频核心词，告别孤立背词法，在真实句子中理解词汇搭配与多重引申义。</p>
+        </div>
+        <div class="vocab-card">
+          <span class="vocab-tag">学术留学</span>
+          <h3>IELTS 雅思 & TOEFL 托福</h3>
+          <p>核心学术词汇与学术写作常用表达，针对听力辨音、快速拼写纠错与精准用词设计。</p>
+        </div>
+        <div class="vocab-card">
+          <span class="vocab-tag">工程师专属</span>
+          <h3>Coder 计算机专业英语</h3>
+          <p>系统架构、算法设计、数据库与日常开源社区常用技术术语，流畅阅读一手英文技术文档。</p>
+        </div>
+      </div>
+    </section>
+  </div>
 </BaseLayout>
 
+<script>
+  // ================= 1. 先驱格言随机轮播交互 =================
+  interface PioneerQuote {
+    quote: string;
+    translation: string;
+    author: string;
+    award: string;
+    link: string;
+  }
+
+  const PIONEER_QUOTES: PioneerQuote[] = [
+    {
+      quote: '“Simplicity is prerequisite for reliability.”',
+      translation: '“简单，是系统可靠性的首要前提。”',
+      author: 'Edsger W. Dijkstra',
+      award: '1972 图灵奖得主 · 结构化程序设计先驱',
+      link: '/posts/turing-award/07_1972_edsger_w_dijkstra/'
+    },
+    {
+      quote: '“Premature optimization is the root of all evil.”',
+      translation: '“过早的优化，是软件开发中一切灾难的根源。”',
+      author: 'Donald E. Knuth',
+      award: '1974 图灵奖得主 · 《计算机程序设计艺术》作者',
+      link: '/posts/turing-award/09_1974_donald_e_knuth/'
+    },
+    {
+      quote: '“A language that doesn\'t affect the way you think about programming, is not worth knowing.”',
+      translation: '“如果一门语言无法影响你的编程思维方式，那它就不值得学习。”',
+      author: 'Alan Perlis',
+      award: '1966 首届图灵奖得主 · 编译器与编程语言开拓者',
+      link: '/posts/turing-award/01_1966_alan_perlis/'
+    },
+    {
+      quote: '“We can only see a short distance ahead, but we can see plenty there that needs to be done.”',
+      translation: '“我们能看清的距离很短，但眼前已有太多值得做的事情。”',
+      author: 'Alan Turing',
+      award: '计算机科学之父 · 图灵机与人工智能先驱',
+      link: '/posts/turing-award/alan-turing/'
+    },
+    {
+      quote: '“The best way to predict the future is to invent it.”',
+      translation: '“预测未来的最好方法，就是亲手去发明它。”',
+      author: 'Alan Kay',
+      award: '2003 图灵奖得主 · 面向对象与图形界面先驱',
+      link: '/posts/turing-award/38_2003_alan_kay/'
+    }
+  ];
+
+  let currentQuoteIndex = 0;
+  const quoteText = document.getElementById('quote-text');
+  const quoteTranslation = document.getElementById('quote-translation');
+  const quoteAuthor = document.getElementById('quote-author');
+  const quoteAward = document.getElementById('quote-award');
+  const quoteLink = document.getElementById('quote-link') as HTMLAnchorElement | null;
+  const quoteRefreshBtn = document.getElementById('quote-refresh-btn');
+  const pioneerCard = document.getElementById('pioneer-card');
+
+  function renderQuote(index: number) {
+    const q = PIONEER_QUOTES[index];
+    if (!q || !quoteText || !quoteTranslation || !quoteAuthor || !quoteAward || !quoteLink) return;
+
+    pioneerCard?.classList.add('fade-anim');
+    quoteText.textContent = q.quote;
+    quoteTranslation.textContent = q.translation;
+    quoteAuthor.textContent = q.author;
+    quoteAward.textContent = q.award;
+    quoteLink.href = q.link;
+
+    setTimeout(() => {
+      pioneerCard?.classList.remove('fade-anim');
+    }, 200);
+  }
+
+  quoteRefreshBtn?.addEventListener('click', () => {
+    currentQuoteIndex = (currentQuoteIndex + 1) % PIONEER_QUOTES.length;
+    renderQuote(currentQuoteIndex);
+  });
+
+  // ================= 2. Tab 切换与滑动指示器 =================
+  const tabButtons = document.querySelectorAll<HTMLButtonElement>('.segmented-btn');
+  const tabPanels = document.querySelectorAll<HTMLElement>('.tab-panel');
+  const indicator = document.getElementById('segmented-indicator');
+
+  function updateIndicatorPosition(activeBtn: HTMLButtonElement) {
+    if (!indicator) return;
+    const nav = activeBtn.parentElement;
+    if (!nav) return;
+    const navRect = nav.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+    const leftOffset = btnRect.left - navRect.left;
+    const width = btnRect.width;
+
+    indicator.style.transform = `translateX(${leftOffset}px)`;
+    indicator.style.width = `${width}px`;
+  }
+
+  function switchTab(tabId: string, updateUrl = true) {
+    if (!['blog', 'games', 'words'].includes(tabId)) {
+      tabId = 'blog';
+    }
+
+    let activeBtn: HTMLButtonElement | null = null;
+    tabButtons.forEach((btn) => {
+      const isTarget = btn.getAttribute('data-tab') === tabId;
+      btn.classList.toggle('active', isTarget);
+      btn.setAttribute('aria-selected', String(isTarget));
+      if (isTarget) activeBtn = btn;
+    });
+
+    tabPanels.forEach((panel) => {
+      const isTarget = panel.id === `panel-${tabId}`;
+      panel.classList.toggle('active', isTarget);
+    });
+
+    if (activeBtn) {
+      updateIndicatorPosition(activeBtn);
+    }
+
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tabId);
+      window.history.replaceState({}, '', url.toString());
+    }
+
+    if (tabId === 'words') {
+      const hiddenInput = document.getElementById('hidden-word-input') as HTMLInputElement | null;
+      hiddenInput?.focus();
+    }
+  }
+
+  // 快捷键 1, 2, 3 秒切 Tab
+  window.addEventListener('keydown', (e) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (e.key === '1') {
+      e.preventDefault();
+      switchTab('blog');
+    } else if (e.key === '2') {
+      e.preventDefault();
+      switchTab('games');
+    } else if (e.key === '3') {
+      e.preventDefault();
+      switchTab('words');
+    }
+  });
+
+  // 初始化根据 URL 参数或 Hash 激活对应 Tab
+  const initialParams = new URLSearchParams(window.location.search);
+  const tabParam = initialParams.get('tab') || window.location.hash.replace('#', '');
+  if (tabParam && ['blog', 'games', 'words'].includes(tabParam)) {
+    switchTab(tabParam, false);
+  } else {
+    const defaultActiveBtn = document.querySelector<HTMLButtonElement>('.segmented-btn.active');
+    if (defaultActiveBtn) {
+      requestAnimationFrame(() => updateIndicatorPosition(defaultActiveBtn));
+    }
+  }
+
+  window.addEventListener('resize', () => {
+    const activeBtn = document.querySelector<HTMLButtonElement>('.segmented-btn.active');
+    if (activeBtn) updateIndicatorPosition(activeBtn);
+  });
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-tab');
+      if (targetTab) switchTab(targetTab);
+    });
+  });
+
+  // ================= 3. 游戏嵌入试玩 =================
+  const toggleEmbedBtn = document.getElementById('toggle-embed-game-btn');
+  const embedGameContainer = document.getElementById('embed-game-container');
+  const gameIframe = document.getElementById('game-iframe') as HTMLIFrameElement | null;
+  const embedBtnText = document.getElementById('embed-btn-text');
+  const closeEmbedBtn = document.getElementById('close-embed-game-btn');
+
+  function openEmbedGame() {
+    if (!embedGameContainer || !gameIframe) return;
+    embedGameContainer.classList.remove('hidden');
+    if (!gameIframe.src || gameIframe.src === 'about:blank') {
+      gameIframe.src = gameIframe.getAttribute('data-src') || '/games/artcatcher/';
+    }
+    if (embedBtnText) embedBtnText.textContent = '收起试玩窗口 ▴';
+    embedGameContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function closeEmbedGame() {
+    if (!embedGameContainer) return;
+    embedGameContainer.classList.add('hidden');
+    if (embedBtnText) embedBtnText.textContent = '在当前页快速试玩 ▾';
+  }
+
+  toggleEmbedBtn?.addEventListener('click', () => {
+    if (embedGameContainer?.classList.contains('hidden')) {
+      openEmbedGame();
+    } else {
+      closeEmbedGame();
+    }
+  });
+
+  closeEmbedBtn?.addEventListener('click', closeEmbedGame);
+
+  // ================= 4. WordKey 增强版打字挑战器 =================
+  interface WordEntry {
+    word: string;
+    phonetic: string;
+    translation: string;
+    sentence: string;
+  }
+
+  const DECKS: Record<string, WordEntry[]> = {
+    coder: [
+      {
+        word: 'paradigm',
+        phonetic: '/ˈpærədaɪm/',
+        translation: 'n. 范式；认知模型；范例',
+        sentence: 'The shift to agentic AI signals a fundamental paradigm shift in software craftsmanship.'
+      },
+      {
+        word: 'heuristic',
+        phonetic: '/hjuˈrɪstɪk/',
+        translation: 'adj. 启发式的；探索性的',
+        sentence: 'Engineers use reliable heuristics to navigate complex systems under uncertainty.'
+      },
+      {
+        word: 'asynchronous',
+        phonetic: '/eɪˈsɪŋkrənəs/',
+        translation: 'adj. 异步的；非同步的',
+        sentence: 'Non-blocking asynchronous event loops unlock scalable throughput.'
+      },
+      {
+        word: 'idempotent',
+        phonetic: '/ˌaɪdəmˈpoʊtənt/',
+        translation: 'adj. 幂等的；多次操作结果一致的',
+        sentence: 'Distributed payment webhooks must be strictly idempotent to prevent double billing.'
+      },
+      {
+        word: 'concurrency',
+        phonetic: '/kənˈkɜːrənsi/',
+        translation: 'n. 并发性；并行处理能力',
+        sentence: 'Effective concurrency control prevents subtle race conditions in database mutations.'
+      }
+    ],
+    cognitive: [
+      {
+        word: 'resilience',
+        phonetic: '/rɪˈzɪliəns/',
+        translation: 'n. 韧性；抗挫力；弹性恢复',
+        sentence: 'True architecture resilience is tested when unexpected latencies surge.'
+      },
+      {
+        word: 'compounding',
+        phonetic: '/kəmˈpaʊndɪŋ/',
+        translation: 'n. 复利效应；复合增长',
+        sentence: 'Continuous reading and focused deep work create massive compounding advantages.'
+      },
+      {
+        word: 'entropy',
+        phonetic: '/ˈentrəpi/',
+        translation: 'n. 熵；系统无序度',
+        sentence: 'Disciplined code refactoring is an eternal struggle against software entropy.'
+      },
+      {
+        word: 'serendipity',
+        phonetic: '/ˌserənˈdɪpəti/',
+        translation: 'n. 意外发现珍奇事物的机缘',
+        sentence: 'Deep curiosity invites serendipity into unexpected technological discoveries.'
+      },
+      {
+        word: 'pragmatic',
+        phonetic: '/præɡˈmætɪk/',
+        translation: 'adj. 务实的；讲究实效的',
+        sentence: 'The pragmatic craftsman builds simple solutions that solve tangible user needs.'
+      }
+    ],
+    academic: [
+      {
+        word: 'substantiate',
+        phonetic: '/səbˈstænʃieɪt/',
+        translation: 'v. 证实；提供有力证据证明',
+        sentence: 'Empirical experiments are essential to substantiate any computational hypothesis.'
+      },
+      {
+        word: 'scrutinize',
+        phonetic: '/ˈskruːtənaɪz/',
+        translation: 'v. 仔细审查；周密检查',
+        sentence: 'Senior engineers scrutinize security boundary invariants during architecture reviews.'
+      },
+      {
+        word: 'ubiquity',
+        phonetic: '/juːˈbɪkwəti/',
+        translation: 'n. 普遍存在；无处不在',
+        sentence: 'The ubiquity of smartphones fundamentally altered global information distribution.'
+      },
+      {
+        word: 'synthesize',
+        phonetic: '/ˈsɪnθəsaɪz/',
+        translation: 'v. 综合；整合多方信息',
+        sentence: 'Great researchers synthesize disparate insights across math and engineering.'
+      }
+    ]
+  };
+
+  let currentDeckKey = 'coder';
+  let currentWordIndex = 0;
+  let typedInput = '';
+  let streak = 0;
+  let totalKeystrokes = 0;
+  let correctKeystrokes = 0;
+  let soundEnabled = true;
+
+  // Web Audio 机械键盘敲击音
+  let audioCtx: AudioContext | null = null;
+  function playKeySound(isCorrect: boolean) {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (isCorrect) {
+        osc.frequency.setValueAtTime(620, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.035);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.045);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.045);
+      } else {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.07);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.07);
+      }
+    } catch {
+      // Audio fallback
+    }
+  }
+
+  function playSuccessDing() {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtx) audioCtx = new AudioContext();
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+      osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.09, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+      osc1.start();
+      osc2.start();
+      osc1.stop(audioCtx.currentTime + 0.22);
+      osc2.stop(audioCtx.currentTime + 0.22);
+    } catch {
+      // Audio fallback
+    }
+  }
+
+  function pronounceWord(text: string) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  const lettersTrack = document.getElementById('letters-track');
+  const displayPhonetic = document.getElementById('display-phonetic');
+  const displayTranslation = document.getElementById('display-translation');
+  const displaySentence = document.getElementById('display-sentence');
+  const streakCounter = document.getElementById('streak-counter');
+  const accuracyCounter = document.getElementById('accuracy-counter');
+  const hiddenInput = document.getElementById('hidden-word-input') as HTMLInputElement | null;
+  const pronounceBtn = document.getElementById('pronounce-btn');
+  const skipWordBtn = document.getElementById('skip-word-btn');
+  const resetStatsBtn = document.getElementById('reset-stats-btn');
+  const trainerCard = document.getElementById('wordkey-trainer');
+  const soundToggleBtn = document.getElementById('sound-toggle-btn');
+  const soundIcon = document.getElementById('sound-icon');
+  const deckButtons = document.querySelectorAll<HTMLButtonElement>('.deck-btn');
+
+  function getActiveBank(): WordEntry[] {
+    return DECKS[currentDeckKey] || DECKS.coder;
+  }
+
+  function renderCurrentWord() {
+    const bank = getActiveBank();
+    const entry = bank[currentWordIndex];
+    if (!entry || !lettersTrack) return;
+
+    if (displayPhonetic) displayPhonetic.textContent = entry.phonetic;
+    if (displayTranslation) displayTranslation.textContent = entry.translation;
+    if (displaySentence) displaySentence.textContent = `"${entry.sentence}"`;
+
+    lettersTrack.innerHTML = '';
+    const wordLetters = entry.word.split('');
+    const typedArr = typedInput.split('');
+
+    wordLetters.forEach((letter, idx) => {
+      const span = document.createElement('span');
+      span.className = 'letter-char';
+      span.textContent = letter;
+
+      if (idx < typedArr.length) {
+        if (typedArr[idx].toLowerCase() === letter.toLowerCase()) {
+          span.classList.add('is-correct');
+        } else {
+          span.classList.add('is-wrong');
+        }
+      } else if (idx === typedArr.length) {
+        span.classList.add('is-current');
+      }
+
+      lettersTrack.appendChild(span);
+    });
+  }
+
+  function handleKeystroke(char: string) {
+    const bank = getActiveBank();
+    const currentEntry = bank[currentWordIndex];
+    if (!currentEntry) return;
+
+    const targetWord = currentEntry.word;
+    const nextCharIndex = typedInput.length;
+
+    totalKeystrokes++;
+
+    if (nextCharIndex < targetWord.length) {
+      const expectedChar = targetWord[nextCharIndex].toLowerCase();
+      if (char.toLowerCase() === expectedChar) {
+        typedInput += targetWord[nextCharIndex];
+        correctKeystrokes++;
+        playKeySound(true);
+
+        if (typedInput.length === targetWord.length) {
+          streak++;
+          playSuccessDing();
+          pronounceWord(targetWord);
+          if (streakCounter) streakCounter.textContent = `🔥 ${streak}`;
+          
+          setTimeout(() => {
+            currentWordIndex = (currentWordIndex + 1) % bank.length;
+            typedInput = '';
+            renderCurrentWord();
+          }, 420);
+        }
+      } else {
+        streak = 0;
+        playKeySound(false);
+        if (streakCounter) streakCounter.textContent = `🔥 0`;
+        trainerCard?.classList.add('shake-card');
+        setTimeout(() => trainerCard?.classList.remove('shake-card'), 260);
+      }
+
+      const acc = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
+      if (accuracyCounter) accuracyCounter.textContent = `${acc}%`;
+
+      renderCurrentWord();
+    }
+  }
+
+  // 词库切换
+  deckButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      deckButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      const deck = btn.getAttribute('data-deck');
+      if (deck && DECKS[deck]) {
+        currentDeckKey = deck;
+        currentWordIndex = 0;
+        typedInput = '';
+        renderCurrentWord();
+      }
+    });
+  });
+
+  // 音效开关
+  soundToggleBtn?.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    if (soundIcon) soundIcon.textContent = soundEnabled ? '🔊' : '🔇';
+    soundToggleBtn.classList.toggle('is-muted', !soundEnabled);
+  });
+
+  window.addEventListener('keydown', (e) => {
+    const wordsPanel = document.getElementById('panel-words');
+    if (!wordsPanel || !wordsPanel.classList.contains('active')) return;
+
+    if (e.target instanceof HTMLInputElement && e.target !== hiddenInput) return;
+    if (e.target instanceof HTMLTextAreaElement) return;
+
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (typedInput.length > 0) {
+        typedInput = typedInput.slice(0, -1);
+        renderCurrentWord();
+      }
+      return;
+    }
+
+    if (e.key.length === 1 && /^[a-zA-Z]$/.test(e.key) && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      handleKeystroke(e.key);
+    }
+  });
+
+  hiddenInput?.addEventListener('input', (e) => {
+    const inputEvt = e as InputEvent;
+    if (inputEvt.data && /^[a-zA-Z]$/.test(inputEvt.data)) {
+      handleKeystroke(inputEvt.data);
+    }
+    hiddenInput.value = '';
+  });
+
+  trainerCard?.addEventListener('click', () => {
+    hiddenInput?.focus();
+  });
+
+  pronounceBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const bank = getActiveBank();
+    const currentEntry = bank[currentWordIndex];
+    if (currentEntry) pronounceWord(currentEntry.word);
+  });
+
+  skipWordBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const bank = getActiveBank();
+    currentWordIndex = (currentWordIndex + 1) % bank.length;
+    typedInput = '';
+    renderCurrentWord();
+  });
+
+  resetStatsBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    streak = 0;
+    totalKeystrokes = 0;
+    correctKeystrokes = 0;
+    currentWordIndex = 0;
+    typedInput = '';
+    if (streakCounter) streakCounter.textContent = '🔥 0';
+    if (accuracyCounter) accuracyCounter.textContent = '100%';
+    renderCurrentWord();
+  });
+
+  renderCurrentWord();
+</script>
+
 <style>
-  .home-hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(16rem, .55fr); align-items: end; gap: 3rem; padding: clamp(1rem, 4vw, 3rem) 0 clamp(4rem, 9vw, 7.5rem); }
-  .eyebrow, .section-heading p { margin: 0 0 1rem; color: var(--color-accent); font-size: .72rem; font-weight: 700; letter-spacing: .16em; }
-  h1 { max-width: 18ch; margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(2.7rem, 7.4vw, 6.5rem); font-weight: 700; letter-spacing: -.055em; line-height: 1.02; text-wrap: balance; }
-  h1 em { color: var(--color-accent); font-weight: 400; }
-  .hero-intro { margin: 0 0 .7rem; color: var(--color-text-soft); font-size: 1rem; line-height: 1.85; text-wrap: pretty; }
+  /* ================= 1. 左右平衡的 Editorial Hero ================= */
+  .home-hero {
+    padding: clamp(0.6rem, 1.8vw, 1.2rem) 0 clamp(1.2rem, 2vw, 1.8rem);
+  }
 
-  .category-index { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
-  .category-index a { display: grid; min-height: 11rem; align-content: start; padding: 1.35rem 1.4rem 1.5rem; border-right: 1px solid var(--color-border); color: var(--color-heading); text-decoration: none; transition: background .2s ease; }
-  .category-index a:last-child { border-right: 0; }
-  .category-index a:hover { background: var(--color-surface-raised); }
-  .category-index span { color: var(--color-text-muted); font-size: .7rem; font-variant-numeric: tabular-nums; }
-  .category-index strong { margin-top: 1.8rem; font-family: var(--font-serif); font-size: 1.2rem; }
-  .category-index small { margin-top: .5rem; color: var(--color-text-muted); line-height: 1.6; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 1fr);
+    align-items: stretch;
+    gap: 2.5rem;
+  }
 
-  .games-section { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(2rem, 7vw, 6rem); margin-top: clamp(3rem, 7vw, 6rem); }
-  .games-heading { align-self: start; }
-  .game-grid { display: grid; gap: 1rem; }
-  .game-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(13rem, .65fr); align-items: center; gap: 2rem; overflow: hidden; min-height: 21rem; padding: clamp(1.5rem, 4vw, 3rem); border: 1px solid var(--color-border); border-radius: .35rem; background: var(--color-surface-raised); }
-  .game-card-copy { position: relative; z-index: 1; max-width: 31rem; }
-  .game-card-copy .eyebrow { margin-bottom: 1rem; }
-  .game-card-copy h3 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: clamp(1.7rem, 3.5vw, 2.8rem); letter-spacing: -.04em; line-height: 1.12; text-wrap: balance; }
-  .game-card-copy > p:not(.eyebrow) { margin: 1rem 0 1.5rem; color: var(--color-text-soft); line-height: 1.75; }
-  .game-card-copy > a { display: inline-flex; align-items: center; gap: .8rem; padding: .8rem 1rem; border-radius: .2rem; background: var(--color-heading); color: var(--color-bg); font-size: .9rem; font-weight: 700; text-decoration: none; transition: transform .2s ease, opacity .2s ease; }
-  .game-card-copy > a:hover { transform: translateY(-2px); opacity: .9; }
-  .game-card-copy > a span { color: #d6aa67; font-size: 1.15rem; }
-  .game-card-art { background: linear-gradient(135deg, #171b28, #30283f); }
-  .game-card-art .eyebrow { color: #f4bd5f; }
-  .game-card-art h3 { color: #fff7e6; }
-  .game-card-art .game-card-copy > p:not(.eyebrow) { color: #c8c3d2; }
-  .game-card-art .game-card-copy > a { background: #f4bd5f; color: #211a18; }
-  .claw-preview { position: relative; width: min(100%, 16rem); aspect-ratio: 4 / 5; justify-self: center; border: 1px solid rgb(255 255 255 / 18%); border-radius: 6rem 6rem .5rem .5rem; background: radial-gradient(circle at 50% 72%, rgb(244 189 95 / 30%), transparent 36%), linear-gradient(rgb(255 255 255 / 8%), transparent); box-shadow: inset 0 0 2rem rgb(255 255 255 / 6%), 0 1.5rem 3rem rgb(0 0 0 / 25%); }
-  .claw-light { position: absolute; top: 1rem; left: 50%; width: 4.5rem; height: .45rem; border-radius: 1rem; background: #f4bd5f; box-shadow: 0 0 1.5rem #f4bd5f; transform: translateX(-50%); }
-  .claw-arm { position: absolute; top: 1.4rem; left: 50%; width: .2rem; height: 7.4rem; background: #d7d2c9; transform: translateX(-50%); }
-  .claw-arm::after { position: absolute; bottom: -.9rem; left: 50%; width: 3rem; height: 1.8rem; border: .28rem solid #d7d2c9; border-top: 0; border-radius: 0 0 3rem 3rem; content: ''; transform: translateX(-50%); }
-  .claw-prize { position: absolute; right: 22%; bottom: 2.3rem; display: grid; width: 4.2rem; height: 4.2rem; place-items: center; border-radius: 42% 52% 45% 55%; background: #5468a9; color: #f4bd5f; font-size: 1.5rem; transform: rotate(8deg); }
-  .claw-floor { position: absolute; right: 8%; bottom: 1.3rem; left: 8%; height: .35rem; border-radius: 50%; background: rgb(244 189 95 / 45%); box-shadow: 0 0 1.5rem rgb(244 189 95 / 25%); }
-  .game-preview { max-width: 25rem; width: 100%; justify-self: end; padding: 1.15rem 1.25rem 1rem; border: 1px solid var(--color-border); border-radius: .3rem; background: var(--color-bg); box-shadow: 0 1.2rem 3rem rgb(40 36 29 / 9%); transform: rotate(1.5deg); }
-  .game-preview-top, .game-meta { display: flex; align-items: center; justify-content: space-between; color: var(--color-text-muted); font-size: .65rem; letter-spacing: .08em; }
-  .game-preview-top span:first-child { color: var(--color-accent); font-weight: 800; }
-  .game-word { display: flex; align-items: center; gap: .16rem; margin: 1.5rem 0 1rem; color: var(--color-heading); font-family: var(--font-serif); font-size: 2.6rem; font-weight: 700; letter-spacing: .08em; }
-  .game-word i { width: .08rem; height: 2.35rem; background: var(--color-accent); animation: game-caret 1s steps(2, start) infinite; }
-  .game-keys { display: flex; gap: .38rem; }
-  .game-keys kbd { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border: 1px solid var(--color-border); border-bottom-width: 3px; border-radius: .25rem; color: var(--color-heading); font: 700 .8rem var(--font-sans); }
-  .game-keys kbd:nth-child(2), .game-keys kbd:nth-child(3) { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg)); }
-  .game-progress { height: .22rem; margin: 1rem 0 .8rem; overflow: hidden; border-radius: 1rem; background: var(--color-border); }
-  .game-progress span { display: block; width: 68%; height: 100%; border-radius: inherit; background: var(--color-accent); }
-  .game-meta { font-size: .7rem; letter-spacing: 0; }
-  .game-meta strong { margin-left: .2rem; color: var(--color-heading); font-variant-numeric: tabular-nums; }
-  @keyframes game-caret { to { visibility: hidden; } }
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 
-  .featured-section, .latest-section { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(2rem, 7vw, 6rem); padding-top: clamp(4rem, 9vw, 7.5rem); }
-  .section-heading h2 { margin: 0; color: var(--color-heading); font-family: var(--font-serif); font-size: 1.7rem; letter-spacing: -.025em; }
-  .post-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 3rem; }
-  .all-posts-link { grid-column: 2; justify-self: start; margin-top: 2.5rem; color: var(--color-heading); font-weight: 700; text-decoration: none; }
-  .all-posts-link span { color: var(--color-accent); }
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--color-accent);
+    margin-bottom: .6rem;
+  }
+  .kicker-brand {
+    font-family: var(--font-sans);
+  }
+  .kicker-divider {
+    opacity: .4;
+  }
+  .kicker-subtitle {
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
 
-  @media (max-width: 820px) {
-    .home-hero { grid-template-columns: 1fr; gap: 1.5rem; }
-    h1 { font-size: clamp(2.6rem, 14vw, 4.7rem); }
-    .category-index { grid-template-columns: repeat(2, 1fr); }
-    .category-index a:nth-child(2) { border-right: 0; }
-    .category-index a:nth-child(-n+2) { border-bottom: 1px solid var(--color-border); }
-    .games-section { grid-template-columns: 1fr; gap: 1rem; }
-    .game-card { grid-template-columns: 1fr; }
-    .claw-preview { width: min(13rem, 75%); }
-    .game-preview { justify-self: start; }
-    .featured-section, .latest-section { grid-template-columns: 1fr; gap: 1rem; }
-    .post-list { grid-template-columns: 1fr; }
-    .all-posts-link { grid-column: auto; }
+  .hero-title {
+    margin: 0 0 .75rem;
+    color: var(--color-heading);
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 3.6vw, 2.7rem);
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.26;
+    text-wrap: balance;
+  }
+
+  .hero-highlight {
+    font-style: normal;
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+
+  .hero-desc {
+    margin: 0 0 1rem;
+    color: var(--color-text-soft);
+    font-size: clamp(.9rem, 1.3vw, 1rem);
+    line-height: 1.75;
+    max-width: 44ch;
+    text-wrap: pretty;
+  }
+
+  .hero-meta-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .45rem .75rem;
+    color: var(--color-text-muted);
+    font-size: .82rem;
+  }
+  .meta-stat strong {
+    color: var(--color-heading);
+    font-variant-numeric: tabular-nums;
+  }
+  .meta-sep {
+    opacity: .5;
+  }
+
+  /* 右侧：先驱灵感卡 */
+  .hero-right {
+    display: flex;
+    align-items: center;
+  }
+
+  .pioneer-quote-card {
+    position: relative;
+    width: 100%;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .03);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 12.5rem;
+    transition: opacity .18s ease;
+  }
+  .pioneer-quote-card.fade-anim {
+    opacity: .6;
+  }
+
+  .quote-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .8rem;
+  }
+  .quote-badge {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    color: var(--color-accent);
+  }
+  .quote-spark {
+    font-size: .85rem;
+  }
+  .quote-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .2rem .5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface-raised);
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .quote-refresh-btn:hover {
+    color: var(--color-heading);
+    border-color: var(--color-border-strong);
+  }
+
+  .quote-body {
+    margin: 0 0 1rem;
+    padding: 0;
+  }
+  .quote-body p {
+    margin: 0 0 .35rem;
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--color-heading);
+    line-height: 1.45;
+  }
+  .quote-body cite {
+    display: block;
+    font-style: normal;
+    font-size: .84rem;
+    color: var(--color-text-soft);
+    line-height: 1.5;
+  }
+
+  .quote-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: .75rem;
+    border-top: 1px dashed var(--color-border);
+  }
+  .quote-author-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .quote-author-info strong {
+    font-size: .85rem;
+    color: var(--color-heading);
+  }
+  .quote-author-info small {
+    font-size: .72rem;
+    color: var(--color-text-muted);
+  }
+  .quote-article-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .quote-article-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ================= 2. 流体 Segmented Tab Dock ================= */
+  .tabs-container {
+    margin-top: 1.2rem;
+  }
+
+  .tabs-sticky-dock {
+    position: sticky;
+    top: 4.8rem;
+    z-index: 40;
+    margin-bottom: 2rem;
+  }
+
+  .segmented-control {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    padding: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .04);
+  }
+
+  /* 平滑滑动的指示背景 */
+  .segmented-indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    width: 33.333%;
+    border-radius: calc(var(--radius-md) - 3px);
+    background: var(--color-heading);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .12);
+    pointer-events: none;
+    transition: transform .24s cubic-bezier(0.16, 1, 0.3, 1), width .24s ease;
+  }
+
+  .segmented-btn {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    padding: .65rem .85rem;
+    border: 0;
+    border-radius: calc(var(--radius-md) - 3px);
+    background: transparent;
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color .18s ease;
+  }
+
+  .segmented-btn:hover {
+    color: var(--color-heading);
+  }
+
+  .segmented-btn.active {
+    color: var(--color-bg);
+  }
+
+  .btn-svg {
+    flex-shrink: 0;
+    opacity: .85;
+  }
+  .segmented-btn.active .btn-svg {
+    opacity: 1;
+  }
+
+  .btn-counter {
+    display: inline-block;
+    padding: .1rem .45rem;
+    border-radius: 4px;
+    font-size: .72rem;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    color: var(--color-text-muted);
+    background: color-mix(in srgb, var(--color-border) 45%, transparent);
+    transition: all .2s ease;
+  }
+  .segmented-btn.active .btn-counter {
+    background: color-mix(in srgb, var(--color-bg) 20%, transparent);
+    color: var(--color-bg);
+  }
+
+  .key-shortcut {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    font-size: .65rem;
+    font-family: var(--font-sans);
+    color: var(--color-text-muted);
+    opacity: .7;
+  }
+  .segmented-btn.active .key-shortcut {
+    border-color: color-mix(in srgb, var(--color-bg) 35%, transparent);
+    color: var(--color-bg);
+    opacity: .9;
+  }
+
+  /* 面板显隐过渡 */
+  .tab-panel {
+    display: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .25s ease, transform .25s ease;
+  }
+
+  .tab-panel.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ================= 3. 博客文章面板 ================= */
+  .category-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    overflow: hidden;
+    margin-bottom: 2.8rem;
+  }
+
+  .category-strip-item {
+    display: flex;
+    flex-direction: column;
+    padding: 1.1rem 1.2rem 1.3rem;
+    border-right: 1px solid var(--color-border);
+    border-top: 3px solid var(--cat-color, var(--color-accent));
+    color: var(--color-heading);
+    text-decoration: none;
+    transition: background .18s ease, transform .18s ease;
+  }
+  .category-strip-item:last-child {
+    border-right: 0;
+  }
+  .category-strip-item:hover {
+    background: var(--color-surface-raised);
+  }
+  .cat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cat-num {
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: .08em;
+  }
+  .cat-count-badge {
+    font-size: .7rem;
+    font-weight: 600;
+    color: var(--color-text-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .cat-name {
+    margin: .5rem 0 .25rem;
+    font-family: var(--font-serif);
+    font-size: 1.12rem;
+    font-weight: 700;
+  }
+  .cat-desc {
+    font-size: .78rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+
+  .featured-block, .archive-block {
+    margin-bottom: 3.5rem;
+  }
+
+  .block-header {
+    margin-bottom: 1.4rem;
+  }
+  .block-kicker {
+    display: block;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: var(--color-accent);
+    margin-bottom: .25rem;
+  }
+  .block-title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    color: var(--color-heading);
+    letter-spacing: -.02em;
+  }
+
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 3rem;
+  }
+
+  .all-link-wrapper {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .all-posts-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    color: var(--color-heading);
+    font-size: .95rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color .2s ease;
+  }
+  .all-posts-btn span:last-child {
+    color: var(--color-accent);
+    transition: transform .2s ease;
+  }
+  .all-posts-btn:hover span:last-child {
+    transform: translateX(4px);
+  }
+
+  /* ================= 4. 游戏实验室板块 ================= */
+  .games-hero-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(13rem, .75fr);
+    align-items: center;
+    gap: 2.5rem;
+    padding: clamp(1.8rem, 3.5vw, 2.8rem);
+    border: 1px solid rgba(244, 189, 95, .25);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #151822 0%, #252033 100%);
+    color: #f3eee5;
+    margin-bottom: 1.8rem;
+    overflow: hidden;
+  }
+
+  .game-tag {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: #f4bd5f;
+    margin-bottom: .8rem;
+  }
+  .tag-sep {
+    opacity: .4;
+  }
+  .tag-title {
+    color: #c9c4d5;
+    font-weight: 500;
+  }
+
+  .game-main-title {
+    margin: 0 0 1rem;
+    font-family: var(--font-serif);
+    font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+    color: #fff9ed;
+    line-height: 1.22;
+    letter-spacing: -.03em;
+  }
+
+  .game-main-desc {
+    margin: 0 0 1.6rem;
+    color: #c6c2d4;
+    font-size: .95rem;
+    line-height: 1.75;
+    max-width: 38ch;
+  }
+
+  .game-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .9rem;
+  }
+
+  .action-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .75rem 1.35rem;
+    border-radius: var(--radius-sm);
+    background: #f4bd5f;
+    color: #1a151b;
+    font-size: .9rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform .18s ease, opacity .18s ease;
+  }
+  .action-btn-primary:hover {
+    transform: translateY(-2px);
+    opacity: .92;
+  }
+
+  .action-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .75rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, .06);
+    color: #f3eee5;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .action-btn-outline:hover {
+    background: rgba(255, 255, 255, .14);
+  }
+
+  .game-visual-col {
+    display: flex;
+    justify-content: center;
+  }
+  .arcade-cabinet-silhouette {
+    position: relative;
+    width: 13rem;
+    aspect-ratio: 4 / 5;
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 5rem 5rem .5rem .5rem;
+    background: radial-gradient(circle at 50% 70%, rgba(244, 189, 95, .25), transparent 45%), linear-gradient(rgba(255, 255, 255, .07), transparent);
+    box-shadow: inset 0 0 2rem rgba(255, 255, 255, .05), 0 1rem 2.5rem rgba(0, 0, 0, .3);
+  }
+  .arcade-glow {
+    position: absolute;
+    top: .8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3.5rem;
+    height: .35rem;
+    border-radius: 1rem;
+    background: #f4bd5f;
+    box-shadow: 0 0 1rem #f4bd5f;
+  }
+  .arcade-claw-rod {
+    position: absolute;
+    top: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 5.5rem;
+    background: #cfcad2;
+  }
+  .arcade-claw-head {
+    position: absolute;
+    top: 6.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.2rem;
+    height: 1.4rem;
+    border: 2px solid #cfcad2;
+    border-top: 0;
+    border-radius: 0 0 2rem 2rem;
+  }
+  .arcade-prize-orb {
+    position: absolute;
+    bottom: 1.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    place-items: center;
+    width: 3.4rem;
+    height: 3.4rem;
+    border-radius: 50%;
+    background: #475a8e;
+    font-size: 1.4rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+  }
+  .arcade-base-light {
+    position: absolute;
+    bottom: .9rem;
+    left: 10%;
+    right: 10%;
+    height: .25rem;
+    border-radius: 50%;
+    background: rgba(244, 189, 95, .4);
+    box-shadow: 0 0 1rem rgba(244, 189, 95, .3);
+  }
+
+  .embed-game-box {
+    margin-bottom: 2rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #0f111a;
+    overflow: hidden;
+  }
+  .embed-game-box.hidden {
+    display: none;
+  }
+  .embed-box-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .7rem 1.2rem;
+    background: #171a26;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    color: #e5e2db;
+    font-size: .82rem;
+  }
+  .bar-left {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 600;
+  }
+  .online-indicator {
+    width: .5rem;
+    height: .5rem;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+  }
+  .bar-right {
+    display: flex;
+    gap: .5rem;
+  }
+  .bar-btn {
+    padding: .25rem .65rem;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 3px;
+    background: rgba(255, 255, 255, .06);
+    color: #e5e2db;
+    font-size: .75rem;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .bar-btn:hover {
+    background: rgba(255, 255, 255, .15);
+  }
+  .embed-box-viewport {
+    position: relative;
+    width: 100%;
+    height: 560px;
+  }
+  .embed-box-viewport iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .features-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+  .trio-card {
+    padding: 1.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .trio-badge {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    margin-bottom: .45rem;
+    letter-spacing: .06em;
+  }
+  .trio-card h3 {
+    margin: 0 0 .4rem;
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--color-heading);
+  }
+  .trio-card p {
+    margin: 0;
+    color: var(--color-text-soft);
+    font-size: .86rem;
+    line-height: 1.6;
+  }
+
+  /* 街机控台指南 */
+  .arcade-controls-guide {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .8rem 1.4rem;
+    padding: .9rem 1.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    margin-bottom: 2rem;
+  }
+  .guide-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .84rem;
+    color: var(--color-heading);
+  }
+  .guide-icon {
+    font-size: 1rem;
+  }
+  .guide-keys-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem 1rem;
+  }
+  .key-guide-item {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .78rem;
+    color: var(--color-text-soft);
+  }
+  .kbd-key {
+    display: inline-block;
+    padding: .15rem .4rem;
+    border: 1px solid var(--color-border-strong);
+    border-bottom-width: 2.5px;
+    border-radius: 3px;
+    background: var(--color-surface-raised);
+    color: var(--color-heading);
+    font-size: .72rem;
+    font-family: var(--font-sans);
+    font-weight: 700;
+  }
+  .kbd-space {
+    padding-inline: .75rem;
+  }
+  .key-guide-sep {
+    color: var(--color-border-strong);
+    opacity: .5;
+  }
+
+  .article-callout-card {
+    padding: 1.5rem 1.8rem;
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-raised);
+  }
+  .callout-badge {
+    display: inline-block;
+    color: var(--color-accent);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    margin-bottom: .4rem;
+  }
+  .callout-heading {
+    margin: 0 0 .5rem;
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    color: var(--color-heading);
+    line-height: 1.35;
+  }
+  .callout-summary {
+    margin: 0 0 1rem;
+    color: var(--color-text-soft);
+    font-size: .9rem;
+    line-height: 1.65;
+  }
+  .callout-action {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--color-heading);
+    font-size: .88rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .callout-action span:last-child {
+    color: var(--color-accent);
+    transition: transform .18s ease;
+  }
+  .callout-action:hover span:last-child {
+    transform: translateX(3px);
+  }
+
+  /* ================= 5. 单词练习面板 (WordKey) ================= */
+  .words-split-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 2.2rem;
+    align-items: start;
+    margin-bottom: 2rem;
+  }
+
+  .words-heading {
+    margin: 0 0 .8rem;
+    font-family: var(--font-serif);
+    font-size: clamp(1.65rem, 3.2vw, 2.3rem);
+    color: var(--color-heading);
+    line-height: 1.24;
+    letter-spacing: -.03em;
+  }
+  .words-desc {
+    color: var(--color-text-soft);
+    font-size: .95rem;
+    line-height: 1.75;
+    margin: 0 0 1.5rem;
+  }
+
+  .pro-platform-box {
+    padding: 1.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .pro-box-header {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--color-heading);
+    margin-bottom: .45rem;
+  }
+  .pro-crown {
+    color: var(--color-accent);
+  }
+  .pro-box-desc {
+    margin: 0 0 1.1rem;
+    color: var(--color-text-muted);
+    font-size: .84rem;
+    line-height: 1.6;
+  }
+  .pro-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .65rem 1.1rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-heading);
+    color: var(--color-bg);
+    font-size: .85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity .18s ease;
+  }
+  .pro-link-btn:hover {
+    opacity: .9;
+  }
+  .pro-extra-hint {
+    display: block;
+    margin-top: .6rem;
+    font-size: .74rem;
+    color: var(--color-text-muted);
+  }
+
+  /* 终端风格即刻练词器 */
+  .terminal-card {
+    position: relative;
+    padding: 1.6rem 1.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-raised);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .04);
+    transition: border-color .18s ease;
+  }
+  .terminal-card:hover {
+    border-color: var(--color-border-strong);
+  }
+  .terminal-card.shake-card {
+    animation: gentleShake 0.25s ease-in-out;
+  }
+  @keyframes gentleShake {
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+  }
+
+  .terminal-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: .9rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1rem;
+  }
+  .terminal-status {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+  .status-pulse {
+    width: .45rem;
+    height: .45rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: 0 0 5px var(--color-accent);
+  }
+
+  .terminal-metrics {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+  }
+  .sound-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .2rem .5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .sound-toggle-btn.is-muted {
+    opacity: .6;
+  }
+  .metric-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .metric-label {
+    font-size: .62rem;
+    color: var(--color-text-muted);
+    letter-spacing: .05em;
+  }
+  .metric-val {
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--color-heading);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 词库切换药丸组 */
+  .deck-selector {
+    display: flex;
+    gap: .4rem;
+    margin-bottom: 1.1rem;
+  }
+  .deck-btn {
+    padding: .3rem .65rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: .75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .deck-btn:hover {
+    color: var(--color-heading);
+  }
+  .deck-btn.active {
+    background: var(--color-heading);
+    color: var(--color-bg);
+    border-color: var(--color-heading);
+  }
+
+  .word-focus-area {
+    min-height: 10.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .phonetic-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .4rem;
+  }
+  .phonetic-text {
+    font-size: .92rem;
+    color: var(--color-text-muted);
+  }
+  .pronounce-icon-btn {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: background .18s ease;
+  }
+  .pronounce-icon-btn:hover {
+    background: var(--color-surface-raised);
+  }
+
+  .letters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    margin: .6rem 0 1rem;
+    font-family: var(--font-serif);
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: .02em;
+  }
+  :global(.letter-char) {
+    position: relative;
+    display: inline-block;
+    min-width: 1.5rem;
+    text-align: center;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: .15rem;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  :global(.letter-char.is-correct) {
+    color: #10b981;
+    border-color: #10b981;
+  }
+  :global(.letter-char.is-wrong) {
+    color: #ef4444;
+    border-color: #ef4444;
+  }
+  :global(.letter-char.is-current)::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-accent);
+    animation: caretPulse 0.8s infinite;
+  }
+  @keyframes caretPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .meaning-block {
+    padding-top: .7rem;
+    border-top: 1px dashed var(--color-border);
+  }
+  .meaning-text {
+    margin: 0 0 .3rem;
+    font-size: .98rem;
+    font-weight: 600;
+    color: var(--color-heading);
+  }
+  .sentence-text {
+    margin: 0;
+    font-size: .84rem;
+    color: var(--color-text-soft);
+    font-style: italic;
+    line-height: 1.55;
+  }
+
+  .terminal-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.2rem;
+    padding-top: .9rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .input-catcher {
+    position: relative;
+  }
+  .key-hint {
+    display: inline-block;
+    padding: .25rem .55rem;
+    border: 1px solid var(--color-border);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    font-family: var(--font-sans);
+  }
+  .hidden-field {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+  .terminal-controls {
+    display: flex;
+    gap: .75rem;
+  }
+  .ctrl-link {
+    background: transparent;
+    border: 0;
+    color: var(--color-text-muted);
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: .2rem .4rem;
+    transition: color .15s ease;
+  }
+  .ctrl-link:hover {
+    color: var(--color-heading);
+  }
+
+  .vocab-trio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+  .vocab-card {
+    padding: 1.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .vocab-tag {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    margin-bottom: .45rem;
+    letter-spacing: .06em;
+  }
+  .vocab-card h3 {
+    margin: 0 0 .4rem;
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--color-heading);
+  }
+  .vocab-card p {
+    margin: 0;
+    color: var(--color-text-soft);
+    font-size: .86rem;
+    line-height: 1.6;
+  }
+
+  /* ================= 响应式断点适配 ================= */
+  @media (max-width: 960px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+      gap: 1.8rem;
+    }
+    .category-strip {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .category-strip-item:nth-child(2n) {
+      border-right: 0;
+    }
+    .category-strip-item:nth-child(-n+4) {
+      border-bottom: 1px solid var(--color-border);
+    }
+    .games-hero-card {
+      grid-template-columns: 1fr;
+    }
+    .features-trio, .vocab-trio {
+      grid-template-columns: 1fr;
+    }
+    .words-split-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .home-hero {
+      padding-top: 0;
+    }
+    .hero-title {
+      font-size: clamp(1.65rem, 6.5vw, 2.2rem);
+    }
+    .tabs-sticky-dock {
+      top: 4.2rem;
+    }
+    .segmented-btn {
+      padding: .55rem .35rem;
+      font-size: .8rem;
+      gap: .25rem;
+    }
+    .btn-counter, .key-shortcut {
+      display: none;
+    }
+    .post-grid {
+      grid-template-columns: 1fr;
+    }
+    .game-visual-col {
+      display: none;
+    }
+    .guide-keys-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .5rem;
+    }
+    .key-guide-sep {
+      display: none;
+    }
   }
 </style>

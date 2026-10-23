@@ -1,16 +1,22 @@
 <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a1a2e"/>
-      <stop offset="100%" style="stop-color:#16213e"/>
+      <stop offset="0%" style="stop-color:#1c1917"/>
+      <stop offset="100%" style="stop-color:#292524"/>
     </linearGradient>
-    <linearGradient id="text-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#4facfe"/>
-      <stop offset="100%" style="stop-color:#a855f7"/>
+    <linearGradient id="brand-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f4bd5f"/>
+      <stop offset="100%" style="stop-color:#df8a63"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <text x="600" y="280" font-family="system-ui, sans-serif" font-size="72" font-weight="bold" fill="url(#text-gradient)" text-anchor="middle">🐕 DoggyDad Blog</text>
-  <text x="600" y="380" font-family="system-ui, sans-serif" font-size="32" fill="#94a3b8" text-anchor="middle">分享技术见解、编程经验和个人思考</text>
-  <text x="600" y="480" font-family="system-ui, sans-serif" font-size="24" fill="#64748b" text-anchor="middle">图灵奖 · 读书笔记 · 技术学习</text>
+  <rect x="80" y="80" width="1040" height="470" rx="20" fill="none" stroke="rgba(255, 255, 255, 0.12)" stroke-width="2"/>
+  
+  <rect x="130" y="130" width="60" height="60" rx="12" fill="none" stroke="#df8a63" stroke-width="3"/>
+  <text x="160" y="174" text-anchor="middle" font-family="serif" font-weight="bold" font-size="40" fill="#df8a63">W</text>
+  
+  <text x="210" y="172" font-family="system-ui, sans-serif" font-size="34" font-weight="700" fill="#f5f5f4" letter-spacing="0.05em">WORDSMASTER</text>
+  <text x="130" y="300" font-family="'Iowan Old Style', Charter, serif" font-size="52" font-weight="bold" fill="#fafaf9">把复杂的技术与思想，写成可以反复读的笔记。</text>
+  <text x="130" y="380" font-family="system-ui, sans-serif" font-size="28" fill="#a8a29e">深度博客 · 图灵奖先驱人物 · WordKey 键盘打字 · 3D 艺术抓娃娃</text>
+  <text x="130" y="470" font-family="monospace" font-size="22" fill="#df8a63">wordsmaster.app</text>
 </svg>

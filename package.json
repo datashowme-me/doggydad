@@ -13,12 +13,12 @@
     "dev:artcatcher": "npm --prefix apps/artcatcher run dev",
     "build:artcatcher": "npm --prefix apps/artcatcher run build",
     "check:artcatcher": "npm --prefix apps/artcatcher run lint",
-    "dev": "astro dev",
-    "start": "astro dev",
+    "dev": "astro dev --host 0.0.0.0 --port 3000",
+    "start": "astro dev --host 0.0.0.0 --port 3000",
     "build": "npm run build:artcatcher && astro build",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=doggydad",
     "deploy:cloudflare": "npm run deploy",
-    "preview": "astro preview",
+    "preview": "astro preview --host 0.0.0.0 --port 3000",
     "astro": "astro"
   },
   "dependencies": {

@@ -9,6 +9,10 @@ export default defineConfig({
   base: '/',
   output: 'static',
   integrations: [sitemap()],
+  redirects: {
+    '/games/artcatcher': '/games/artcatcher/index.html',
+    '/games/artcatcher/': '/games/artcatcher/index.html'
+  },
   markdown: {
     remarkPlugins: [remarkDemoteFirstHeading],
     shikiConfig: {

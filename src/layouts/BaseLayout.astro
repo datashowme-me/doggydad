@@ -65,7 +65,7 @@ const jsonLdGraph = [
   {
     '@type': 'WebSite',
     '@id': websiteId,
-    name: 'DoggyDad',
+    name: 'WordsMaster',
     url: siteUrl,
     description: '把复杂的技术与思想，写成可以反复读的中文长期笔记。',
     inLanguage: 'zh-CN',
@@ -79,7 +79,7 @@ const jsonLdGraph = [
   {
     '@type': 'Person',
     '@id': personId,
-    name: 'DoggyDad',
+    name: 'WordsMaster',
     url: `${siteUrl}/about/`,
     sameAs: ['https://x.com/zhaodatagrowth', 'https://github.com/pzhao16me', 'https://linkedin.com/in/peng-zhao-mei'],
     knowsAbout: ['软件工程', 'AI 工具', '读书笔记', '计算机科学史', '图灵奖']
@@ -136,28 +136,28 @@ const navItems = [
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="keywords" content={pageKeywords.join(',')} />
-    <meta name="author" content="DoggyDad" />
+    <meta name="author" content="WordsMaster" />
     <meta name="robots" content={noindex ? 'noindex, follow, max-image-preview:large' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
 
     <link rel="canonical" href={canonicalURL} />
     {previousUrl && <link rel="prev" href={new URL(previousUrl, Astro.site)} />}
     {nextUrl && <link rel="next" href={new URL(nextUrl, Astro.site)} />}
-    <link rel="alternate" type="application/rss+xml" title="DoggyDad RSS" href={`${siteUrl}/rss.xml`} />
-    <link rel="alternate" type="text/plain" title="DoggyDad LLMs.txt" href={`${siteUrl}/llms.txt`} />
+    <link rel="alternate" type="application/rss+xml" title="WordsMaster RSS" href={`${siteUrl}/rss.xml`} />
+    <link rel="alternate" type="text/plain" title="WordsMaster LLMs.txt" href={`${siteUrl}/llms.txt`} />
     <link rel="icon" href={`${siteUrl}/favicon.svg`} type="image/svg+xml" />
 
     <meta property="og:type" content={article ? 'article' : 'website'} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:site_name" content="DoggyDad Blog" />
+    <meta property="og:site_name" content="WordsMaster" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:image" content={`${siteUrl}/og-image.svg`} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={title} />
     {article && updatedTimeISO && <meta property="article:modified_time" content={updatedTimeISO} />}
-    {article && <meta property="article:author" content="DoggyDad" />}
+    {article && <meta property="article:author" content="WordsMaster" />}
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:creator" content="@zhaodatagrowth" />
@@ -196,11 +196,11 @@ const navItems = [
     <div id="app">
       <header class="site-header">
         <div class="site-container header-inner">
-          <a class="brand" href={withBase('/')} aria-label="DoggyDad 首页">
-            <span class="brand-mark" aria-hidden="true">犬</span>
+          <a class="brand" href={withBase('/')} aria-label="WordsMaster 首页">
+            <span class="brand-mark" aria-hidden="true">W</span>
             <span>
-              <strong>DoggyDad</strong>
-              <small>读书 · 技术 · 人物</small>
+              <strong>WordsMaster</strong>
+              <small>文字 · 思想 · 实验室</small>
             </span>
           </a>
 
@@ -228,7 +228,7 @@ const navItems = [
       <footer class="site-footer">
         <div class="site-container footer-inner">
           <div>
-            <a class="footer-brand" href={withBase('/')}>DoggyDad</a>
+            <a class="footer-brand" href={withBase('/')}>WordsMaster</a>
             <p>把复杂的技术与思想，写成可以反复读的笔记。</p>
           </div>
           <nav aria-label="页脚导航">
@@ -238,7 +238,7 @@ const navItems = [
             <a href="https://github.com/pzhao16me" target="_blank" rel="noopener">GitHub</a>
             <a href="https://x.com/zhaodatagrowth" target="_blank" rel="noopener">X</a>
           </nav>
-          <p class="copyright">© {new Date().getFullYear()} DoggyDad · 使用 Astro 构建</p>
+          <p class="copyright">© {new Date().getFullYear()} WordsMaster · wordsmaster.app</p>
         </div>
       </footer>
     </div>
@@ -318,7 +318,7 @@ const navItems = [
   }
   #app { display: flex; min-height: 100dvh; flex-direction: column; }
   .site-container { width: min(100% - 3rem, 1180px); margin-inline: auto; }
-  main.site-container { flex: 1; padding-block: clamp(2.4rem, 7vw, 6.5rem); }
+  main.site-container { flex: 1; padding-block: clamp(1.2rem, 3.5vw, 2.8rem); }
 
   a { color: var(--color-accent); text-underline-offset: .2em; }
   button, input { font: inherit; }
@@ -333,7 +333,7 @@ const navItems = [
   .site-header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent); background: color-mix(in srgb, var(--color-bg) 88%, transparent); backdrop-filter: blur(14px); }
   .header-inner { display: flex; min-height: 5rem; align-items: center; justify-content: space-between; gap: 2rem; }
   .brand { display: inline-flex; align-items: center; gap: .7rem; color: var(--color-heading); text-decoration: none; }
-  .brand-mark { display: grid; width: 2.1rem; height: 2.1rem; place-items: center; border: 1px solid var(--color-accent); color: var(--color-accent); font-family: var(--font-serif); font-size: 1.05rem; transform: rotate(-2deg); }
+  .brand-mark { display: grid; width: 2.1rem; height: 2.1rem; place-items: center; border: 1.5px solid var(--color-accent); border-radius: 5px; color: var(--color-accent); font-family: var(--font-serif); font-size: 1.15rem; font-weight: 700; }
   .brand strong { display: block; font-family: var(--font-serif); font-size: 1.15rem; letter-spacing: -.02em; line-height: 1.1; }
   .brand small { display: block; margin-top: .18rem; color: var(--color-text-muted); font-size: .63rem; letter-spacing: .12em; }
   .site-nav { display: flex; align-items: center; gap: 1.7rem; }
