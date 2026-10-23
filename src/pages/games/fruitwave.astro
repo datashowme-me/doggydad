@@ -1,0 +1,377 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js`;
+---
+
+<BaseLayout
+  title="FruitWave 切水果小游戏 | WordsMaster 游戏模块"
+  description="浏览器版 FruitWave 切水果小游戏：90 秒挑战 12 种水果，支持摄像头手势挥砍与鼠标 / 触控板操作，识别在本地完成、不采集任何数据。"
+  keywords={['小游戏', '切水果', 'FruitWave', '体感游戏', '手势识别', 'MediaPipe']}
+>
+  <section class="game-page">
+    <h1>🍉 FruitWave · 切水果</h1>
+    <p class="game-intro">
+      浏览器体感版切水果小游戏。有摄像头就伸出食指在空中挥砍，没有摄像头用鼠标、触控板或触摸屏一样能玩。
+      规则对齐 tvOS 版 <a href="https://github.com/datashowme-me/fruitWave" target="_blank" rel="noopener">fruitWave</a>。
+    </p>
+    <div class="game-specs">
+      <span>⏱️ 90 秒一局</span>
+      <span>🍎 12 种水果</span>
+      <span>🔟 每果 10 分</span>
+      <span>⚡ 0.8 秒生成</span>
+      <span>🔥 连击音调升高</span>
+      <span>💾 最高分本地保存</span>
+    </div>
+
+    <div class="game-shell">
+      <canvas id="game-canvas"></canvas>
+
+      <div class="hud" id="hud" hidden>
+        <div class="hud-chip">⏱️ <span id="hud-time">90</span>s</div>
+        <div class="hud-chip">🍉 <span id="hud-score">0</span></div>
+        <div class="hud-chip" id="hud-combo-chip" hidden>🔥 ×<span id="hud-combo">0</span></div>
+        <div class="hud-chip">⭐ <span id="hud-best">0</span></div>
+        <div class="hud-chip hud-mode" id="hud-mode"></div>
+      </div>
+
+      <div class="hud-buttons" id="hud-buttons" hidden>
+        <button class="mini-btn" id="btn-pause" title="暂停 (P)">⏸️</button>
+        <button class="mini-btn" id="btn-sound" title="音效开关 (M)">🔊</button>
+        <button class="mini-btn" id="btn-quit" title="退出到菜单">🚪</button>
+      </div>
+
+      <div class="video-wrap" id="video-wrap" hidden>
+        <video id="cam-video" autoplay playsinline muted></video>
+        <canvas id="cam-overlay"></canvas>
+      </div>
+
+      <div class="toast" id="toast" hidden></div>
+
+      <div class="overlay" id="overlay">
+        <div class="panel" id="panel-menu">
+          <div class="panel-title">🍉 FruitWave</div>
+          <p class="panel-sub">切水果 · 浏览器体感版</p>
+          <p class="panel-desc">90 秒内切中尽可能多的水果，每个 +10 分，连击音调升高。12 种水果等你挑战！</p>
+          <div class="panel-best">🏆 最高分：<span id="best-menu">0</span></div>
+          <button class="btn btn-primary" id="btn-camera-mode">🎥 摄像头手势模式</button>
+          <button class="btn" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
+          <p class="panel-hint">
+            手势模式：摄像头对准你，伸出食指在空中挥砍，握拳停止；画面仅在本地识别，不上传任何数据。
+            没有摄像头或未授权时会自动切换为鼠标模式。<br>
+            快捷键：P 暂停 · M 静音
+          </p>
+        </div>
+
+        <div class="panel" id="panel-loading" hidden>
+          <div class="spinner"></div>
+          <p id="loading-text">正在请求摄像头权限…</p>
+        </div>
+
+        <div class="panel" id="panel-pause" hidden>
+          <div class="panel-title">⏸️ 已暂停</div>
+          <button class="btn btn-primary" id="pause-resume">▶️ 继续</button>
+          <button class="btn" id="pause-restart">🔁 重新开始</button>
+          <button class="btn" id="pause-quit">🏠 退出到菜单</button>
+        </div>
+
+        <div class="panel" id="panel-gameover" hidden>
+          <div class="panel-title">🏁 时间到！</div>
+          <div class="go-score"><span id="go-score">0</span> 分</div>
+          <div class="go-best">🏆 最高分 <span id="go-best">0</span></div>
+          <div class="go-new" id="go-new-record" hidden>🎉 新纪录！</div>
+          <button class="btn btn-primary" id="go-restart">🔁 再来一局</button>
+          <button class="btn" id="go-menu">🏠 返回菜单</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-notes">
+      <h2>玩法与数据说明</h2>
+      <ul>
+        <li>📷 <strong>摄像头手势</strong>：使用 MediaPipe Hand Landmarker 在浏览器本地识别手部关键点，视频画面与坐标均不出本机、不上传服务器。</li>
+        <li>🖱️ <strong>无摄像头</strong>：未检测到摄像头或权限被拒绝时自动切换鼠标 / 触控板 / 触摸模式。</li>
+        <li>🔊 <strong>音效</strong>：切割音效由 WebAudio 本地合成，音调随连击升高、不同水果起音不同，不请求麦克风权限。</li>
+        <li>💾 <strong>数据</strong>：仅最高分保存在浏览器 localStorage。</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<script src={gameScript} defer></script>
+
+<style>
+  .game-page h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .game-intro {
+    color: var(--color-text-muted);
+    max-width: 720px;
+  }
+
+  .game-specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .game-specs span {
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .game-shell {
+    position: relative;
+    width: 100%;
+    height: min(72vh, 720px);
+    min-height: 440px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: #0c1426;
+    box-shadow: var(--shadow-lg);
+  }
+
+  #game-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  .hud {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .hud-chip {
+    background: rgba(10, 16, 32, 0.55);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+  }
+
+  .hud-mode {
+    color: #9fd8ff;
+  }
+
+  #hud-time.low {
+    color: #ff6b6b;
+  }
+
+  .hud-buttons {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+  }
+
+  .mini-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(10, 16, 32, 0.55);
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.05rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .mini-btn:hover {
+    background: rgba(30, 45, 80, 0.75);
+  }
+
+  .video-wrap {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: min(200px, 30%);
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: scaleX(-1);
+    z-index: 4;
+    background: #000;
+    pointer-events: none;
+  }
+
+  #cam-video,
+  #cam-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+  }
+
+  .toast {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: rgba(10, 16, 32, 0.85);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 10, 22, 0.45);
+    backdrop-filter: blur(3px);
+    padding: 20px;
+  }
+
+  .panel {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-radius: var(--radius-xl);
+    padding: 28px 30px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  .panel-title {
+    font-size: 1.9rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .panel-sub {
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+  }
+
+  .panel-desc {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    margin-bottom: 14px;
+  }
+
+  .panel-best {
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .panel-hint {
+    margin-top: 16px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .btn:hover {
+    filter: brightness(1.05);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: #fff;
+    border: none;
+  }
+
+  .spinner {
+    width: 34px;
+    height: 34px;
+    margin: 0 auto 14px;
+    border: 4px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .go-score {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--color-primary);
+  }
+
+  .go-best {
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+  }
+
+  .go-new {
+    color: #f5a623;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .game-notes {
+    margin-top: 2.5rem;
+  }
+
+  .game-notes ul {
+    list-style: none;
+    margin-left: 0;
+  }
+
+  .game-notes li {
+    margin-bottom: 0.6rem;
+    color: var(--color-text-muted);
+  }
+
+  @media (max-width: 640px) {
+    .game-shell {
+      min-height: 380px;
+    }
+  }
+</style>
