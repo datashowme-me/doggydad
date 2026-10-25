@@ -41,12 +41,13 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
         <button class="mini-btn" id="btn-quit" title="退出到菜单">🚪</button>
       </div>
 
-      <div class="video-wrap" id="video-wrap" hidden>
-        <video id="cam-video" autoplay playsinline muted></video>
-        <canvas id="cam-overlay"></canvas>
+      <div class="camera-stack" id="camera-stack" hidden>
+        <select class="cam-picker" id="cam-picker" title="切换摄像头" hidden></select>
+        <div class="video-wrap" id="video-wrap">
+          <video id="cam-video" autoplay playsinline muted></video>
+          <canvas id="cam-overlay"></canvas>
+        </div>
       </div>
-
-      <select class="cam-picker" id="cam-picker" title="切换摄像头" hidden></select>
 
       <div class="toast" id="toast" hidden></div>
 
@@ -203,17 +204,25 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     background: rgba(30, 45, 80, 0.75);
   }
 
-  .video-wrap {
+  .camera-stack {
     position: absolute;
     right: 14px;
     bottom: 14px;
     width: min(200px, 30%);
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .video-wrap {
+    position: relative;
+    width: 100%;
     aspect-ratio: 4 / 3;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transform: scaleX(-1);
-    z-index: 4;
     background: #000;
     pointer-events: none;
   }
@@ -228,11 +237,8 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
   }
 
   .cam-picker {
-    position: absolute;
-    right: 14px;
-    bottom: calc(14px + min(200px, 30%) + 10px);
-    z-index: 6;
-    max-width: min(200px, 30%);
+    width: 100%;
+    min-width: 0;
     padding: 4px 8px;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.25);

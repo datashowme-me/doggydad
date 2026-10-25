@@ -13,6 +13,7 @@
     "dev:artcatcher": "npm --prefix apps/artcatcher run dev",
     "build:artcatcher": "npm --prefix apps/artcatcher run build",
     "check:artcatcher": "npm --prefix apps/artcatcher run lint",
+    "check:fruitwave": "node --check public/games/fruitwave/game.js && node scripts/verify-fruitwave.mjs",
     "dev": "astro dev --host 0.0.0.0 --port 3000",
     "start": "astro dev --host 0.0.0.0 --port 3000",
     "build": "npm run build:artcatcher && astro build",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.0",
+    "@mediapipe/tasks-vision": "0.10.14",
     "astro": "^4.16.0"
   },
   "devDependencies": {

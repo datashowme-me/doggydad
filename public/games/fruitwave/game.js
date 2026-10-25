@@ -13,7 +13,7 @@ const ctx = canvas.getContext('2d');
 const video = $('cam-video');
 const camOverlay = $('cam-overlay');
 const octx = camOverlay.getContext('2d');
-const videoWrap = $('video-wrap');
+const cameraStack = $('camera-stack');
 const camPicker = $('cam-picker');
 const toastEl = $('toast');
 const overlay = $('overlay');
@@ -46,9 +46,12 @@ const COMBO_WINDOW = 0.9;        // 连击窗口（秒）
 const TRAIL_MS = 140;            // 刀光轨迹时长（ms）
 const MAX_JUMP_FACTOR = 0.3;     // 刀光跳点保护（相对画布高度）
 const G_FACTOR = 1.9;            // 重力（相对画布高度 / 秒²）
-const HAND_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-const HAND_CDN_FALLBACK = 'https://unpkg.com/@mediapipe/tasks-vision@0.10.14';
-const HAND_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const SCRIPT_BASE = new URL('./', document.currentScript ? document.currentScript.src : window.location.href);
+const HAND_BUNDLE = new URL('vendor/vision_bundle.mjs', SCRIPT_BASE).href;
+const HAND_WASM = new URL('vendor/wasm', SCRIPT_BASE).href;
+const HAND_MODEL = new URL('vendor/models/hand_landmarker.task', SCRIPT_BASE).href;
+const CAMERA_TIMEOUT_MS = 10000;
+const MODEL_TIMEOUT_MS = 20000;
 
 const FRUITS = [
   { name: '西瓜',   emoji: '🍉', color: '#3ea65c' },
@@ -77,6 +80,8 @@ let handPresent = false, lastHandT = 0, lastDetect = 0, lastVideoTime = -1, dete
 let camStream = null, handLandmarker = null;
 let camDevices = []; // 可用摄像头列表（授权后可见 label）
 let camEpoch = 0;    // teardown 时递增，用于丢弃「迟到的」授权流
+let cameraRequestSeq = 0;
+const candidateStreams = new Set();
 let savedCamId = '';
 try { savedCamId = localStorage.getItem('fruitwave-cam') || ''; } catch (e) { /* 忽略 */ }
 
@@ -275,6 +280,7 @@ function sliceFruit(i) {
       r: f.r, rot: f.rot,
       vr: f.vr + side * 4,
       fi: f.fi,
+      side,
     });
   }
   spawnParticles(f.x, f.y, FRUITS[f.fi].color);
@@ -482,7 +488,7 @@ function drawTrail(now) {
 }
 
 /* ---------------- HUD / 面板 ---------------- */
-let lastHudScore = -1, lastHudTime = -1;
+let lastHudScore = -1, lastHudTime = -1, lastHudCombo = -1;
 function updateHud() {
   const t = Math.ceil(remaining / 1000);
   if (t !== lastHudTime) {
@@ -493,6 +499,9 @@ function updateHud() {
   if (score !== lastHudScore) {
     lastHudScore = score;
     hudScore.textContent = score;
+  }
+  if (combo !== lastHudCombo) {
+    lastHudCombo = combo;
     hudCombo.textContent = combo;
     hudComboChip.hidden = combo < 2;
   }
@@ -580,23 +589,35 @@ function restartRound() {
 /* ---------------- 摄像头 + 手势识别（MediaPipe） ---------------- */
 function teardownCamera() {
   camEpoch++;
-  if (camStream) { camStream.getTracks().forEach((t) => t.stop()); camStream = null; }
+  cameraRequestSeq++;
+  stopStream(camStream);
+  camStream = null;
+  for (const stream of candidateStreams) stopStream(stream);
+  candidateStreams.clear();
+  try { video.pause(); } catch (e) { /* 忽略 */ }
   video.srcObject = null;
-  videoWrap.hidden = true;
+  cameraStack.hidden = true;
+  camPicker.hidden = true;
+  camPicker.textContent = '';
+  camDevices = [];
   handPresent = false;
+  blade.active = false;
+  blade.hasPrev = false;
+  blade.targetSet = false;
+  octx.clearRect(0, 0, camOverlay.width, camOverlay.height);
   if (handLandmarker) { try { handLandmarker.close(); } catch (e) { /* 忽略 */ } handLandmarker = null; }
 }
 
 async function loadLandmarker() {
-  let base = HAND_CDN;
-  let mod;
-  try {
-    mod = await import(`${base}/vision_bundle.mjs`);
-  } catch (e) {
-    base = HAND_CDN_FALLBACK;
-    mod = await import(`${base}/vision_bundle.mjs`);
-  }
-  const fileset = await mod.FilesetResolver.forVisionTasks(`${base}/wasm`);
+  const epoch = camEpoch;
+  const mod = await withTimeout(import(HAND_BUNDLE), MODEL_TIMEOUT_MS, 'model module timeout');
+  if (epoch !== camEpoch) throw abortError();
+  const fileset = await withTimeout(
+    mod.FilesetResolver.forVisionTasks(HAND_WASM),
+    MODEL_TIMEOUT_MS,
+    'model wasm timeout',
+  );
+  if (epoch !== camEpoch) throw abortError();
   const opts = {
     baseOptions: { modelAssetPath: HAND_MODEL, delegate: 'GPU' },
     runningMode: 'VIDEO',
@@ -606,10 +627,32 @@ async function loadLandmarker() {
     minTrackingConfidence: 0.5,
   };
   try {
-    handLandmarker = await mod.HandLandmarker.createFromOptions(fileset, opts);
+    handLandmarker = await createLandmarker(mod, fileset, opts, epoch);
   } catch (e) {
+    if (e && (e.name === 'TimeoutError' || e.name === 'AbortError')) throw e;
     opts.baseOptions.delegate = 'CPU'; // 部分设备不支持 GPU 代理
-    handLandmarker = await mod.HandLandmarker.createFromOptions(fileset, opts);
+    handLandmarker = await createLandmarker(mod, fileset, opts, epoch);
+  }
+}
+
+async function createLandmarker(mod, fileset, opts, epoch) {
+  let abandoned = false;
+  const pending = mod.HandLandmarker.createFromOptions(fileset, opts);
+  pending.then((instance) => {
+    if (abandoned || epoch !== camEpoch) {
+      try { instance.close(); } catch (e) { /* 忽略 */ }
+    }
+  }, () => {});
+  try {
+    const instance = await withTimeout(pending, MODEL_TIMEOUT_MS, 'model init timeout');
+    if (epoch !== camEpoch) {
+      try { instance.close(); } catch (e) { /* 忽略 */ }
+      throw abortError();
+    }
+    return instance;
+  } catch (e) {
+    abandoned = true;
+    throw e;
   }
 }
 
@@ -624,6 +667,53 @@ function withTimeout(promise, ms, name) {
     }, ms);
   });
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function abortError() {
+  const e = new Error('camera operation superseded');
+  e.name = 'AbortError';
+  return e;
+}
+
+function stopStream(stream) {
+  if (!stream) return;
+  try { stream.getTracks().forEach((track) => track.stop()); } catch (e) { /* 忽略 */ }
+}
+
+// getUserMedia 本身不可取消。超时后仍监听原始 Promise，迟到的流会被立即关闭。
+async function requestCameraStream(constraints, requestId, epoch, timeoutMs = CAMERA_TIMEOUT_MS) {
+  let abandoned = false;
+  const pending = navigator.mediaDevices.getUserMedia(constraints);
+  pending.then((stream) => {
+    if (abandoned || requestId !== cameraRequestSeq || epoch !== camEpoch) stopStream(stream);
+  }, () => {});
+  try {
+    const stream = await withTimeout(pending, timeoutMs, 'camera timeout');
+    if (requestId !== cameraRequestSeq || epoch !== camEpoch) {
+      stopStream(stream);
+      throw abortError();
+    }
+    candidateStreams.add(stream);
+    return stream;
+  } catch (e) {
+    abandoned = true;
+    throw e;
+  }
+}
+
+async function validateCameraStream(stream, timeoutMs = CAMERA_TIMEOUT_MS) {
+  const probe = document.createElement('video');
+  probe.muted = true;
+  probe.autoplay = true;
+  probe.playsInline = true;
+  probe.srcObject = stream;
+  try {
+    await withTimeout(probe.play(), timeoutMs, 'video play timeout');
+    if (probe.readyState < 2 || !probe.videoWidth) throw new Error('camera produced no frame');
+  } finally {
+    try { probe.pause(); } catch (e) { /* 忽略 */ }
+    probe.srcObject = null;
+  }
 }
 
 // 授权成功后枚举摄像头，多于 1 个时显示切换器
@@ -643,35 +733,84 @@ async function initCamPicker() {
     opt.textContent = d.label || `摄像头 ${i + 1}`;
     camPicker.appendChild(opt);
   });
-  if (savedCamId) {
-    camPicker.value = savedCamId;
-    if (camPicker.value !== savedCamId) savedCamId = ''; // 已拔掉
+  const activeId = camStream && camStream.getVideoTracks()[0]
+    ? camStream.getVideoTracks()[0].getSettings().deviceId
+    : '';
+  const selectedId = activeId || savedCamId;
+  if (selectedId) {
+    camPicker.value = selectedId;
+    if (camPicker.value !== selectedId && selectedId === savedCamId) savedCamId = ''; // 已拔掉
   } else {
     camPicker.selectedIndex = 0;
   }
 }
 
+function usePointerFallback(message) {
+  teardownCamera();
+  mode = 'pointer';
+  oex.reset(); oey.reset();
+  blade.targetSet = false;
+  if (state === 'playing' || state === 'paused') hudMode.textContent = '🖱️ 鼠标';
+  toast(message);
+}
+
+function watchActiveCamera(stream) {
+  const track = stream && stream.getVideoTracks()[0];
+  if (!track) return;
+  track.addEventListener('ended', () => {
+    if (camStream === stream && mode === 'hand') usePointerFallback('摄像头已断开，已切换为鼠标模式');
+  }, { once: true });
+}
+
+async function handleDeviceChange() {
+  if (!camStream || mode !== 'hand') return;
+  await initCamPicker();
+  const track = camStream.getVideoTracks()[0];
+  const activeId = track && track.getSettings().deviceId;
+  if (!track || track.readyState === 'ended' || (activeId && camDevices.length && !camDevices.some((d) => d.deviceId === activeId))) {
+    usePointerFallback('当前摄像头已移除，已切换为鼠标模式');
+  }
+}
+
 // 切换摄像头：先开新流，成功后再停旧流，避免切换失败导致画面黑屏
 async function switchCamera(id) {
+  const requestId = ++cameraRequestSeq;
+  const epoch = camEpoch;
+  const old = camStream;
+  let stream = null;
   try {
-    const stream = await withTimeout(
-      navigator.mediaDevices.getUserMedia({
+    stream = await requestCameraStream(
+      {
         audio: false,
         video: { deviceId: { exact: id }, width: { ideal: 640 }, height: { ideal: 480 } },
-      }),
-      10000,
-      'camera switch timeout',
+      },
+      requestId,
+      epoch,
     );
-    const old = camStream;
+    await validateCameraStream(stream);
+    if (requestId !== cameraRequestSeq || epoch !== camEpoch) throw abortError();
     camStream = stream;
+    candidateStreams.delete(stream);
     video.srcObject = stream;
-    await video.play();
-    if (old) old.getTracks().forEach((t) => t.stop());
+    await withTimeout(video.play(), CAMERA_TIMEOUT_MS, 'camera switch play timeout');
+    stopStream(old);
+    watchActiveCamera(stream);
     lastVideoTime = -1;
     savedCamId = id;
     try { localStorage.setItem('fruitwave-cam', id); } catch (e) { /* 忽略 */ }
     toast('已切换摄像头');
   } catch (err) {
+    if (stream && stream !== camStream) {
+      candidateStreams.delete(stream);
+      stopStream(stream);
+    }
+    if (camStream === stream) {
+      stopStream(stream);
+      camStream = old;
+      video.srcObject = old;
+      if (old) { try { await video.play(); } catch (e) { /* 忽略 */ } }
+    }
+    if (err && err.name === 'AbortError') return;
     console.warn('[FruitWave] 切换摄像头失败：', err);
     toast('切换摄像头失败，请重试');
   }
@@ -680,6 +819,8 @@ async function switchCamera(id) {
 // 打开摄像头：默认设备 10s 内拿不到流就逐个尝试其他设备。
 // 手机联动/虚拟摄像头（如 Continuity Camera）未就绪时 getUserMedia 会一直挂起，必须能换设备自救。
 async function openCamera() {
+  const requestId = ++cameraRequestSeq;
+  const epoch = camEpoch;
   let sawDenied = false;   // 任一尝试被系统拒绝（TCC 曾点过「不允许」）
   let allTimedOut = true;  // 所有尝试都只是超时（授权弹窗没人点 / 设备不吐帧）
   // 验收标准：拿到流 + play() 能出画面。手机联动摄像头（Continuity Camera 等）
@@ -688,23 +829,27 @@ async function openCamera() {
     const ep = camEpoch;
     let s = null;
     try {
-      s = await withTimeout(navigator.mediaDevices.getUserMedia(constraints), ms, 'cam timeout');
-      if (camEpoch !== ep || camStream) { s.getTracks().forEach((t) => t.stop()); return null; }
+      s = await requestCameraStream(constraints, requestId, ep, ms);
     } catch (e) {
+      if (e && e.name === 'AbortError') throw e;
       if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) sawDenied = true;
       if (!e || e.name !== 'TimeoutError') allTimedOut = false;
       return null;
     }
     try {
-      video.srcObject = s;
-      await withTimeout(video.play(), 10000, 'video play timeout');
+      await validateCameraStream(s, ms);
     } catch (e) {
       console.warn('[FruitWave] 摄像头无画面，跳过设备：', tag);
-      s.getTracks().forEach((t) => t.stop());
-      video.srcObject = null;
+      candidateStreams.delete(s);
+      stopStream(s);
       return null;
     }
-    camStream = s;
+    if (requestId !== cameraRequestSeq || epoch !== camEpoch) {
+      candidateStreams.delete(s);
+      stopStream(s);
+      throw abortError();
+    }
+    candidateStreams.delete(s);
     return s;
   };
 
@@ -732,8 +877,10 @@ async function openCamera() {
     if (s) {
       if (t.video.deviceId) {
         savedCamId = t.video.deviceId.exact;
-        try { localStorage.setItem('fruitwave-cam', savedCamId); } catch (e) { /* 忽略 */ }
       }
+      const actualId = s.getVideoTracks()[0] && s.getVideoTracks()[0].getSettings().deviceId;
+      if (actualId) savedCamId = actualId;
+      try { localStorage.setItem('fruitwave-cam', savedCamId); } catch (e) { /* 忽略 */ }
       return s;
     }
   }
@@ -756,13 +903,14 @@ async function startHandMode() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no camera api');
     if (!camStream) camStream = await openCamera();
     video.srcObject = camStream;
-    await withTimeout(video.play(), 10000, 'video play timeout');
+    await withTimeout(video.play(), CAMERA_TIMEOUT_MS, 'video play timeout');
     clearTimeout(permHint);
-    videoWrap.hidden = false;
+    cameraStack.hidden = false;
     loadingText.textContent = '正在加载手势识别模型（约 8MB，首次较慢）…';
     if (!handLandmarker) await loadLandmarker();
-    initCamPicker();
+    await initCamPicker();
     mode = 'hand';
+    watchActiveCamera(camStream);
     oex.reset(); oey.reset();
     blade.targetSet = false;
     startGame();
@@ -798,9 +946,7 @@ function detectHand(now) {
     detectErrors = 0;
   } catch (e) {
     if (++detectErrors > 10) {
-      teardownCamera();
-      mode = 'pointer';
-      toast('手势识别异常，已切换为鼠标模式');
+      usePointerFallback('手势识别异常，已切换为鼠标模式');
     }
     return;
   }
@@ -853,17 +999,17 @@ function drawSkeleton(lm) {
   for (const [a, b] of HAND_CONNECTIONS) {
     const A = lm[a], B = lm[b];
     octx.beginPath();
-    octx.moveTo((1 - A.x) * vw, A.y * vh);
-    octx.lineTo((1 - B.x) * vw, B.y * vh);
+    octx.moveTo(A.x * vw, A.y * vh);
+    octx.lineTo(B.x * vw, B.y * vh);
     octx.stroke();
   }
   octx.fillStyle = 'rgba(255,255,255,0.95)';
   for (const p of lm) {
-    octx.beginPath(); octx.arc((1 - p.x) * vw, p.y * vh, vw * 0.012, 0, Math.PI * 2); octx.fill();
+    octx.beginPath(); octx.arc(p.x * vw, p.y * vh, vw * 0.012, 0, Math.PI * 2); octx.fill();
   }
   const t = lm[8];
   octx.fillStyle = '#ffe14d';
-  octx.beginPath(); octx.arc((1 - t.x) * vw, t.y * vh, vw * 0.02, 0, Math.PI * 2); octx.fill();
+  octx.beginPath(); octx.arc(t.x * vw, t.y * vh, vw * 0.02, 0, Math.PI * 2); octx.fill();
 }
 
 /* ---------------- 主循环 ---------------- */
@@ -925,6 +1071,9 @@ function bindEvents() {
 
   $('btn-camera-mode').addEventListener('click', startHandMode);
   camPicker.addEventListener('change', () => { if (camPicker.value) switchCamera(camPicker.value); });
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
+  }
   $('btn-pointer-mode').addEventListener('click', () => {
     ensureAudio();
     mode = 'pointer';
