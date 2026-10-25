@@ -14,6 +14,7 @@ const video = $('cam-video');
 const camOverlay = $('cam-overlay');
 const octx = camOverlay.getContext('2d');
 const videoWrap = $('video-wrap');
+const camPicker = $('cam-picker');
 const toastEl = $('toast');
 const overlay = $('overlay');
 const panelMenu = $('panel-menu');
@@ -74,6 +75,10 @@ let best = 0, soundOn = true;
 let pointerActive = false;
 let handPresent = false, lastHandT = 0, lastDetect = 0, lastVideoTime = -1, detectErrors = 0;
 let camStream = null, handLandmarker = null;
+let camDevices = []; // 可用摄像头列表（授权后可见 label）
+let camEpoch = 0;    // teardown 时递增，用于丢弃「迟到的」授权流
+let savedCamId = '';
+try { savedCamId = localStorage.getItem('fruitwave-cam') || ''; } catch (e) { /* 忽略 */ }
 
 const fruits = [];       // 完整水果（有界：同屏最多 MAX_FRUITS）
 const halves = [];       // 切开的果瓣（有界对象池，最多 40）
@@ -574,6 +579,7 @@ function restartRound() {
 
 /* ---------------- 摄像头 + 手势识别（MediaPipe） ---------------- */
 function teardownCamera() {
+  camEpoch++;
   if (camStream) { camStream.getTracks().forEach((t) => t.stop()); camStream = null; }
   video.srcObject = null;
   videoWrap.hidden = true;
@@ -607,36 +613,175 @@ async function loadLandmarker() {
   }
 }
 
+// 给 getUserMedia 加上超时：macOS 系统授权弹窗被忽略时，请求会永远挂起
+function withTimeout(promise, ms, name) {
+  let timer;
+  const timeout = new Promise((_, rej) => {
+    timer = setTimeout(() => {
+      const e = new Error(name || 'timeout');
+      e.name = 'TimeoutError';
+      rej(e);
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+// 授权成功后枚举摄像头，多于 1 个时显示切换器
+async function initCamPicker() {
+  try {
+    const list = await navigator.mediaDevices.enumerateDevices();
+    camDevices = list.filter((d) => d.kind === 'videoinput' && d.deviceId);
+  } catch (e) {
+    camDevices = [];
+  }
+  camPicker.hidden = camDevices.length < 2;
+  if (camPicker.hidden) return;
+  camPicker.textContent = '';
+  camDevices.forEach((d, i) => {
+    const opt = document.createElement('option');
+    opt.value = d.deviceId;
+    opt.textContent = d.label || `摄像头 ${i + 1}`;
+    camPicker.appendChild(opt);
+  });
+  if (savedCamId) {
+    camPicker.value = savedCamId;
+    if (camPicker.value !== savedCamId) savedCamId = ''; // 已拔掉
+  } else {
+    camPicker.selectedIndex = 0;
+  }
+}
+
+// 切换摄像头：先开新流，成功后再停旧流，避免切换失败导致画面黑屏
+async function switchCamera(id) {
+  try {
+    const stream = await withTimeout(
+      navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { deviceId: { exact: id }, width: { ideal: 640 }, height: { ideal: 480 } },
+      }),
+      10000,
+      'camera switch timeout',
+    );
+    const old = camStream;
+    camStream = stream;
+    video.srcObject = stream;
+    await video.play();
+    if (old) old.getTracks().forEach((t) => t.stop());
+    lastVideoTime = -1;
+    savedCamId = id;
+    try { localStorage.setItem('fruitwave-cam', id); } catch (e) { /* 忽略 */ }
+    toast('已切换摄像头');
+  } catch (err) {
+    console.warn('[FruitWave] 切换摄像头失败：', err);
+    toast('切换摄像头失败，请重试');
+  }
+}
+
+// 打开摄像头：默认设备 10s 内拿不到流就逐个尝试其他设备。
+// 手机联动/虚拟摄像头（如 Continuity Camera）未就绪时 getUserMedia 会一直挂起，必须能换设备自救。
+async function openCamera() {
+  let sawDenied = false;   // 任一尝试被系统拒绝（TCC 曾点过「不允许」）
+  let allTimedOut = true;  // 所有尝试都只是超时（授权弹窗没人点 / 设备不吐帧）
+  // 验收标准：拿到流 + play() 能出画面。手机联动摄像头（Continuity Camera 等）
+  // 会授权成功但永远不吐帧，play() 等到第一帧才 resolve，必须限时并换设备。
+  const accept = async (constraints, ms, tag) => {
+    const ep = camEpoch;
+    let s = null;
+    try {
+      s = await withTimeout(navigator.mediaDevices.getUserMedia(constraints), ms, 'cam timeout');
+      if (camEpoch !== ep || camStream) { s.getTracks().forEach((t) => t.stop()); return null; }
+    } catch (e) {
+      if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) sawDenied = true;
+      if (!e || e.name !== 'TimeoutError') allTimedOut = false;
+      return null;
+    }
+    try {
+      video.srcObject = s;
+      await withTimeout(video.play(), 10000, 'video play timeout');
+    } catch (e) {
+      console.warn('[FruitWave] 摄像头无画面，跳过设备：', tag);
+      s.getTracks().forEach((t) => t.stop());
+      video.srcObject = null;
+      return null;
+    }
+    camStream = s;
+    return s;
+  };
+
+  // 先枚举（此刻没有挂起的 getUserMedia，枚举不会排队阻塞）
+  let ids = [];
+  try {
+    const list = await navigator.mediaDevices.enumerateDevices();
+    ids = list.filter((d) => d.kind === 'videoinput' && d.deviceId).map((d) => d.deviceId);
+  } catch (e) { /* 忽略 */ }
+
+  // 尝试顺序：上次用过的设备 → 默认设备 → 其余设备（最多共 4 次）
+  const tries = [];
+  if (savedCamId) {
+    tries.push({ video: { deviceId: { exact: savedCamId }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'saved' });
+  }
+  tries.push({ video: { width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'default' });
+  for (const id of ids.slice(0, 3)) {
+    if (id !== savedCamId) {
+      tries.push({ video: { deviceId: { exact: id }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: id.slice(0, 8) });
+    }
+  }
+
+  for (const t of tries.slice(0, 4)) {
+    const s = await accept({ audio: false, video: t.video }, 10000, t.tag);
+    if (s) {
+      if (t.video.deviceId) {
+        savedCamId = t.video.deviceId.exact;
+        try { localStorage.setItem('fruitwave-cam', savedCamId); } catch (e) { /* 忽略 */ }
+      }
+      return s;
+    }
+  }
+  const err = new Error('no camera stream');
+  err.name = sawDenied ? 'NotAllowedError' : allTimedOut ? 'TimeoutError' : 'NotFoundError';
+  throw err;
+}
+
 async function startHandMode() {
   ensureAudio();
   showPanel(panelLoading);
   loadingText.textContent = '正在请求摄像头权限…';
+  // 权限请求可能挂起（如 macOS 系统弹窗未被处理）：先给用户提示，超时后自动回退
+  const permHint = setTimeout(() => {
+    if (loadingText.textContent.includes('摄像头权限')) {
+      loadingText.textContent = '若系统弹出摄像头授权询问，请点击「允许」；等待中…';
+    }
+  }, 6000);
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no camera api');
-    if (!camStream) {
-      camStream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-      });
-    }
+    if (!camStream) camStream = await openCamera();
     video.srcObject = camStream;
-    await video.play();
+    await withTimeout(video.play(), 10000, 'video play timeout');
+    clearTimeout(permHint);
     videoWrap.hidden = false;
     loadingText.textContent = '正在加载手势识别模型（约 8MB，首次较慢）…';
     if (!handLandmarker) await loadLandmarker();
+    initCamPicker();
     mode = 'hand';
     oex.reset(); oey.reset();
     blade.targetSet = false;
     startGame();
     toast('伸出食指在空中挥砍，握拳停止');
   } catch (err) {
+    clearTimeout(permHint);
     console.warn('[FruitWave] 摄像头模式启动失败：', err);
     teardownCamera();
     mode = 'pointer';
     oex.reset(); oey.reset();
     blade.targetSet = false;
     startGame();
-    toast('未检测到摄像头或未授权，已切换为鼠标 / 触控模式');
+    if (err && err.name === 'TimeoutError') {
+      toast('摄像头无响应（授权未确认或设备未就绪），本局先用鼠标');
+    } else if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+      toast('摄像头未授权，已切换为鼠标 / 触控模式');
+    } else {
+      toast('未检测到摄像头或启动失败，已切换为鼠标 / 触控模式');
+    }
   }
 }
 
@@ -779,6 +924,7 @@ function bindEvents() {
   });
 
   $('btn-camera-mode').addEventListener('click', startHandMode);
+  camPicker.addEventListener('change', () => { if (camPicker.value) switchCamera(camPicker.value); });
   $('btn-pointer-mode').addEventListener('click', () => {
     ensureAudio();
     mode = 'pointer';
