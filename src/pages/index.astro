@@ -26,12 +26,12 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
 
 <BaseLayout
   title="WordsMaster — 读书、技术与计算机科学先驱"
-  description="WordsMaster (wordsmaster.app)：把复杂的技术与思想，写成可以反复读的笔记。包含深度博客长文、ArtCatcher 3D 游戏与 WordKey 单词键盘挑战。"
+  description="WordsMaster (wordsmaster.app)：把复杂的技术与思想，写成可以反复读的笔记。包含深度博客长文、FruitWave 体感切水果、ArtCatcher 3D 爪机与 WordKey 单词键盘挑战。"
   structuredData={[{
     '@type': 'CollectionPage',
     '@id': `${new URL(withBase('/'), Astro.site).toString()}#collection`,
     name: 'WordsMaster 首页',
-    description: '读书笔记、技术学习、计算机科学先驱人物、3D 游戏与单词挑战。',
+    description: '读书笔记、技术学习、计算机科学先驱人物、FruitWave 切水果、3D 抓娃娃与单词打字挑战。',
     mainEntity: { '@type': 'ItemList', itemListElement: homeItems }
   }]}
 >
@@ -56,7 +56,7 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
           <span class="meta-sep" aria-hidden="true">·</span>
           <span class="meta-stat"><strong>5</strong> 大知识专栏</span>
           <span class="meta-sep" aria-hidden="true">·</span>
-          <span class="meta-stat"><strong>2</strong> 个可交互实验</span>
+          <span class="meta-stat"><strong>3</strong> 个可交互实验</span>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
               <circle cx="18" cy="13" r="1"></circle>
             </svg>
             <span class="btn-title">游戏实验室</span>
-            <span class="btn-counter">3D 爪机</span>
+            <span class="btn-counter">FruitWave / 爪机</span>
             <kbd class="key-shortcut" title="按键盘数字键 2 快速切换">2</kbd>
           </button>
 
@@ -217,115 +217,266 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
 
     <!-- ================= Tab 2: 游戏实验室 ================= -->
     <section id="panel-games" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-games">
-      <div class="games-hero-card">
-        <div class="game-info-col">
-          <div class="game-tag">
-            <span class="tag-accent">THREE.JS 3D ARCADE</span>
-            <span class="tag-sep">·</span>
-            <span class="tag-title">ARTCATCHER 物理爪机</span>
-          </div>
-          <h2 class="game-main-title">把世界名画，抓进你的私人收藏柜</h2>
-          <p class="game-main-desc">
-            基于真实 3D 物理引擎打造的抓娃娃机模拟器。在自由视角中操控机械爪精确下抓，收集梵高《星夜》、达芬奇《蒙娜丽莎》与限定潮玩手办，打造属于你的 3D 艺术展馆。
-          </p>
-          <div class="game-actions">
-            <a class="action-btn-primary" href={withBase('/games/artcatcher/')}>
-              <span>进入全屏独立游戏</span>
-              <span aria-hidden="true">→</span>
-            </a>
-            <button type="button" id="toggle-embed-game-btn" class="action-btn-outline">
-              <span id="embed-btn-text">在当前页快速试玩 ▾</span>
-            </button>
-          </div>
+      <!-- 游戏双子星切换导航 -->
+      <div class="games-subnav-bar">
+        <div class="games-subnav-buttons" role="tablist" aria-label="游戏实验室作品切换">
+          <button type="button" class="game-pill-btn active" id="game-pill-fruitwave" role="tab" aria-selected="true" data-subgame="fruitwave">
+            <span class="game-pill-emoji">🍉</span>
+            <span class="game-pill-name">FruitWave · 体感切水果</span>
+            <span class="game-pill-badge new-badge">NEW 首发</span>
+          </button>
+          <button type="button" class="game-pill-btn" id="game-pill-artcatcher" role="tab" aria-selected="false" data-subgame="artcatcher">
+            <span class="game-pill-emoji">🧸</span>
+            <span class="game-pill-name">ArtCatcher · 3D 抓娃娃</span>
+            <span class="game-pill-badge">3D 街机</span>
+          </button>
         </div>
-
-        <div class="game-visual-col" aria-hidden="true">
-          <div class="arcade-cabinet-silhouette">
-            <div class="arcade-glow"></div>
-            <div class="arcade-claw-rod"></div>
-            <div class="arcade-claw-head"></div>
-            <div class="arcade-prize-orb">🎨</div>
-            <div class="arcade-base-light"></div>
-          </div>
-        </div>
+        <a href={withBase('/games/')} class="games-hub-link">
+          <span>进入独立游戏中心总览</span>
+          <span aria-hidden="true">→</span>
+        </a>
       </div>
 
-      <!-- 嵌入试玩视窗 (默认折叠) -->
+      <!-- 嵌入试玩视窗 (默认折叠，随两款游戏试玩按钮呼出) -->
       <div id="embed-game-container" class="embed-game-box hidden">
         <div class="embed-box-bar">
           <div class="bar-left">
             <span class="online-indicator"></span>
-            <span>ArtCatcher 3D 实时渲染沙盒</span>
+            <span id="embed-box-title">FruitWave 浏览器体感切水果沙盒</span>
           </div>
           <div class="bar-right">
-            <a href={withBase('/games/artcatcher/')} target="_blank" class="bar-btn">全屏新窗口 ↗</a>
+            <a href={withBase('/games/fruitwave/')} id="embed-fullscreen-link" target="_blank" class="bar-btn">全屏新窗口 ↗</a>
             <button type="button" id="close-embed-game-btn" class="bar-btn">收起试玩 ✕</button>
           </div>
         </div>
         <div class="embed-box-viewport">
-          <iframe id="game-iframe" src="about:blank" data-src={withBase('/games/artcatcher/')} title="ArtCatcher 3D Game" loading="lazy"></iframe>
+          <iframe id="game-iframe" src="about:blank" data-src={withBase('/games/fruitwave/')} title="FruitWave & ArtCatcher Game" loading="lazy" allow="camera; accelerometer; gyroscope; microphone"></iframe>
         </div>
       </div>
 
-      <!-- 游戏核心特性与按键控制指南 -->
-      <div class="features-trio">
-        <div class="trio-card">
-          <div class="trio-badge">01 · 真实物理</div>
-          <h3>双视角微调瞄准</h3>
-          <p>支持顶视全局机位与平视深度机位自由切换，精准把控抓手下潜深度与机械开合时机。</p>
+      <!-- ---------------- 展区 1: FruitWave · 体感切水果 (默认展示) ---------------- -->
+      <div id="game-display-fruitwave" class="subgame-display active">
+        <div class="games-hero-card fruitwave-theme">
+          <div class="game-info-col">
+            <div class="game-tag">
+              <span class="tag-accent fruit-accent">MEDIAPIPE 手势识别 · BROWSER ARCADE</span>
+              <span class="tag-sep">·</span>
+              <span class="tag-title">FRUITWAVE 体感切水果</span>
+            </div>
+            <h2 class="game-main-title">挥手之间，凌空斩落满屏多汁热带水果</h2>
+            <p class="game-main-desc">
+              移植自 tvOS 真实体感规则！在浏览器中直接启用摄像头，伸出食指在空中凌空挥砍，MediaPipe 毫秒级骨骼检测；无摄像头或未授权时，鼠标、触控板与触摸屏无缝回退。12 种真实水果、90 秒极限冲榜、连击音调动态攀升，全部运算与数据 100% 在本地完成，保护隐私。
+            </p>
+            <div class="game-specs-strip">
+              <span class="spec-tag">⏱️ 90 秒限时</span>
+              <span class="spec-tag">🍉 12 种丰富果品</span>
+              <span class="spec-tag">🎥 摄像头凌空挥砍</span>
+              <span class="spec-tag">🖱️ 鼠标/触摸极速回退</span>
+              <span class="spec-tag">🔒 零数据上传本地运行</span>
+            </div>
+            <div class="game-actions">
+              <a class="action-btn-primary fruit-btn" href={withBase('/games/fruitwave/')}>
+                <span>进入 FruitWave 全屏畅玩</span>
+                <span aria-hidden="true">→</span>
+              </a>
+              <button type="button" id="toggle-embed-fruitwave-btn" class="action-btn-outline">
+                <span id="embed-fruitwave-text">在当前页快速试玩 ▾</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="game-visual-col" aria-hidden="true">
+            <div class="fruitwave-visual-card" id="fruitwave-preview-card">
+              <div class="visual-card-ambient"></div>
+              
+              <!-- 核心切开西瓜动效 -->
+              <div class="slice-stage">
+                <div class="hero-watermelon-box">
+                  <div class="watermelon-half half-left">
+                    <span class="half-emoji">🍉</span>
+                  </div>
+                  <div class="watermelon-half half-right">
+                    <span class="half-emoji">🍉</span>
+                  </div>
+                </div>
+                <div class="blade-slash-streak"></div>
+                <div class="blade-slash-flash"></div>
+                <div class="slice-impact-burst"></div>
+                <div class="juice-spray">
+                  <span class="juice-drop d1"></span>
+                  <span class="juice-drop d2"></span>
+                  <span class="juice-drop d3"></span>
+                  <span class="juice-drop d4"></span>
+                  <span class="juice-drop d5"></span>
+                  <span class="juice-drop d6"></span>
+                </div>
+                <div class="score-popup">+10</div>
+              </div>
+
+              <!-- 环绕悬浮漂浮水果 -->
+              <div class="flying-fruit fruit-pineapple">🍍</div>
+              <div class="flying-fruit fruit-strawberry">🍓</div>
+              <div class="flying-fruit fruit-kiwi">🥝</div>
+              <div class="flying-fruit fruit-orange">🍊</div>
+
+              <!-- 闪光火花 -->
+              <div class="fruit-burst-particle p1">✦</div>
+              <div class="fruit-burst-particle p2">✦</div>
+              <div class="fruit-burst-particle p3">✦</div>
+              
+              <!-- 动态连击徽章 -->
+              <div class="fruit-combo-badge">
+                <span class="combo-flame">🔥</span>
+                <span class="combo-text">COMBO ×5</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="trio-card">
-          <div class="trio-badge">02 · 名画图鉴</div>
-          <h3>微缩艺术展品</h3>
-          <p>收录梵高《星夜》、达芬奇《蒙娜丽莎》、向日葵名作手办，以及天线宝宝与小马宝莉限量玩偶。</p>
+
+        <!-- FruitWave 核心特性 -->
+        <div class="features-trio">
+          <div class="trio-card fruit-border">
+            <div class="trio-badge fruit-badge">01 · 凌空骨骼追踪</div>
+            <h3>本地手势毫秒识别</h3>
+            <p>基于 MediaPipe Hand Landmarker，食指指尖轨迹实时映射为凌空刀光，握拳自动收招，画面与坐标不出本地。</p>
+          </div>
+          <div class="trio-card fruit-border">
+            <div class="trio-badge fruit-badge">02 · 12 款真实果品</div>
+            <h3>物理弹射抛物线</h3>
+            <p>西瓜、草莓、菠萝、奇异果等多种水果不同初始速度与旋转角速度，切中触发果汁四溅的粒子打击感。</p>
+          </div>
+          <div class="trio-card fruit-border">
+            <div class="trio-badge fruit-badge">03 · 连击音阶演化</div>
+            <h3>WebAudio 动态合成</h3>
+            <p>WebAudio 本地实时合成切割与得分音效，连击音阶沿五度相生律逐步拔高，无需任何外部音频资源下载。</p>
+          </div>
         </div>
-        <div class="trio-card">
-          <div class="trio-badge">03 · 成就展柜</div>
-          <h3>360° 旋转博物馆</h3>
-          <p>成功抓获的手办永久入驻个人藏宝阁，支持实时旋转微距赏析，结算代币与成就奖励。</p>
+
+        <!-- FruitWave 操作指南 -->
+        <div class="arcade-controls-guide fruit-guide">
+          <div class="guide-header">
+            <span class="guide-icon">🍉</span>
+            <strong>FruitWave 操作与快捷键指南 (Controls Guide)</strong>
+          </div>
+          <div class="guide-keys-row">
+            <div class="key-guide-item">
+              <kbd class="kbd-key">🎥 摄像头</kbd>
+              <span>伸出食指在空中挥砍（握拳暂停）</span>
+            </div>
+            <div class="key-guide-sep">|</div>
+            <div class="key-guide-item">
+              <kbd class="kbd-key">🖱️ 鼠标 / 触控</kbd>
+              <span>按住左键或触屏滑动切水果</span>
+            </div>
+            <div class="key-guide-sep">|</div>
+            <div class="key-guide-item">
+              <kbd class="kbd-key">P</kbd>
+              <span>暂停 / 继续</span>
+            </div>
+            <div class="key-guide-sep">|</div>
+            <div class="key-guide-item">
+              <kbd class="kbd-key">M</kbd>
+              <span>音效静音 / 开启</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 街机物理控台键位说明卡 -->
-      <div class="arcade-controls-guide">
-        <div class="guide-header">
-          <span class="guide-icon">🕹️</span>
-          <strong>街机控台键位说明 (Controls Guide)</strong>
-        </div>
-        <div class="guide-keys-row">
-          <div class="key-guide-item">
-            <kbd class="kbd-key">W</kbd><kbd class="kbd-key">A</kbd><kbd class="kbd-key">S</kbd><kbd class="kbd-key">D</kbd>
-            <span>平移机械抓臂</span>
+      <!-- ---------------- 展区 2: ArtCatcher · 3D 抓娃娃 ---------------- -->
+      <div id="game-display-artcatcher" class="subgame-display hidden">
+        <div class="games-hero-card">
+          <div class="game-info-col">
+            <div class="game-tag">
+              <span class="tag-accent">THREE.JS 3D ARCADE</span>
+              <span class="tag-sep">·</span>
+              <span class="tag-title">ARTCATCHER 物理爪机</span>
+            </div>
+            <h2 class="game-main-title">把世界名画，抓进你的私人收藏柜</h2>
+            <p class="game-main-desc">
+              基于真实 3D 物理引擎打造的抓娃娃机模拟器。在自由视角中操控机械爪精确下抓，收集梵高《星夜》、达芬奇《蒙娜丽莎》与限定潮玩手办，打造属于你的 3D 艺术展馆。
+            </p>
+            <div class="game-actions">
+              <a class="action-btn-primary" href={withBase('/games/artcatcher/')}>
+                <span>进入 ArtCatcher 全屏游戏</span>
+                <span aria-hidden="true">→</span>
+              </a>
+              <button type="button" id="toggle-embed-artcatcher-btn" class="action-btn-outline">
+                <span id="embed-artcatcher-text">在当前页快速试玩 ▾</span>
+              </button>
+            </div>
           </div>
-          <div class="key-guide-sep">|</div>
-          <div class="key-guide-item">
-            <kbd class="kbd-key kbd-space">Space 空格键</kbd>
-            <span>下潜落爪抓取</span>
-          </div>
-          <div class="key-guide-sep">|</div>
-          <div class="key-guide-item">
-            <kbd class="kbd-key">C</kbd>
-            <span>切换视角 (Cam)</span>
-          </div>
-          <div class="key-guide-sep">|</div>
-          <div class="key-guide-item">
-            <kbd class="kbd-key">Q</kbd> / <kbd class="kbd-key">E</kbd>
-            <span>旋转机位</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- 游戏开发复盘深度文章推荐 -->
-      <div class="article-callout-card">
-        <div class="callout-badge">深度开发复盘</div>
-        <h3 class="callout-heading">Vibe Coding 游戏开发失败记：我让 AI 做一个苹果，最后得到了一套验收系统</h3>
-        <p class="callout-summary">
-          从 AI 提示词狂欢到 3D 抓娃娃机落地的工程反思：为什么技术验证会替代产品判断，又该如何把开发拉回真实体验？
-        </p>
-        <a href={withBase('/posts/tech-learning/vibe-coding-game-development-apple-failure/')} class="callout-action">
-          <span>阅读技术复盘长文</span>
-          <span aria-hidden="true">→</span>
-        </a>
+          <div class="game-visual-col" aria-hidden="true">
+            <div class="arcade-cabinet-silhouette">
+              <div class="arcade-glow"></div>
+              <div class="arcade-claw-rod"></div>
+              <div class="arcade-claw-head"></div>
+              <div class="arcade-prize-orb">🎨</div>
+              <div class="arcade-base-light"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 游戏核心特性与按键控制指南 -->
+        <div class="features-trio">
+          <div class="trio-card">
+            <div class="trio-badge">01 · 真实物理</div>
+            <h3>双视角微调瞄准</h3>
+            <p>支持顶视全局机位与平视深度机位自由切换，精准把控抓手下潜深度与机械开合时机。</p>
+          </div>
+          <div class="trio-card">
+            <div class="trio-badge">02 · 名画图鉴</div>
+            <h3>微缩艺术展品</h3>
+            <p>收录梵高《星夜》、达芬奇《蒙娜丽莎》、向日葵名作手办，以及天线宝宝与小马宝莉限量玩偶。</p>
+          </div>
+          <div class="trio-card">
+            <div class="trio-badge">03 · 成就展柜</div>
+            <h3>360° 旋转博物馆</h3>
+            <p>成功抓获的手办永久入驻个人藏宝阁，支持实时旋转微距赏析，结算代币与成就奖励。</p>
+          </div>
+        </div>
+
+        <!-- 街机物理控台键位说明卡 -->
+        <div class="arcade-controls-guide">
+          <div class="guide-header">
+            <span class="guide-icon">🕹️</span>
+            <strong>街机控台键位说明 (Controls Guide)</strong>
+          </div>
+          <div class="guide-keys-row">
+            <div class="key-guide-item">
+              <kbd class="kbd-key">W</kbd><kbd class="kbd-key">A</kbd><kbd class="kbd-key">S</kbd><kbd class="kbd-key">D</kbd>
+              <span>平移机械抓臂</span>
+            </div>
+            <div class="key-guide-sep">|</div>
+            <div class="key-guide-item">
+              <kbd class="kbd-key kbd-space">Space 空格键</kbd>
+              <span>下潜落爪抓取</span>
+            </div>
+            <div class="key-guide-sep">|</div>
+            <div class="key-guide-item">
+              <kbd class="kbd-key">C</kbd>
+              <span>切换视角 (Cam)</span>
+            </div>
+            <div class="key-guide-sep">|</div>
+            <div class="key-guide-item">
+              <kbd class="kbd-key">Q</kbd> / <kbd class="kbd-key">E</kbd>
+              <span>旋转机位</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 游戏开发复盘深度文章推荐 -->
+        <div class="article-callout-card">
+          <div class="callout-badge">深度开发复盘</div>
+          <h3 class="callout-heading">Vibe Coding 游戏开发失败记：我让 AI 做一个苹果，最后得到了一套验收系统</h3>
+          <p class="callout-summary">
+            从 AI 提示词狂欢到 3D 抓娃娃机落地的工程反思：为什么技术验证会替代产品判断，又该如何把开发拉回真实体验？
+          </p>
+          <a href={withBase('/posts/tech-learning/vibe-coding-game-development-apple-failure/')} class="callout-action">
+            <span>阅读技术复盘长文</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
       </div>
     </section>
 
@@ -623,34 +774,100 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     });
   });
 
-  // ================= 3. 游戏嵌入试玩 =================
-  const toggleEmbedBtn = document.getElementById('toggle-embed-game-btn');
+  // ================= 3. 游戏实验室切换与嵌入试玩 =================
+  const pillFruitwave = document.getElementById('game-pill-fruitwave');
+  const pillArtcatcher = document.getElementById('game-pill-artcatcher');
+  const displayFruitwave = document.getElementById('game-display-fruitwave');
+  const displayArtcatcher = document.getElementById('game-display-artcatcher');
+
+  const toggleEmbedFruitwaveBtn = document.getElementById('toggle-embed-fruitwave-btn');
+  const toggleEmbedArtcatcherBtn = document.getElementById('toggle-embed-artcatcher-btn');
   const embedGameContainer = document.getElementById('embed-game-container');
   const gameIframe = document.getElementById('game-iframe') as HTMLIFrameElement | null;
-  const embedBtnText = document.getElementById('embed-btn-text');
+  const embedBoxTitle = document.getElementById('embed-box-title');
+  const embedFullscreenLink = document.getElementById('embed-fullscreen-link') as HTMLAnchorElement | null;
+  const embedFruitwaveText = document.getElementById('embed-fruitwave-text');
+  const embedArtcatcherText = document.getElementById('embed-artcatcher-text');
   const closeEmbedBtn = document.getElementById('close-embed-game-btn');
 
-  function openEmbedGame() {
+  function switchSubgame(game: 'fruitwave' | 'artcatcher') {
+    if (game === 'fruitwave') {
+      pillFruitwave?.classList.add('active');
+      pillFruitwave?.setAttribute('aria-selected', 'true');
+      pillArtcatcher?.classList.remove('active');
+      pillArtcatcher?.setAttribute('aria-selected', 'false');
+
+      displayFruitwave?.classList.remove('hidden');
+      displayFruitwave?.classList.add('active');
+      displayArtcatcher?.classList.add('hidden');
+      displayArtcatcher?.classList.remove('active');
+    } else {
+      pillArtcatcher?.classList.add('active');
+      pillArtcatcher?.setAttribute('aria-selected', 'true');
+      pillFruitwave?.classList.remove('active');
+      pillFruitwave?.setAttribute('aria-selected', 'false');
+
+      displayArtcatcher?.classList.remove('hidden');
+      displayArtcatcher?.classList.add('active');
+      displayFruitwave?.classList.add('hidden');
+      displayFruitwave?.classList.remove('active');
+    }
+  }
+
+  pillFruitwave?.addEventListener('click', () => switchSubgame('fruitwave'));
+  pillArtcatcher?.addEventListener('click', () => switchSubgame('artcatcher'));
+
+  let currentActiveEmbed: 'fruitwave' | 'artcatcher' | null = null;
+
+  function openEmbedGame(game: 'fruitwave' | 'artcatcher') {
     if (!embedGameContainer || !gameIframe) return;
     embedGameContainer.classList.remove('hidden');
-    if (!gameIframe.src || gameIframe.src === 'about:blank') {
-      gameIframe.src = gameIframe.getAttribute('data-src') || '/games/artcatcher/';
+    currentActiveEmbed = game;
+
+    const basePrefix = import.meta.env.BASE_URL.replace(/\/$/, '');
+    if (game === 'fruitwave') {
+      const targetUrl = `${basePrefix}/games/fruitwave/`;
+      if (gameIframe.src !== targetUrl && !gameIframe.src.endsWith('/games/fruitwave/')) {
+        gameIframe.src = targetUrl;
+      }
+      if (embedBoxTitle) embedBoxTitle.textContent = 'FruitWave 浏览器体感切水果沙盒';
+      if (embedFullscreenLink) embedFullscreenLink.href = targetUrl;
+      if (embedFruitwaveText) embedFruitwaveText.textContent = '收起试玩窗口 ▴';
+      if (embedArtcatcherText) embedArtcatcherText.textContent = '在当前页快速试玩 ▾';
+    } else {
+      const targetUrl = `${basePrefix}/games/artcatcher/`;
+      if (gameIframe.src !== targetUrl && !gameIframe.src.endsWith('/games/artcatcher/')) {
+        gameIframe.src = targetUrl;
+      }
+      if (embedBoxTitle) embedBoxTitle.textContent = 'ArtCatcher 3D 实时渲染物理爪机沙盒';
+      if (embedFullscreenLink) embedFullscreenLink.href = targetUrl;
+      if (embedArtcatcherText) embedArtcatcherText.textContent = '收起试玩窗口 ▴';
+      if (embedFruitwaveText) embedFruitwaveText.textContent = '在当前页快速试玩 ▾';
     }
-    if (embedBtnText) embedBtnText.textContent = '收起试玩窗口 ▴';
     embedGameContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   function closeEmbedGame() {
     if (!embedGameContainer) return;
     embedGameContainer.classList.add('hidden');
-    if (embedBtnText) embedBtnText.textContent = '在当前页快速试玩 ▾';
+    currentActiveEmbed = null;
+    if (embedFruitwaveText) embedFruitwaveText.textContent = '在当前页快速试玩 ▾';
+    if (embedArtcatcherText) embedArtcatcherText.textContent = '在当前页快速试玩 ▾';
   }
 
-  toggleEmbedBtn?.addEventListener('click', () => {
-    if (embedGameContainer?.classList.contains('hidden')) {
-      openEmbedGame();
-    } else {
+  toggleEmbedFruitwaveBtn?.addEventListener('click', () => {
+    if (!embedGameContainer?.classList.contains('hidden') && currentActiveEmbed === 'fruitwave') {
       closeEmbedGame();
+    } else {
+      openEmbedGame('fruitwave');
+    }
+  });
+
+  toggleEmbedArtcatcherBtn?.addEventListener('click', () => {
+    if (!embedGameContainer?.classList.contains('hidden') && currentActiveEmbed === 'artcatcher') {
+      closeEmbedGame();
+    } else {
+      openEmbedGame('artcatcher');
     }
   });
 
@@ -1444,6 +1661,537 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
   }
 
   /* ================= 4. 游戏实验室板块 ================= */
+  .games-subnav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: .5rem .75rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .games-subnav-buttons {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+  .game-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem .95rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s ease;
+  }
+  .game-pill-btn:hover {
+    color: var(--color-text);
+    background: var(--color-surface-alt);
+  }
+  .game-pill-btn.active {
+    background: var(--color-surface-alt);
+    border-color: var(--color-border);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+  }
+  .game-pill-badge {
+    font-size: .68rem;
+    padding: .15rem .45rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .1);
+    color: var(--color-text-soft);
+    font-weight: 700;
+  }
+  .game-pill-badge.new-badge {
+    background: #10b981;
+    color: #fff;
+  }
+  .games-hub-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .84rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: opacity .18s ease;
+  }
+  .games-hub-link:hover {
+    opacity: .8;
+  }
+  .subgame-display.hidden {
+    display: none;
+  }
+
+  /* FruitWave 主题卡片 */
+  .games-hero-card.fruitwave-theme {
+    background: linear-gradient(135deg, #0e1e17 0%, #152924 50%, #201a2e 100%);
+    border-color: rgba(52, 211, 153, .3);
+  }
+  .fruit-accent {
+    color: #34d399 !important;
+  }
+  .fruit-btn {
+    background: #34d399 !important;
+    color: #062419 !important;
+  }
+  .fruit-btn:hover {
+    background: #6ee7b7 !important;
+  }
+  .game-specs-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1.4rem;
+  }
+  .spec-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .2rem .65rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+    font-size: .78rem;
+    color: #d1fae5;
+  }
+  .fruit-border {
+    border-color: rgba(52, 211, 153, .25) !important;
+  }
+  .fruit-badge {
+    background: rgba(52, 211, 153, .12) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(52, 211, 153, .3);
+  }
+  .fruit-guide {
+    border-color: rgba(52, 211, 153, .25) !important;
+    background: rgba(16, 185, 129, .04);
+  }
+
+  /* FruitWave 动效视觉视窗 */
+  .fruitwave-visual-card {
+    position: relative;
+    width: 14rem;
+    aspect-ratio: 4 / 5;
+    border: 1px solid rgba(52, 211, 153, .35);
+    border-radius: var(--radius-xl);
+    background: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, .2), transparent 70%), linear-gradient(145deg, #0a1712 0%, #11261d 55%, #181326 100%);
+    box-shadow: inset 0 0 2.5rem rgba(52, 211, 153, .12), 0 1rem 2.5rem rgba(0, 0, 0, .45);
+    overflow: hidden;
+    perspective: 800px;
+  }
+
+  .visual-card-ambient {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 45%, rgba(52, 211, 153, 0.22) 0%, rgba(52, 211, 153, 0) 65%);
+    animation: visualAmbientGlow 3.6s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  /* 核心切水果动画舞台 */
+  .slice-stage {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .hero-watermelon-box {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 4.8rem;
+    height: 4.8rem;
+    transform: translate(-50%, -50%);
+    animation: heroFloatCycle 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .watermelon-half {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    user-select: none;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,.5));
+  }
+
+  .watermelon-half.half-left {
+    clip-path: polygon(0 0, 52% 0, 48% 100%, 0 100%);
+    animation: watermelonSplitLeft 3.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  }
+
+  .watermelon-half.half-right {
+    clip-path: polygon(52% 0, 100% 0, 100% 100%, 48% 100%);
+    animation: watermelonSplitRight 3.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  }
+
+  /* 刀光刀芒横扫轨迹 */
+  .blade-slash-streak {
+    position: absolute;
+    top: 45%;
+    left: -20%;
+    width: 140%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(52,211,153,.3) 15%, #34d399 40%, #ffffff 50%, #34d399 60%, rgba(52,211,153,.3) 85%, transparent);
+    box-shadow: 0 0 16px #34d399, 0 0 28px #fff, 0 0 45px rgba(52,211,153,.8);
+    transform-origin: center;
+    animation: bladeSlashSweep 3.6s cubic-bezier(0.15, 0.85, 0.35, 1) infinite;
+  }
+
+  /* 切割瞬间的高光闪爆与冲击波 */
+  .blade-slash-flash {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(52, 211, 153, 0.7) 40%, transparent 70%);
+    animation: bladeFlashAnim 3.6s cubic-bezier(0.1, 0.9, 0.2, 1) infinite;
+  }
+
+  .slice-impact-burst {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 2px solid rgba(52, 211, 153, 0.8);
+    transform: translate(-50%, -50%);
+    animation: impactShockwave 3.6s cubic-bezier(0.1, 0.8, 0.2, 1) infinite;
+  }
+
+  /* 果汁飞溅水滴群 */
+  .juice-spray {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 1px;
+    height: 1px;
+    transform: translate(-50%, -50%);
+  }
+
+  .juice-drop {
+    position: absolute;
+    border-radius: 999px;
+    background: #ff2a5f;
+    box-shadow: 0 0 6px #ff2a5f;
+    opacity: 0;
+  }
+
+  .juice-drop.d1 { width: 6px; height: 10px; animation: dropSpray1 3.6s ease-out infinite; }
+  .juice-drop.d2 { width: 5px; height: 8px;  background: #ff477e; animation: dropSpray2 3.6s ease-out infinite; }
+  .juice-drop.d3 { width: 7px; height: 12px; background: #ffe4e6; animation: dropSpray3 3.6s ease-out infinite; }
+  .juice-drop.d4 { width: 5px; height: 9px;  animation: dropSpray4 3.6s ease-out infinite; }
+  .juice-drop.d5 { width: 6px; height: 11px; background: #34d399; animation: dropSpray5 3.6s ease-out infinite; }
+  .juice-drop.d6 { width: 8px; height: 8px;  background: #facc15; animation: dropSpray6 3.6s ease-out infinite; }
+
+  /* 得分飘字 */
+  .score-popup {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fde047;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 12px rgba(250, 204, 21, 0.6);
+    animation: scorePopupAnim 3.6s cubic-bezier(0.1, 0.8, 0.2, 1) infinite;
+  }
+
+  /* 环绕悬浮漂浮水果 */
+  .flying-fruit {
+    position: absolute;
+    font-size: 2.1rem;
+    user-select: none;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,.5));
+    will-change: transform;
+  }
+
+  .fruit-pineapple {
+    top: 14%;
+    left: 18%;
+    animation: floatPineapple 4.2s ease-in-out infinite alternate;
+  }
+
+  .fruit-strawberry {
+    top: 12%;
+    right: 18%;
+    font-size: 1.8rem;
+    animation: floatStrawberry 3.8s ease-in-out infinite alternate;
+  }
+
+  .fruit-kiwi {
+    bottom: 28%;
+    left: 15%;
+    font-size: 1.9rem;
+    animation: floatKiwi 4.6s ease-in-out infinite alternate;
+  }
+
+  .fruit-orange {
+    bottom: 24%;
+    right: 16%;
+    font-size: 2rem;
+    animation: floatOrange 4.1s ease-in-out infinite alternate;
+  }
+
+  /* 闪光火花 */
+  .fruit-burst-particle {
+    position: absolute;
+    color: #34d399;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-shadow: 0 0 8px #34d399;
+  }
+  .fruit-burst-particle.p1 { top: 32%; left: 38%; animation: sparkBlink 2.2s ease-in-out infinite; }
+  .fruit-burst-particle.p2 { top: 46%; right: 30%; color: #facc15; text-shadow: 0 0 8px #facc15; animation: sparkBlink 2.7s ease-in-out infinite 0.4s; }
+  .fruit-burst-particle.p3 { bottom: 36%; left: 45%; color: #6ee7b7; animation: sparkBlink 2.4s ease-in-out infinite 0.9s; }
+
+  /* 动态连击徽章 */
+  .fruit-combo-badge {
+    position: absolute;
+    bottom: 1.1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .85rem;
+    border-radius: 999px;
+    background: rgba(6, 36, 25, .88);
+    border: 1px solid rgba(52, 211, 153, .45);
+    color: #34d399;
+    font-size: .8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .3), 0 0 16px rgba(52, 211, 153, .2);
+    animation: comboBadgePulse 3.6s ease-in-out infinite;
+  }
+  .combo-flame {
+    display: inline-block;
+    animation: flameWiggle 0.8s ease-in-out infinite alternate;
+  }
+
+  /* Keyframe 动效定义 */
+  @keyframes visualAmbientGlow {
+    0% { opacity: .6; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1.1); }
+  }
+
+  @keyframes heroFloatCycle {
+    0% { transform: translate(-50%, 60%) scale(0.7) rotate(-15deg); opacity: 0; }
+    15% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+    28% { transform: translate(-50%, -50%) scale(1.05) rotate(5deg); opacity: 1; }
+    80% { opacity: 1; }
+    92% { transform: translate(-50%, 30%) scale(0.8); opacity: 0; }
+    100% { transform: translate(-50%, 60%) scale(0.7); opacity: 0; }
+  }
+
+  @keyframes watermelonSplitLeft {
+    0%, 27% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 1;
+    }
+    29% {
+      transform: translate(-10px, -8px) rotate(-12deg);
+      opacity: 1;
+    }
+    55% {
+      transform: translate(-42px, -18px) rotate(-28deg);
+      opacity: 1;
+    }
+    85% {
+      transform: translate(-65px, 35px) rotate(-45deg);
+      opacity: 0;
+    }
+    100% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes watermelonSplitRight {
+    0%, 27% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 1;
+    }
+    29% {
+      transform: translate(10px, 8px) rotate(14deg);
+      opacity: 1;
+    }
+    55% {
+      transform: translate(45px, 22px) rotate(32deg);
+      opacity: 1;
+    }
+    85% {
+      transform: translate(68px, 60px) rotate(52deg);
+      opacity: 0;
+    }
+    100% {
+      transform: translate(0, 0) rotate(0deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes bladeSlashSweep {
+    0%, 25% {
+      opacity: 0;
+      transform: rotate(-35deg) scaleX(0.2) translate(-90px, 0);
+    }
+    27% {
+      opacity: 1;
+      transform: rotate(-35deg) scaleX(1.3) translate(0, 0);
+    }
+    31% {
+      opacity: .9;
+      transform: rotate(-35deg) scaleX(1.5) translate(60px, 0);
+    }
+    37% {
+      opacity: 0;
+      transform: rotate(-35deg) scaleX(1.6) translate(120px, 0);
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(-35deg) scaleX(0.2) translate(-90px, 0);
+    }
+  }
+
+  @keyframes bladeFlashAnim {
+    0%, 26% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+    28% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+    34% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes impactShockwave {
+    0%, 27% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+    29% { opacity: .9; transform: translate(-50%, -50%) scale(1.6); }
+    40% { opacity: 0; transform: translate(-50%, -50%) scale(3.2); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes dropSpray1 {
+    0%, 27% { opacity: 0; transform: translate(0, 0) rotate(0); }
+    30% { opacity: 1; }
+    50% { opacity: .8; transform: translate(-45px, -35px) rotate(-35deg) scale(1.2); }
+    75% { opacity: 0; transform: translate(-70px, 15px) rotate(-65deg) scale(0.6); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes dropSpray2 {
+    0%, 27% { opacity: 0; transform: translate(0, 0); }
+    30% { opacity: 1; }
+    50% { opacity: .8; transform: translate(40px, -30px) rotate(40deg) scale(1.1); }
+    75% { opacity: 0; transform: translate(65px, 20px) rotate(70deg) scale(0.5); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes dropSpray3 {
+    0%, 27% { opacity: 0; transform: translate(0, 0); }
+    30% { opacity: 1; }
+    50% { opacity: .9; transform: translate(-25px, -50px) rotate(-15deg); }
+    75% { opacity: 0; transform: translate(-40px, -10px) rotate(-30deg) scale(0.5); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes dropSpray4 {
+    0%, 27% { opacity: 0; transform: translate(0, 0); }
+    30% { opacity: 1; }
+    50% { opacity: .9; transform: translate(25px, 45px) rotate(45deg); }
+    75% { opacity: 0; transform: translate(45px, 90px) rotate(60deg) scale(0.4); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes dropSpray5 {
+    0%, 27% { opacity: 0; transform: translate(0, 0); }
+    30% { opacity: 1; }
+    50% { opacity: .9; transform: translate(-55px, 15px) rotate(-50deg); }
+    75% { opacity: 0; transform: translate(-85px, 60px) rotate(-75deg) scale(0.4); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes dropSpray6 {
+    0%, 27% { opacity: 0; transform: translate(0, 0); }
+    30% { opacity: 1; }
+    50% { opacity: 1; transform: translate(15px, -45px) scale(1.2); }
+    75% { opacity: 0; transform: translate(30px, -15px) scale(0.6); }
+    100% { opacity: 0; }
+  }
+
+  @keyframes scorePopupAnim {
+    0%, 28% {
+      opacity: 0;
+      transform: translate(-50%, -30%) scale(0.4);
+    }
+    33% {
+      opacity: 1;
+      transform: translate(-50%, -90%) scale(1.3);
+    }
+    55% {
+      opacity: 1;
+      transform: translate(-50%, -120%) scale(1.05);
+    }
+    75% {
+      opacity: 0;
+      transform: translate(-50%, -150%) scale(0.9);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -150%) scale(0.9);
+    }
+  }
+
+  @keyframes floatPineapple {
+    0% { transform: translateY(0) rotate(-10deg) scale(1); }
+    100% { transform: translateY(-12px) rotate(6deg) scale(1.06); }
+  }
+
+  @keyframes floatStrawberry {
+    0% { transform: translateY(0) rotate(15deg) scale(1); }
+    100% { transform: translateY(10px) rotate(-8deg) scale(0.94); }
+  }
+
+  @keyframes floatKiwi {
+    0% { transform: translate(0, 0) rotate(10deg); }
+    100% { transform: translate(8px, -10px) rotate(-18deg) scale(1.05); }
+  }
+
+  @keyframes floatOrange {
+    0% { transform: translate(0, 0) rotate(-20deg); }
+    100% { transform: translate(-7px, 9px) rotate(12deg) scale(1.04); }
+  }
+
+  @keyframes sparkBlink {
+    0%, 100% { opacity: .2; transform: scale(0.8) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.3) rotate(45deg); }
+  }
+
+  @keyframes comboBadgePulse {
+    0%, 24% { transform: translateX(-50%) scale(1); }
+    28% { transform: translateX(-50%) scale(1.14); box-shadow: 0 0 24px rgba(52, 211, 153, .6); }
+    38% { transform: translateX(-50%) scale(1.04); }
+    100% { transform: translateX(-50%) scale(1); }
+  }
+
+  @keyframes flameWiggle {
+    0% { transform: rotate(-8deg) scale(1); }
+    100% { transform: rotate(10deg) scale(1.2); }
+  }
+
   .games-hero-card {
     display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(13rem, .75fr);

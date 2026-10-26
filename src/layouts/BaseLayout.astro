@@ -122,7 +122,7 @@ const navItems = [
   { href: withBase('/category/tech-learning/'), label: '技术', active: pathname.includes('/tech-learning') },
   { href: withBase('/category/investment/'), label: '投资', active: pathname.includes('/investment') },
   { href: withBase('/category/turing-award/'), label: '人物', active: pathname.includes('/turing-award') },
-  { href: withBase('/games/'), label: '游戏', active: pathname.includes('/games/') },
+  { href: withBase('/games/'), label: '游戏', active: pathname.includes('/games') },
   { href: withBase('/about/'), label: '关于', active: pathname.includes('/about') }
 ];
 ---
@@ -233,6 +233,7 @@ const navItems = [
           </div>
           <nav aria-label="页脚导航">
             <a href={withBase('/about/')}>关于</a>
+            <a href={withBase('/games/')}>游戏</a>
             <a href={withBase('/search/')}>搜索</a>
             <a href={withBase('/rss.xml')}>RSS</a>
             <a href="https://github.com/pzhao16me" target="_blank" rel="noopener">GitHub</a>

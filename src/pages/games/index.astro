@@ -16,8 +16,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     </div>
 
     <div class="game-grid">
-      <a class="game-card" href={`${base}/games/fruitwave/`}>
-        <div class="game-cover">🍉🍓🍍</div>
+      <a class="game-card fruitwave-card" href={`${base}/games/fruitwave/`}>
+        <div class="game-cover fruitwave-cover">
+          <div class="cover-blade-sheen"></div>
+          <span class="cover-fruit fruit-1">🍉</span>
+          <span class="cover-fruit fruit-2">🍓</span>
+          <span class="cover-fruit fruit-3">🍍</span>
+          <span class="cover-burst">✨</span>
+        </div>
         <div class="game-body">
           <h2>FruitWave · 切水果</h2>
           <p>90 秒极限切水果，12 种水果等你挑战。有摄像头就伸出食指挥砍，没有摄像头用鼠标 / 触控板一样能玩。</p>
@@ -92,6 +98,85 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     gap: 0.75rem;
     font-size: 4rem;
     background: linear-gradient(135deg, #0f1c36, #16264a);
+  }
+
+  .game-cover.fruitwave-cover {
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.2), transparent 70%), linear-gradient(135deg, #091a13 0%, #10261f 50%, #1f1830 100%);
+  }
+
+  .cover-blade-sheen {
+    position: absolute;
+    top: 50%;
+    left: -30%;
+    width: 160%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #34d399, #ffffff, #34d399, transparent);
+    box-shadow: 0 0 14px #34d399, 0 0 20px #fff;
+    transform: rotate(-30deg) translateY(-50%);
+    opacity: 0.75;
+    animation: coverSlashSweep 4s ease-in-out infinite;
+  }
+
+  .cover-fruit {
+    display: inline-block;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));
+  }
+  .cover-fruit.fruit-1 {
+    animation: coverFruitBob1 3.2s ease-in-out infinite alternate;
+  }
+  .cover-fruit.fruit-2 {
+    animation: coverFruitBob2 2.8s ease-in-out infinite alternate;
+  }
+  .cover-fruit.fruit-3 {
+    animation: coverFruitBob3 3.6s ease-in-out infinite alternate;
+  }
+  .cover-burst {
+    position: absolute;
+    top: 25%;
+    right: 28%;
+    font-size: 1.4rem;
+    color: #fde047;
+    animation: coverBurstPulse 2.5s ease-in-out infinite;
+  }
+
+  .game-card.fruitwave-card:hover .cover-blade-sheen {
+    animation-duration: 1.5s;
+    box-shadow: 0 0 22px #34d399, 0 0 35px #fff;
+  }
+  .game-card.fruitwave-card:hover .cover-fruit.fruit-1 {
+    transform: translateY(-8px) scale(1.15) rotate(-15deg);
+  }
+  .game-card.fruitwave-card:hover .cover-fruit.fruit-2 {
+    transform: translateY(6px) scale(1.15) rotate(12deg);
+  }
+  .game-card.fruitwave-card:hover .cover-fruit.fruit-3 {
+    transform: translateY(-10px) scale(1.15) rotate(18deg);
+  }
+
+  @keyframes coverSlashSweep {
+    0%, 30% { opacity: 0; transform: rotate(-30deg) translate(-60px, -50%); }
+    35% { opacity: 1; transform: rotate(-30deg) translate(0, -50%); }
+    45% { opacity: 0.8; transform: rotate(-30deg) translate(80px, -50%); }
+    55%, 100% { opacity: 0; transform: rotate(-30deg) translate(140px, -50%); }
+  }
+  @keyframes coverFruitBob1 {
+    0% { transform: translateY(0) rotate(-8deg); }
+    100% { transform: translateY(-8px) rotate(6deg) scale(1.05); }
+  }
+  @keyframes coverFruitBob2 {
+    0% { transform: translateY(0) rotate(10deg); }
+    100% { transform: translateY(6px) rotate(-6deg) scale(0.95); }
+  }
+  @keyframes coverFruitBob3 {
+    0% { transform: translateY(0) rotate(-5deg); }
+    100% { transform: translateY(-10px) rotate(12deg) scale(1.06); }
+  }
+  @keyframes coverBurstPulse {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
   }
 
   .game-body {

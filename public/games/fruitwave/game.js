@@ -54,18 +54,18 @@ const CAMERA_TIMEOUT_MS = 10000;
 const MODEL_TIMEOUT_MS = 20000;
 
 const FRUITS = [
-  { name: '西瓜',   emoji: '🍉', color: '#3ea65c' },
-  { name: '草莓',   emoji: '🍓', color: '#e8465b' },
-  { name: '菠萝',   emoji: '🍍', color: '#eebc2e' },
-  { name: '苹果',   emoji: '🍎', color: '#e8464f' },
-  { name: '橙子',   emoji: '🍊', color: '#f5822b' },
-  { name: '香蕉',   emoji: '🍌', color: '#f3d94a' },
-  { name: '猕猴桃', emoji: '🥝', color: '#7ab648' },
-  { name: '桃子',   emoji: '🍑', color: '#f78e9e' },
-  { name: '芒果',   emoji: '🥭', color: '#f3a83c' },
-  { name: '柠檬',   emoji: '🍋', color: '#f6dd3a' },
-  { name: '葡萄',   emoji: '🍇', color: '#9a6ad6' },
-  { name: '火龙果', emoji: '',    color: '#ef5f86' },
+  { name: '西瓜',   emoji: '🍉', color: '#22c55e', flesh: '#ff2d55', rind: '#15803d', seeds: true,  juice: ['#ff2a5f', '#ff477e', '#ffe4e6', '#22c55e'] },
+  { name: '草莓',   emoji: '🍓', color: '#f43f5e', flesh: '#ff244a', rind: '#be123c', seeds: false, juice: ['#ff2247', '#ff6b8b', '#fff1f2', '#facc15'] },
+  { name: '菠萝',   emoji: '🍍', color: '#eab308', flesh: '#facc15', rind: '#a16207', seeds: false, juice: ['#facc15', '#fde047', '#fef9c3', '#ca8a04'] },
+  { name: '苹果',   emoji: '🍎', color: '#ef4444', flesh: '#fef08a', rind: '#b91c1c', seeds: true,  juice: ['#ef4444', '#fef08a', '#fee2e2', '#ffffff'] },
+  { name: '橙子',   emoji: '🍊', color: '#f97316', flesh: '#fb923c', rind: '#ea580c', seeds: false, juice: ['#fb923c', '#ffedd5', '#fed7aa', '#f97316'] },
+  { name: '香蕉',   emoji: '🍌', color: '#facc15', flesh: '#fef9c3', rind: '#ca8a04', seeds: false, juice: ['#fef08a', '#fef9c3', '#ffffff', '#eab308'] },
+  { name: '猕猴桃', emoji: '🥝', color: '#84cc16', flesh: '#a3e635', rind: '#78350f', seeds: true,  juice: ['#84cc16', '#bef264', '#1c1917', '#ffffff'] },
+  { name: '桃子',   emoji: '🍑', color: '#fb7185', flesh: '#fecdd3', rind: '#e11d48', seeds: true,  juice: ['#fb7185', '#fda4af', '#fff1f2', '#f43f5e'] },
+  { name: '芒果',   emoji: '🥭', color: '#f59e0b', flesh: '#fbbf24', rind: '#d97706', seeds: false, juice: ['#fbbf24', '#fde68a', '#fffbeb', '#f59e0b'] },
+  { name: '柠檬',   emoji: '🍋', color: '#fde047', flesh: '#fef08a', rind: '#eab308', seeds: false, juice: ['#fde047', '#fef08a', '#ffffff', '#ca8a04'] },
+  { name: '葡萄',   emoji: '🍇', color: '#a855f7', flesh: '#d8b4fe', rind: '#7e22ce', seeds: false, juice: ['#c084fc', '#e9d5ff', '#faf5ff', '#9333ea'] },
+  { name: '火龙果', emoji: '',    color: '#ec4899', flesh: '#ffffff', rind: '#db2777', seeds: true,  juice: ['#ec4899', '#f472b6', '#0f172a', '#ffffff'] },
 ];
 
 /* ---------------- 状态 ---------------- */
@@ -87,7 +87,9 @@ try { savedCamId = localStorage.getItem('fruitwave-cam') || ''; } catch (e) { /*
 
 const fruits = [];       // 完整水果（有界：同屏最多 MAX_FRUITS）
 const halves = [];       // 切开的果瓣（有界对象池，最多 40）
-const particles = [];    // 果汁粒子（有界对象池，最多 90）
+const particles = [];    // 果汁粒子（有界对象池，最多 120）
+const splats = [];       // 果汁扩散冲击波（最多 20）
+const flashes = [];      // 刀锋切割光芒（最多 12）
 const pops = [];         // 得分飘字（有界对象池，最多 24）
 const trail = [];        // 刀光轨迹点
 
@@ -123,10 +125,19 @@ function hexToRgb(hex) {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
+function hexToRgba(hex, alpha = 1) {
+  const [r, g, b] = hexToRgb(hex);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 function shade(hex, k) { // k>0 变亮
   const [r, g, b] = hexToRgb(hex);
   const f = (v) => Math.round(Math.max(0, Math.min(255, v + (255 - v) * k)));
   return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+function shadeRgba(hex, k, alpha = 1) {
+  const [r, g, b] = hexToRgb(hex);
+  const f = (v) => Math.round(Math.max(0, Math.min(255, v + (255 - v) * k)));
+  return `rgba(${f(r)},${f(g)},${f(b)},${alpha})`;
 }
 function shadeDark(hex, k) { // k>0 变暗
   const [r, g, b] = hexToRgb(hex);
@@ -145,50 +156,99 @@ function makeSprite(f) {
   c.width = c.height = SPRITE_S;
   const g = c.getContext('2d');
   const cx = SPRITE_S / 2, cy = SPRITE_S / 2;
-  // 渐变球体
-  const grad = g.createRadialGradient(cx - SPRITE_R * 0.35, cy - SPRITE_R * 0.4, SPRITE_R * 0.1, cx, cy, SPRITE_R);
-  grad.addColorStop(0, shade(f.color, 0.45));
-  grad.addColorStop(0.62, f.color);
-  grad.addColorStop(1, shadeDark(f.color, 0.32));
-  g.fillStyle = grad;
+
+  // 1. 柔和环境光晕（透出多汁果色，不生硬遮挡）
+  const glow = g.createRadialGradient(cx, cy, SPRITE_R * 0.25, cx, cy, SPRITE_R * 0.95);
+  glow.addColorStop(0, shadeRgba(f.color, 0.4, 0.25));
+  glow.addColorStop(0.6, hexToRgba(f.color, 0.14));
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = glow;
   g.beginPath(); g.arc(cx, cy, SPRITE_R, 0, Math.PI * 2); g.fill();
-  // 高光
-  const hl = g.createRadialGradient(cx - SPRITE_R * 0.4, cy - SPRITE_R * 0.45, 0, cx - SPRITE_R * 0.4, cy - SPRITE_R * 0.45, SPRITE_R * 0.75);
-  hl.addColorStop(0, 'rgba(255,255,255,0.55)');
-  hl.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = hl;
-  g.beginPath(); g.arc(cx, cy, SPRITE_R, 0, Math.PI * 2); g.fill();
+
   if (f.emoji) {
-    g.font = `${Math.round(SPRITE_R * 1.55)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+    // 2. 水果主体投影（增强立体感与悬浮感）
+    g.save();
+    g.shadowColor = 'rgba(0, 0, 0, 0.38)';
+    g.shadowBlur = 18;
+    g.shadowOffsetY = 10;
+    g.font = `${Math.round(SPRITE_R * 1.58)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(f.emoji, cx, cy + SPRITE_R * 0.04);
+    g.fillText(f.emoji, cx, cy + SPRITE_R * 0.03);
+    g.restore();
+
+    // 3. 顶部微光弧高光（饱满多汁反光）
+    const gleam = g.createRadialGradient(cx - SPRITE_R * 0.28, cy - SPRITE_R * 0.32, 2, cx - SPRITE_R * 0.25, cy - SPRITE_R * 0.28, SPRITE_R * 0.42);
+    gleam.addColorStop(0, 'rgba(255,255,255,0.42)');
+    gleam.addColorStop(0.6, 'rgba(255,255,255,0.12)');
+    gleam.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gleam;
+    g.beginPath();
+    g.arc(cx - SPRITE_R * 0.25, cy - SPRITE_R * 0.25, SPRITE_R * 0.45, 0, Math.PI * 2);
+    g.fill();
   } else {
     drawDragonfruit(g, cx, cy, SPRITE_R);
   }
   return c;
 }
 
-// 火龙果没有 emoji，手绘：粉色果身 + 绿色鳞叶
+// 火龙果手绘：艳粉果身 + 翠绿鳞尖 + 珍珠白果肉与黑芝麻籽
 function drawDragonfruit(g, cx, cy, r) {
-  g.save(); g.translate(cx, cy);
-  g.fillStyle = '#7ec850';
-  for (let i = 0; i < 9; i++) {
+  g.save();
+  g.translate(cx, cy);
+
+  // 投影
+  g.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  g.shadowBlur = 16;
+  g.shadowOffsetY = 10;
+
+  // 绿色鳞叶
+  for (let i = 0; i < 10; i++) {
     g.save();
-    g.rotate((i / 9) * Math.PI * 2);
-    g.translate(0, -r * 0.82);
+    g.rotate((i / 10) * Math.PI * 2);
+    g.translate(0, -r * 0.85);
+    const lg = g.createLinearGradient(0, -r * 0.3, 0, 0);
+    lg.addColorStop(0, '#4ade80');
+    lg.addColorStop(0.7, '#22c55e');
+    lg.addColorStop(1, '#db2777');
+    g.fillStyle = lg;
     g.beginPath();
-    g.moveTo(-r * 0.15, 0);
-    g.quadraticCurveTo(0, -r * 0.4, r * 0.15, 0);
-    g.closePath(); g.fill();
+    g.moveTo(-r * 0.16, 0);
+    g.quadraticCurveTo(0, -r * 0.42, r * 0.16, 0);
+    g.closePath();
+    g.fill();
     g.restore();
   }
-  const grad = g.createRadialGradient(-r * 0.3, -r * 0.35, 0, 0, 0, r);
-  grad.addColorStop(0, '#ff8fab');
-  grad.addColorStop(1, '#e8406a');
+  g.shadowColor = 'transparent';
+
+  // 饱满玫红果体
+  const grad = g.createRadialGradient(-r * 0.32, -r * 0.35, r * 0.05, 0, 0, r);
+  grad.addColorStop(0, '#f472b6');
+  grad.addColorStop(0.45, '#ec4899');
+  grad.addColorStop(1, '#be185d');
   g.fillStyle = grad;
-  g.beginPath(); g.arc(0, 0, r * 0.95, 0, Math.PI * 2); g.fill();
-  g.fillStyle = 'rgba(255,255,255,0.35)';
-  g.beginPath(); g.arc(0, 0, r * 0.5, 0, Math.PI * 2); g.fill();
+  g.beginPath();
+  g.arc(0, 0, r * 0.94, 0, Math.PI * 2);
+  g.fill();
+
+  // 表面鳞瓣纹理
+  g.strokeStyle = '#fbcfe8';
+  g.lineWidth = 2.5;
+  for (let s = 0; s < 5; s++) {
+    const a = (s / 5) * Math.PI * 2 + 0.3;
+    g.beginPath();
+    g.arc(Math.cos(a) * r * 0.45, Math.sin(a) * r * 0.45, r * 0.22, 0, Math.PI);
+    g.stroke();
+  }
+
+  // 顶部弧面高光
+  const hl = g.createRadialGradient(-r * 0.35, -r * 0.4, 0, -r * 0.35, -r * 0.4, r * 0.55);
+  hl.addColorStop(0, 'rgba(255,255,255,0.6)');
+  hl.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = hl;
+  g.beginPath();
+  g.arc(-r * 0.2, -r * 0.25, r * 0.45, 0, Math.PI * 2);
+  g.fill();
+
   g.restore();
 }
 
@@ -272,6 +332,8 @@ function applyCut(x0, y0, x1, y1) {
 function sliceFruit(i) {
   const f = fruits[i];
   fruits.splice(i, 1);
+  const fruitMeta = FRUITS[f.fi] || FRUITS[0];
+
   for (const side of [-1, 1]) {
     halves.push({
       x: f.x, y: f.y,
@@ -283,7 +345,31 @@ function sliceFruit(i) {
       side,
     });
   }
-  spawnParticles(f.x, f.y, FRUITS[f.fi].color);
+
+  // 1. 多汁高频果汁粒子（带重力与速度拉伸水滴）
+  spawnParticles(f.x, f.y, f.fi);
+
+  // 2. 果肉破裂冲击波涟漪
+  splats.push({
+    x: f.x, y: f.y,
+    r: f.r * 0.25,
+    maxR: f.r * 2.3,
+    color: fruitMeta.flesh,
+    life: 0.32,
+    t: 0,
+  });
+
+  // 3. 刀芒切割受击瞬间闪光
+  if (blade.hasPrev) {
+    flashes.push({
+      x0: blade.px, y0: blade.py,
+      x1: blade.x, y1: blade.y,
+      glow: fruitMeta.color,
+      life: 0.14,
+      t: 0,
+    });
+  }
+
   pops.push({ x: f.x, y: f.y, t: 0 });
   if (pops.length > 24) pops.shift();
   score += SCORE_PER_FRUIT;
@@ -292,18 +378,21 @@ function sliceFruit(i) {
   playSlice(f.fi, combo);
 }
 
-function spawnParticles(x, y, color) {
-  for (let i = 0; i < 12; i++) {
+function spawnParticles(x, y, fi) {
+  const f = FRUITS[fi] || FRUITS[0];
+  const count = 28;
+  for (let i = 0; i < count; i++) {
     const a = Math.random() * Math.PI * 2;
-    const sp = W * (0.05 + 0.12 * Math.random());
+    const sp = W * (0.04 + 0.18 * Math.random());
+    const col = f.juice[i % f.juice.length];
     particles.push({
       x, y,
       vx: Math.cos(a) * sp,
-      vy: Math.sin(a) * sp - H * 0.1,
+      vy: Math.sin(a) * sp - H * (0.06 + 0.16 * Math.random()),
       t: 0,
-      life: 0.45 + 0.35 * Math.random(),
-      r: 2 + 3 * Math.random(),
-      color: i % 3 ? color : '#fff7e0',
+      life: 0.42 + 0.38 * Math.random(),
+      r: 2.2 + 3.8 * Math.random(),
+      color: col,
     });
   }
 }
@@ -336,10 +425,26 @@ function updateParticles(dt) {
     const p = particles[i];
     p.t += dt;
     if (p.t >= p.life) { particles.splice(i, 1); continue; }
-    p.vy += G_FACTOR * H * 0.6 * dt;
+    p.vy += G_FACTOR * H * 0.65 * dt;
     p.x += p.vx * dt; p.y += p.vy * dt;
   }
-  while (particles.length > 90) particles.shift();
+  while (particles.length > 120) particles.shift();
+}
+
+function updateSplats(dt) {
+  for (let i = splats.length - 1; i >= 0; i--) {
+    splats[i].t += dt;
+    if (splats[i].t >= splats[i].life) splats.splice(i, 1);
+  }
+  while (splats.length > 20) splats.shift();
+}
+
+function updateFlashes(dt) {
+  for (let i = flashes.length - 1; i >= 0; i--) {
+    flashes[i].t += dt;
+    if (flashes[i].t >= flashes[i].life) flashes.splice(i, 1);
+  }
+  while (flashes.length > 16) flashes.shift();
 }
 
 function updatePops(dt) {
@@ -385,6 +490,8 @@ function updateGame(dt, now) {
   updateFruits(dt);
   updateHalves(dt);
   updateParticles(dt);
+  updateSplats(dt);
+  updateFlashes(dt);
   updatePops(dt);
   updateHud();
 }
@@ -395,6 +502,8 @@ function updateAmbient(dt) { // 菜单背景：水果缓缓飞出
   updateFruits(dt);
   updateHalves(dt);
   updateParticles(dt);
+  updateSplats(dt);
+  updateFlashes(dt);
   updatePops(dt);
 }
 
@@ -408,24 +517,63 @@ function draw(now) {
   vg.addColorStop(0, 'rgba(255,255,255,0.05)'); vg.addColorStop(1, 'rgba(0,0,0,0.35)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
-  // 水果
+  // 1. 完整水果
   for (const f of fruits) {
     const s = f.r * SPRITE_SCALE;
     ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot);
     ctx.drawImage(sprites[f.fi], -s, -s, s * 2, s * 2);
     ctx.restore();
   }
-  // 切开的果瓣（含果肉切面）
+
+  // 2. 切开的果瓣（含真实剖面果肉与籽细节）
   for (const h of halves) drawHalf(h);
-  // 果汁粒子
+
+  // 3. 果汁飞溅冲击圈
+  for (const s of splats) {
+    const k = s.t / s.life;
+    const currentR = s.r + (s.maxR - s.r) * Math.sin((k * Math.PI) / 2);
+    ctx.globalAlpha = (1 - k) * 0.8;
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 3.2 * (1 - k);
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, currentR, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // 4. 果汁粒子（动态拉伸水滴）
   for (const p of particles) {
-    ctx.globalAlpha = Math.max(0, 1 - p.t / p.life);
+    const lifeRatio = p.t / p.life;
+    ctx.globalAlpha = Math.max(0, 1 - lifeRatio);
     ctx.fillStyle = p.color;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    const speed = Math.hypot(p.vx, p.vy);
+    const angle = Math.atan2(p.vy, p.vx);
+    const stretch = Math.min(3.2, 1 + speed / (H * 0.4));
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, p.r * stretch, p.r, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
   ctx.globalAlpha = 1;
-  // 刀光轨迹
+
+  // 5. 刀锋切割受击高光闪芒
+  for (const fl of flashes) {
+    const k = fl.t / fl.life;
+    ctx.globalAlpha = (1 - k);
+    ctx.strokeStyle = fl.glow;
+    ctx.lineWidth = 14 * (1 - k);
+    ctx.beginPath(); ctx.moveTo(fl.x0, fl.y0); ctx.lineTo(fl.x1, fl.y1); ctx.stroke();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4 * (1 - k);
+    ctx.beginPath(); ctx.moveTo(fl.x0, fl.y0); ctx.lineTo(fl.x1, fl.y1); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // 6. 绚丽刀光轨迹
   drawTrail(now);
+
   // 手势空闲指示（检测到手但未伸食指）
   if (mode === 'hand' && handPresent && !blade.active && blade.targetSet) {
     const pulse = 1 + 0.15 * Math.sin(now / 180);
@@ -434,33 +582,132 @@ function draw(now) {
     ctx.fillStyle = 'rgba(255,225,77,0.9)';
     ctx.beginPath(); ctx.arc(blade.x, blade.y, 4, 0, Math.PI * 2); ctx.fill();
   }
-  // 得分飘字
+
+  // 7. 得分飘字（带缩放弹性与柔光）
   for (const p of pops) {
     const k = p.t / 0.9;
-    ctx.globalAlpha = 1 - k;
-    ctx.font = '700 18px Inter, -apple-system, sans-serif';
+    ctx.globalAlpha = Math.max(0, 1 - k);
+    const scale = 1 + 0.28 * Math.sin(Math.min(1, k * 3) * Math.PI);
+    ctx.font = `800 ${Math.round(19 * scale)}px Inter, -apple-system, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 3;
-    ctx.strokeText(`+${SCORE_PER_FRUIT}`, p.x, p.y - p.t * 46);
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 4;
+    ctx.strokeText(`+${SCORE_PER_FRUIT}`, p.x, p.y - p.t * 50);
     ctx.fillStyle = '#ffe14d';
-    ctx.fillText(`+${SCORE_PER_FRUIT}`, p.x, p.y - p.t * 46);
+    ctx.fillText(`+${SCORE_PER_FRUIT}`, p.x, p.y - p.t * 50);
   }
   ctx.globalAlpha = 1;
   while (trail.length && now - trail[0].t > TRAIL_MS) trail.shift();
 }
 
 function drawHalf(h) {
+  const f = FRUITS[h.fi] || FRUITS[0];
   const r = h.r, s = r * SPRITE_SCALE;
-  ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.rot);
-  // 切面果肉
-  ctx.fillStyle = 'rgba(255,246,228,0.92)';
-  ctx.beginPath(); ctx.ellipse(0, 0, r * 0.26, r * 0.86, 0, 0, Math.PI * 2); ctx.fill();
-  // 半边水果
+  ctx.save();
+  ctx.translate(h.x, h.y);
+  ctx.rotate(h.rot);
+
+  // 接近底部时优雅淡出
+  const alpha = Math.max(0, Math.min(1, (H + r * 1.5 - h.y) / (H * 0.4)));
+  ctx.globalAlpha = alpha;
+
+  // ① 裁剪绘制水果外表半边
+  ctx.save();
   ctx.beginPath();
-  if (h.side < 0) ctx.rect(-r, -r, r, r * 2);
-  else ctx.rect(0, -r, r, r * 2);
+  if (h.side < 0) ctx.rect(-r * 1.3, -r * 1.3, r * 1.3, r * 2.6);
+  else ctx.rect(0, -r * 1.3, r * 1.3, r * 2.6);
   ctx.clip();
   ctx.drawImage(sprites[h.fi], -s, -s, s * 2, s * 2);
+  ctx.restore();
+
+  // ② 真实果肉切面与果核细节
+  ctx.save();
+  const cutW = r * 0.40;
+  const cutH = r * 0.92;
+
+  // 果皮边缘轮廓
+  ctx.fillStyle = f.rind;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, cutW + 3, cutH + 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 内部果肉渐变
+  const fleshGrad = ctx.createRadialGradient(-cutW * 0.2, -cutH * 0.2, cutW * 0.1, 0, 0, cutH);
+  fleshGrad.addColorStop(0, shade(f.flesh, 0.25));
+  fleshGrad.addColorStop(0.72, f.flesh);
+  fleshGrad.addColorStop(1, shadeDark(f.flesh, 0.22));
+  ctx.fillStyle = fleshGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, cutW, cutH, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 水果特色内部构造
+  if (f.name === '西瓜') {
+    // 西瓜黑籽
+    ctx.fillStyle = '#1c1917';
+    const seeds = [
+      [-cutW * 0.35, -cutH * 0.45],
+      [cutW * 0.28, -cutH * 0.18],
+      [-cutW * 0.25, cutH * 0.22],
+      [cutW * 0.3, cutH * 0.48]
+    ];
+    for (const [sx, sy] of seeds) {
+      ctx.beginPath();
+      ctx.ellipse(sx, sy, 2.4, 4.2, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (f.name === '猕猴桃') {
+    // 奇异果淡黄芯 + 黑籽圈
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, cutW * 0.3, cutH * 0.35, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#18181b';
+    for (let k = 0; k < 9; k++) {
+      const ka = (k / 9) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(Math.cos(ka) * cutW * 0.52, Math.sin(ka) * cutH * 0.58, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (f.name === '橙子' || f.name === '柠檬') {
+    // 柑橘瓣线
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+    ctx.lineWidth = 1.3;
+    for (let s = 0; s < 6; s++) {
+      const sa = (s / 6) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(sa) * cutW * 0.85, Math.sin(sa) * cutH * 0.85);
+      ctx.stroke();
+    }
+  } else if (f.name === '火龙果') {
+    // 火龙果黑芝麻点
+    ctx.fillStyle = '#0f172a';
+    for (let s = 0; s < 10; s++) {
+      const ka = (s * 137.5 * Math.PI) / 180;
+      const kr = Math.sqrt(s / 10) * cutW * 0.72;
+      ctx.beginPath();
+      ctx.arc(Math.cos(ka) * kr, Math.sin(ka) * kr * (cutH / cutW), 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (f.seeds) {
+    // 苹果/桃子果核
+    ctx.fillStyle = '#78350f';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, cutW * 0.22, cutH * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 果肉切面水润高光
+  const shineGrad = ctx.createLinearGradient(-cutW, -cutH, cutW, cutH);
+  shineGrad.addColorStop(0, 'rgba(255, 255, 255, 0.42)');
+  shineGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.06)');
+  shineGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = shineGrad;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, cutW * 0.9, cutH * 0.9, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
   ctx.restore();
 }
 
@@ -468,22 +715,32 @@ function drawTrail(now) {
   const n = trail.length;
   if (n < 2) return;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  for (let pass = 0; pass < 2; pass++) {
-    for (let i = 1; i < n; i++) {
-      const p0 = trail[i - 1], p1 = trail[i];
-      const a0 = Math.max(0, 1 - (now - p0.t) / TRAIL_MS);
-      const a1 = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
-      if (a0 <= 0 && a1 <= 0) continue;
-      const a = (a0 + a1) / 2;
-      if (pass === 0) {
-        ctx.strokeStyle = `rgba(120,200,255,${(0.32 * a).toFixed(3)})`;
-        ctx.lineWidth = 16 * a;
-      } else {
-        ctx.strokeStyle = `rgba(255,255,255,${(0.85 * a).toFixed(3)})`;
-        ctx.lineWidth = 5 * a;
-      }
-      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
-    }
+  // 外层翡翠柔光
+  for (let i = 1; i < n; i++) {
+    const p0 = trail[i - 1], p1 = trail[i];
+    const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
+    if (a <= 0) continue;
+    ctx.strokeStyle = `rgba(52, 211, 153, ${(0.42 * a).toFixed(3)})`;
+    ctx.lineWidth = 18 * a;
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+  }
+  // 中层电光碧青
+  for (let i = 1; i < n; i++) {
+    const p0 = trail[i - 1], p1 = trail[i];
+    const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
+    if (a <= 0) continue;
+    ctx.strokeStyle = `rgba(167, 243, 208, ${(0.82 * a).toFixed(3)})`;
+    ctx.lineWidth = 7.5 * a;
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+  }
+  // 核心白刃刀芒
+  for (let i = 1; i < n; i++) {
+    const p0 = trail[i - 1], p1 = trail[i];
+    const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
+    if (a <= 0) continue;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${(0.96 * a).toFixed(3)})`;
+    ctx.lineWidth = 3.2 * a;
+    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
   }
 }
 
@@ -530,7 +787,7 @@ function toast(msg, ms = 3000) {
 function startGame() {
   score = 0; combo = 0; comboTimer = 0;
   remaining = ROUND_MS; spawnAcc = 0; ambientAcc = 0;
-  fruits.length = 0; halves.length = 0; particles.length = 0; pops.length = 0; trail.length = 0;
+  fruits.length = 0; halves.length = 0; particles.length = 0; splats.length = 0; flashes.length = 0; pops.length = 0; trail.length = 0;
   blade.hasPrev = false; blade.active = false; pointerActive = false; lastHandT = 0;
   state = 'playing';
   btnPause.textContent = '⏸️';
