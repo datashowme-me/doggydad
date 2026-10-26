@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
         >
-          艺术名画展柜
+          艺术展柜
         </button>
         <button
           onClick={() => {
@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
         >
-          荣誉成就勋章
+          荣誉成就
         </button>
         <button
           onClick={() => {
@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
         >
-          玩法操作指南
+          玩法指南
         </button>
       </nav>
 
@@ -85,27 +85,27 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {isMobileMenuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-44 overflow-hidden rounded-xl border border-slate-700 bg-slate-950/95 p-1.5 text-sm text-slate-200 shadow-2xl backdrop-blur-md">
+          <div className="absolute right-0 top-full mt-2 w-40 overflow-hidden rounded-xl border border-slate-700 bg-slate-950/95 p-1.5 text-sm text-slate-200 shadow-2xl backdrop-blur-md">
             <button
               onClick={() => runMobileAction(onOpenGallery)}
               className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-slate-800"
             >
               <Images className="h-4 w-4 text-amber-400" />
-              艺术名画展柜
+              艺术展柜
             </button>
             <button
               onClick={() => runMobileAction(onOpenAchievements)}
               className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-slate-800"
             >
               <Award className="h-4 w-4 text-amber-400" />
-              荣誉成就勋章
+              荣誉成就
             </button>
             <button
               onClick={() => runMobileAction(onOpenHowToPlay)}
               className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left hover:bg-slate-800"
             >
               <CircleHelp className="h-4 w-4 text-amber-400" />
-              玩法操作指南
+              玩法指南
             </button>
           </div>
         )}

@@ -12,16 +12,13 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
   <section class="game-page">
     <h1>🍉 FruitWave · 切水果</h1>
     <p class="game-intro">
-      浏览器体感版切水果小游戏。有摄像头就伸出食指在空中挥砍，没有摄像头用鼠标、触控板或触摸屏一样能玩。
-      规则对齐 tvOS 版 <a href="https://github.com/datashowme-me/fruitWave" target="_blank" rel="noopener">fruitWave</a>。
+      挥手即切的体感切水果，支持摄像头手势与鼠标划动，开箱即玩。规则对齐 tvOS 版 <a href="https://github.com/datashowme-me/fruitWave" target="_blank" rel="noopener">fruitWave</a>。
     </p>
     <div class="game-specs">
-      <span>⏱️ 90 秒一局</span>
+      <span>⏱️ 90 秒限时</span>
       <span>🍎 12 种水果</span>
-      <span>🔟 每果 10 分</span>
-      <span>⚡ 0.8 秒生成</span>
-      <span>🔥 连击音调升高</span>
-      <span>💾 最高分本地保存</span>
+      <span>🔥 连击倍增</span>
+      <span>🎥 手势 / 鼠标双模</span>
     </div>
 
     <div class="game-shell">
@@ -55,14 +52,12 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
         <div class="panel" id="panel-menu">
           <div class="panel-title">🍉 FruitWave</div>
           <p class="panel-sub">切水果 · 浏览器体感版</p>
-          <p class="panel-desc">90 秒内切中尽可能多的水果，每个 +10 分，连击音调升高。12 种水果等你挑战！</p>
+          <p class="panel-desc">90 秒内切中尽可能多的水果，连击音调升高，挑战最高分！</p>
           <div class="panel-best">🏆 最高分：<span id="best-menu">0</span></div>
           <button class="btn btn-primary" id="btn-camera-mode">🎥 摄像头手势模式</button>
           <button class="btn" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
           <p class="panel-hint">
-            手势模式：摄像头对准你，伸出食指在空中挥砍，握拳停止；画面仅在本地识别，不上传任何数据。
-            没有摄像头或未授权时会自动切换为鼠标模式，多个摄像头时可在画面右下角切换。<br>
-            快捷键：P 暂停 · M 静音
+            💡 食指空中挥砍（或直接划动鼠标） · 快捷键 P 暂停 · M 静音
           </p>
         </div>
 
@@ -90,12 +85,11 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     </div>
 
     <div class="game-notes">
-      <h2>玩法与数据说明</h2>
+      <h2>游戏指引</h2>
       <ul>
-        <li>📷 <strong>摄像头手势</strong>：使用 MediaPipe Hand Landmarker 在浏览器本地识别手部关键点，视频画面与坐标均不出本机、不上传服务器。</li>
-        <li>🖱️ <strong>无摄像头</strong>：未检测到摄像头或权限被拒绝时自动切换鼠标 / 触控板 / 触摸模式。</li>
-        <li>🔊 <strong>音效</strong>：切割音效由 WebAudio 本地合成，音调随连击升高、不同水果起音不同，不请求麦克风权限。</li>
-        <li>💾 <strong>数据</strong>：仅最高分保存在浏览器 localStorage。</li>
+        <li>🎮 <strong>操作双模</strong>：摄像头对准后伸出食指在空中挥砍，握拳或移出画面停止；未授权或无摄像头时自动切换鼠标 / 触控。</li>
+        <li>⚡ <strong>连击音效</strong>：快速连续切中水果可触发连击，音调逐级攀升，不同水果音色各有特色。</li>
+        <li>🔒 <strong>本地安全</strong>：画面与手势关键点纯浏览器本地识别，零视频数据上传；最高分自动保存在本地。</li>
       </ul>
     </div>
   </section>

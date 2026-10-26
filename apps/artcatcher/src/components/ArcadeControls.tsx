@@ -175,9 +175,9 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
       </div>
 
       {/* Main Control Console Bar */}
-      <div className="grid w-full min-w-0 grid-cols-[9.75rem_minmax(0,1fr)] gap-2 md:flex md:flex-row md:items-center md:justify-between md:gap-3 pointer-events-none">
+      <div className="grid w-full min-w-0 grid-cols-[9.5rem_minmax(0,1fr)] gap-2 md:flex md:flex-row md:items-center md:justify-between md:gap-3 pointer-events-none">
         {/* Left: Joystick + 2D Top-Down Depth Radar Station */}
-        <div className="pointer-events-auto col-start-1 row-start-2 bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl p-2 sm:p-4 shadow-2xl flex items-center gap-2 sm:gap-4 md:order-none">
+        <div className="pointer-events-auto col-start-1 row-start-2 bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl p-2 sm:p-2.5 shadow-2xl flex items-center gap-2 sm:gap-3 md:order-none">
           {/* Virtual Joystick */}
           <div className="flex flex-col items-center">
             <div
@@ -186,7 +186,7 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
-              className={`relative w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-slate-950 border-2 border-amber-500/40 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none transition-shadow ${
+              className={`relative w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-slate-950 border-2 border-amber-500/40 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none transition-shadow ${
                 isBusy ? 'opacity-50 cursor-not-allowed' : 'hover:border-amber-400 shadow-inner'
               }`}
             >
@@ -199,25 +199,25 @@ export const ArcadeControls: React.FC<ArcadeControlsProps> = ({
                 style={{
                   transform: `translate(${stickPos.x}px, ${stickPos.y}px)`,
                 }}
-                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-2 border-amber-200 shadow-lg flex items-center justify-center transition-transform duration-75"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 border-2 border-amber-200 shadow-lg flex items-center justify-center transition-transform duration-75"
               >
-                <Compass className="w-5 h-5 text-amber-950" />
+                <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-amber-950" />
               </div>
             </div>
-            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-1 font-medium">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 font-medium">
               <span className="sm:hidden">移动</span>
               <span className="hidden sm:inline">3D 摇杆 / WASD</span>
             </span>
           </div>
 
           {/* Top-Down Mini Depth Radar (Resolves 2D/3D depth ambiguity) */}
-          <div className="flex flex-col items-center border-l border-slate-800 pl-2 sm:pl-3">
-            <div className="relative w-14 h-14 sm:w-20 sm:h-20 bg-slate-950 border border-slate-700/80 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+          <div className="flex flex-col items-center border-l border-slate-800 pl-2 sm:pl-2.5">
+            <div className="relative w-13 h-13 sm:w-16 sm:h-16 bg-slate-950 border border-slate-700/80 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
               {/* Grid marks */}
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:10px_10px] opacity-40 pointer-events-none" />
 
               {/* Chute Corner (Front-Left) */}
-              <div className="absolute bottom-0 left-0 w-5 h-5 sm:w-6 sm:h-6 bg-rose-500/30 border-t border-r border-rose-500/60 flex items-center justify-center">
+              <div className="absolute bottom-0 left-0 w-4 h-4 sm:w-5 sm:h-5 bg-rose-500/30 border-t border-r border-rose-500/60 flex items-center justify-center">
                 <span className="text-[7px] text-rose-300 font-bold leading-none">出口</span>
               </div>
 

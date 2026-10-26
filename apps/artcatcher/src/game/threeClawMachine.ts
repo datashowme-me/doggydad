@@ -90,10 +90,10 @@ export class ClawMachineGame {
     this.scene.background = new THREE.Color(0x090d16);
     this.scene.fog = new THREE.FogExp2(0x090d16, 0.04);
 
-    // 2. Camera: pulled back slightly and looking at center so resting claw and gantry are 100% visible!
+    // 2. Camera: comfortably framed so the entire cabinet (roof marquee to floor chute) is 100% visible
     const aspect = container.clientWidth / container.clientHeight;
     this.camera = new THREE.PerspectiveCamera(46, aspect, 0.1, 50);
-    this.applyCameraPose(new THREE.Vector3(0, 2.3, 5.1), new THREE.Vector3(0, 1.85, 0));
+    this.applyCameraPose(new THREE.Vector3(0, 2.1, 6.4), new THREE.Vector3(0, 1.7, 0));
     this.camera.position.copy(this.targetCamPos);
 
     // 3. Renderer
@@ -714,25 +714,25 @@ export class ClawMachineGame {
     this.isAnimatingCamera = true;
     switch (angle) {
       case 'FRONT':
-        // Front view comfortably frames entire cabinet from bottom floor to gantry & resting claw
-        this.applyCameraPose(new THREE.Vector3(0, 2.3, 5.1), new THREE.Vector3(0, 1.85, 0));
+        // Front view comfortably frames entire cabinet from bottom floor to gantry & marquee roof
+        this.applyCameraPose(new THREE.Vector3(0, 2.1, 6.4), new THREE.Vector3(0, 1.7, 0));
         break;
       case 'ISOMETRIC':
-        // 45 degree isometric perspective gives immediate, crystal-clear 3D depth perception!
-        this.applyCameraPose(new THREE.Vector3(2.7, 3.1, 3.7), new THREE.Vector3(0, 1.7, 0));
+        // 45 degree isometric perspective gives immediate, crystal-clear 3D depth perception
+        this.applyCameraPose(new THREE.Vector3(3.5, 3.4, 4.6), new THREE.Vector3(0, 1.65, 0));
         break;
       case 'TOP_DOWN':
         // Top-down overhead view for precise (X, Z) coordinate alignment
-        this.applyCameraPose(new THREE.Vector3(0, 5.5, 0.3), new THREE.Vector3(0, 1.0, 0));
+        this.applyCameraPose(new THREE.Vector3(0, 6.2, 0.3), new THREE.Vector3(0, 1.2, 0));
         break;
       case 'SIDE':
         // Side glass view for inspecting front-to-back depth
-        this.applyCameraPose(new THREE.Vector3(4.6, 2.4, 0), new THREE.Vector3(0, 1.8, 0));
+        this.applyCameraPose(new THREE.Vector3(5.8, 2.1, 0), new THREE.Vector3(0, 1.65, 0));
         break;
       case 'CLOSE_UP':
         // Close-up follow camera focused right on the claw
         this.applyCameraPose(
-          new THREE.Vector3(this.gantryPos.x + 0.6, this.clawY + 0.5, this.gantryPos.z + 1.6),
+          new THREE.Vector3(this.gantryPos.x + 0.6, this.clawY + 0.5, this.gantryPos.z + 1.8),
           new THREE.Vector3(this.gantryPos.x, this.clawY - 0.2, this.gantryPos.z),
         );
         break;
@@ -740,14 +740,33 @@ export class ClawMachineGame {
   }
 
   private applyCameraPose(position: THREE.Vector3, lookAt: THREE.Vector3) {
-    const portraitScale = this.getPortraitCameraScale();
+    const responsiveScale = this.getResponsiveCameraScale();
     this.targetCamLookAt.copy(lookAt);
-    this.targetCamPos.copy(lookAt).add(position.sub(lookAt).multiplyScalar(portraitScale));
+    this.targetCamPos.copy(lookAt).add(position.sub(lookAt).multiplyScalar(responsiveScale));
   }
 
-  private getPortraitCameraScale() {
-    const aspect = this.container.clientWidth / this.container.clientHeight;
-    return aspect < 0.75 ? Math.min(1.75, 0.82 / Math.max(aspect, 0.35)) : 1;
+  private getResponsiveCameraScale() {
+    if (!this.container) return 1;
+    const w = this.container.clientWidth;
+    const h = this.container.clientHeight;
+    const aspect = w / Math.max(h, 1);
+
+    let scale = 1;
+    if (aspect < 0.75) {
+      // Narrow portrait (mobile screens): pull back so cabinet isn't cut off horizontally
+      scale = Math.min(1.85, 0.9 / Math.max(aspect, 0.35));
+    } else if (aspect < 1.05) {
+      // Square or near-square screens (split view, iPad portrait)
+      scale = 1.15;
+    }
+
+    // Short viewport height compensation (laptops, embedded preview iframes < 750px)
+    if (h < 750) {
+      const heightFactor = Math.min(1.35, 750 / Math.max(h, 420));
+      scale = Math.max(scale, heightFactor);
+    }
+
+    return scale;
   }
 
   // --- Animation and Physics Update ---
@@ -1131,7 +1150,7 @@ export class ClawMachineGame {
       this.targetCamLookAt.set(this.gantryPos.x, this.clawY - 0.2, this.gantryPos.z);
       this.targetCamPos
         .sub(this.targetCamLookAt)
-        .multiplyScalar(this.getPortraitCameraScale())
+        .multiplyScalar(this.getResponsiveCameraScale())
         .add(this.targetCamLookAt);
       this.camera.position.lerp(this.targetCamPos, Math.min(dt * 5, 1));
       this.controls.target.lerp(this.targetCamLookAt, Math.min(dt * 5, 1));
