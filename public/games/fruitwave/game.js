@@ -959,14 +959,44 @@ async function requestCameraStream(constraints, requestId, epoch, timeoutMs = CA
 }
 
 async function validateCameraStream(stream, timeoutMs = CAMERA_TIMEOUT_MS) {
+  const track = stream && stream.getVideoTracks()[0];
+  if (!track || track.readyState !== 'live') {
+    throw new Error('camera track not live');
+  }
   const probe = document.createElement('video');
   probe.muted = true;
   probe.autoplay = true;
   probe.playsInline = true;
   probe.srcObject = stream;
   try {
-    await withTimeout(probe.play(), timeoutMs, 'video play timeout');
-    if (probe.readyState < 2 || !probe.videoWidth) throw new Error('camera produced no frame');
+    await withTimeout(
+      new Promise((resolve, reject) => {
+        if (probe.videoWidth > 0 && probe.readyState >= 2) return resolve();
+        const onReady = () => { cleanup(); resolve(); };
+        const onError = (e) => { cleanup(); reject(e); };
+        const cleanup = () => {
+          probe.removeEventListener('loadedmetadata', onReady);
+          probe.removeEventListener('loadeddata', onReady);
+          probe.removeEventListener('canplay', onReady);
+          probe.removeEventListener('error', onError);
+        };
+        probe.addEventListener('loadedmetadata', onReady, { once: true });
+        probe.addEventListener('loadeddata', onReady, { once: true });
+        probe.addEventListener('canplay', onReady, { once: true });
+        probe.addEventListener('error', onError, { once: true });
+        probe.play().catch((err) => {
+          if (track && track.readyState === 'live') resolve();
+          else reject(err);
+        });
+      }),
+      timeoutMs,
+      'video play timeout'
+    );
+  } catch (err) {
+    if (track && track.readyState === 'live') {
+      return;
+    }
+    throw err;
   } finally {
     try { probe.pause(); } catch (e) { /* 忽略 */ }
     probe.srcObject = null;
@@ -1117,27 +1147,26 @@ async function openCamera() {
     ids = list.filter((d) => d.kind === 'videoinput' && d.deviceId).map((d) => d.deviceId);
   } catch (e) { /* 忽略 */ }
 
-  // 尝试顺序：上次用过的设备 → 默认设备 → 其余设备（最多共 4 次）
+  // 尝试顺序：上次用过的设备 → 默认设备（带 facingMode: user）→ 其余设备（最多共 4 次）
   const tries = [];
   if (savedCamId) {
-    tries.push({ video: { deviceId: { exact: savedCamId }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'saved' });
+    tries.push({ video: { deviceId: { ideal: savedCamId }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'saved' });
   }
-  tries.push({ video: { width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'default' });
+  tries.push({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'default' });
   for (const id of ids.slice(0, 3)) {
     if (id !== savedCamId) {
-      tries.push({ video: { deviceId: { exact: id }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: id.slice(0, 8) });
+      tries.push({ video: { deviceId: { ideal: id }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: id.slice(0, 8) });
     }
   }
 
   for (const t of tries.slice(0, 4)) {
     const s = await accept({ audio: false, video: t.video }, 10000, t.tag);
     if (s) {
-      if (t.video.deviceId) {
-        savedCamId = t.video.deviceId.exact;
-      }
       const actualId = s.getVideoTracks()[0] && s.getVideoTracks()[0].getSettings().deviceId;
-      if (actualId) savedCamId = actualId;
-      try { localStorage.setItem('fruitwave-cam', savedCamId); } catch (e) { /* 忽略 */ }
+      if (actualId) {
+        savedCamId = actualId;
+        try { localStorage.setItem('fruitwave-cam', savedCamId); } catch (e) { /* 忽略 */ }
+      }
       return s;
     }
   }
@@ -1150,12 +1179,14 @@ async function startHandMode() {
   ensureAudio();
   showPanel(panelLoading);
   loadingText.textContent = '正在请求摄像头权限…';
+  const camHint = $('cam-status-hint');
+  if (camHint) camHint.hidden = true;
   // 权限请求可能挂起（如 macOS 系统弹窗未被处理）：先给用户提示，超时后自动回退
   const permHint = setTimeout(() => {
     if (loadingText.textContent.includes('摄像头权限')) {
-      loadingText.textContent = '若系统弹出摄像头授权询问，请点击「允许」；等待中…';
+      loadingText.textContent = '若浏览器或系统弹出授权提示，请点击「允许」…';
     }
-  }, 6000);
+  }, 4000);
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no camera api');
     if (!camStream) camStream = await openCamera();
@@ -1181,11 +1212,23 @@ async function startHandMode() {
     blade.targetSet = false;
     startGame();
     if (err && err.name === 'TimeoutError') {
-      toast('摄像头无响应（授权未确认或设备未就绪），本局先用鼠标');
+      toast('摄像头响应超时，本局已切换为鼠标模式');
+      if (camHint) {
+        camHint.textContent = '⚠️ 摄像头响应超时，请确认摄像头未被其他软件占用。';
+        camHint.hidden = false;
+      }
     } else if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
-      toast('摄像头未授权，已切换为鼠标 / 触控模式');
+      toast('摄像头未获授权，已切换鼠标模式。请在浏览器地址栏 🔒 允许权限');
+      if (camHint) {
+        camHint.textContent = '⚠️ 摄像头权限未开启：请点击浏览器地址栏 🔒 图标允许访问，或在新标签页打开。';
+        camHint.hidden = false;
+      }
     } else {
-      toast('未检测到摄像头或启动失败，已切换为鼠标 / 触控模式');
+      toast('未检测到可用摄像头，已切换为鼠标 / 触控模式');
+      if (camHint) {
+        camHint.textContent = '⚠️ 未检测到可用摄像头或环境受阻，可使用鼠标模式体验。';
+        camHint.hidden = false;
+      }
     }
   }
 }
@@ -1327,6 +1370,13 @@ function bindEvents() {
   });
 
   $('btn-camera-mode').addEventListener('click', startHandMode);
+  const btnCancel = $('btn-cancel-loading');
+  if (btnCancel) {
+    btnCancel.addEventListener('click', () => {
+      teardownCamera();
+      showPanel(panelMenu);
+    });
+  }
   camPicker.addEventListener('change', () => { if (camPicker.value) switchCamera(camPicker.value); });
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
     navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);

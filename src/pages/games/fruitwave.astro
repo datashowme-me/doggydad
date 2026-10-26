@@ -55,7 +55,8 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
           <p class="panel-desc">90 秒内切中尽可能多的水果，连击音调升高，挑战最高分！</p>
           <div class="panel-best">🏆 最高分：<span id="best-menu">0</span></div>
           <button class="btn btn-primary" id="btn-camera-mode">🎥 摄像头手势模式</button>
-          <button class="btn" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
+          <button class="btn btn-secondary" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
+          <p id="cam-status-hint" class="panel-hint" style="color: #e11d48; font-weight: 500;" hidden></p>
           <p class="panel-hint">
             💡 食指空中挥砍（或直接划动鼠标） · 快捷键 P 暂停 · M 静音
           </p>
@@ -64,6 +65,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
         <div class="panel" id="panel-loading" hidden>
           <div class="spinner"></div>
           <p id="loading-text">正在请求摄像头权限…</p>
+          <button class="btn btn-secondary btn-sm" id="btn-cancel-loading">取消并返回</button>
         </div>
 
         <div class="panel" id="panel-pause" hidden>
@@ -88,6 +90,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
       <h2>游戏指引</h2>
       <ul>
         <li>🎮 <strong>操作双模</strong>：摄像头对准后伸出食指在空中挥砍，握拳或移出画面停止；未授权或无摄像头时自动切换鼠标 / 触控。</li>
+        <li>📷 <strong>摄像头授权</strong>：若无法开启，请在浏览器地址栏（🔒 图标）将摄像头设为【允许】，并在系统隐私设置中放行浏览器。若在嵌套窗口中受限，可新标签页直接打开。</li>
         <li>⚡ <strong>连击音效</strong>：快速连续切中水果可触发连击，音调逐级攀升，不同水果音色各有特色。</li>
         <li>🔒 <strong>本地安全</strong>：画面与手势关键点纯浏览器本地识别，零视频数据上传；最高分自动保存在本地。</li>
       </ul>
@@ -313,36 +316,72 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
   }
 
   .btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     width: 100%;
     margin: 8px 0;
-    padding: 12px;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    background: var(--color-surface-alt);
-    color: var(--color-text);
+    padding: 13px 18px;
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid var(--color-border, #cbd5e1);
+    background: var(--color-surface-raised, #ffffff);
+    color: var(--color-heading, #1e293b);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   .btn:hover {
-    filter: brightness(1.05);
+    filter: brightness(0.97);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .btn:active {
+    transform: translateY(0);
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    color: #fff;
-    border: none;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+    filter: none;
+  }
+
+  .btn-secondary {
+    background: var(--color-surface-raised, #ffffff);
+    color: var(--color-text, #334155);
+    border: 1px solid var(--color-border, #cbd5e1);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-surface, #f8fafc);
+  }
+
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    width: auto;
+    min-width: 120px;
+    margin: 12px auto 0;
   }
 
   .spinner {
     width: 34px;
     height: 34px;
     margin: 0 auto 14px;
-    border: 4px solid var(--color-border);
-    border-top-color: var(--color-primary);
+    border: 4px solid var(--color-border, #e2e8f0);
+    border-top-color: #10b981;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -354,7 +393,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
   .go-score {
     font-size: 2.4rem;
     font-weight: 800;
-    color: var(--color-primary);
+    color: #10b981;
   }
 
   .go-best {
