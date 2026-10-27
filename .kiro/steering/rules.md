@@ -68,9 +68,15 @@ Types:
 - Use meaningful commit messages
 - Do NOT push broken builds
 
+### Repository & Deployment Target
+- **Remote URL**: `https://github.com/datashowme-me/doggydad.git`
+- **Git User**: `datashowme-me` (or `pzhao16me`) <`datashowme@gmail.com`>
+- **Credential Storage**: Stored via `git config --global credential.helper store`
+- **CI/CD**: GitHub Actions workflow at `.github/workflows/deploy.yml` builds and deploys to GitHub Pages automatically on push to `main` branch
+
 ### User Limits
 - Respect GitHub rate limits
-- user must be : pzhao16me
+- user must be : pzhao16me / datashowme-me
 - Batch multiple small changes into single commits when possible
 - Avoid force pushing to main branch
 
