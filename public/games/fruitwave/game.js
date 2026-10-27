@@ -91,11 +91,19 @@ const particles = [];    // 果汁粒子（有界对象池，最多 120）
 const splats = [];       // 果汁扩散冲击波（最多 20）
 const flashes = [];      // 刀锋切割光芒（最多 12）
 const pops = [];         // 得分飘字（有界对象池，最多 24）
-const trail = [];        // 刀光轨迹点
-
-const blade = { x: 0, y: 0, px: 0, py: 0, tx: 0, ty: 0, targetSet: false, active: false, hasPrev: false };
-const oex = new OneEuroFilter(1.2, 0.05, 1);
-const oey = new OneEuroFilter(1.2, 0.05, 1);
+/* ---------------- 刀芒状态（支持单手/双手双刀，每只手独立滤波与轨迹） ---------------- */
+function createBlade(id, color) {
+  return {
+    id,
+    color,
+    x: 0, y: 0, px: 0, py: 0, tx: 0, ty: 0,
+    targetSet: false, active: false, hasPrev: false,
+    oex: new OneEuroFilter(1.2, 0.05, 1),
+    oey: new OneEuroFilter(1.2, 0.05, 1),
+    trail: [],
+  };
+}
+let blades = [];
 
 /* ---------------- One Euro 滤波（平滑手部抖动） ---------------- */
 function OneEuroFilter(minCutoff, beta, dCutoff) {
@@ -119,6 +127,11 @@ OneEuroFilter.prototype.filter = function (x, t) {
   this.x = this.x + a * (x - this.x);
   return this.x;
 };
+
+blades = [
+  createBlade(0, 'emerald'),
+  createBlade(1, 'amber'),
+];
 
 /* ---------------- 颜色工具 ---------------- */
 function hexToRgb(hex) {
@@ -252,46 +265,481 @@ function drawDragonfruit(g, cx, cy, r) {
   g.restore();
 }
 
-/* ---------------- 音效（WebAudio 本地合成，不请求麦克风） ---------------- */
+/* ---------------- 高保真 WebAudio 本地合成音效引擎（媲美《水果忍者》） ---------------- */
 let audioCtx = null;
+let lastWhooshT = 0;
+let lastTossT = 0;
+
 function ensureAudio() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
   } catch (e) { /* 忽略 */ }
 }
-function playSlice(fi, comboCount) {
+
+// 1. 刀锋空中破空呼啸声 (Whoosh / Swoosh)
+function playWhoosh(speed = 800) {
   if (!soundOn || !audioCtx) return;
+  const now = performance.now();
+  if (now - lastWhooshT < 100) return;
+  lastWhooshT = now;
   const t = audioCtx.currentTime;
-  const base = 520 + fi * 70 + Math.random() * 80;                 // 不同水果起音不同
-  const freq = base * Math.pow(2, Math.min(comboCount, 12) / 12);  // 音调随连击升高
-  // 切割噪声
-  const dur = 0.09;
+  const dur = 0.12;
   const buf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * dur), audioCtx.sampleRate);
   const data = buf.getChannelData(0);
-  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
-  const src = audioCtx.createBufferSource(); src.buffer = buf;
-  const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq * 2; bp.Q.value = 1.2;
-  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  src.connect(bp); bp.connect(g); g.connect(audioCtx.destination); src.start(t);
-  // 短促音头
-  const o = audioCtx.createOscillator(); o.type = 'sine';
-  o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(freq * 0.7, t + 0.08);
-  const og = audioCtx.createGain(); og.gain.setValueAtTime(0.12, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-  o.connect(og); og.connect(audioCtx.destination); o.start(t); o.stop(t + 0.1);
+  for (let i = 0; i < data.length; i++) {
+    const k = i / data.length;
+    data[i] = (Math.random() * 2 - 1) * Math.sin(k * Math.PI);
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  const bp = audioCtx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.value = 2.4;
+  const baseFreq = 500 + Math.min(speed, 2000) * 0.45;
+  bp.frequency.setValueAtTime(baseFreq * 0.7, t);
+  bp.frequency.exponentialRampToValueAtTime(baseFreq * 2.2, t + 0.04);
+  bp.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, t + dur);
+
+  const g = audioCtx.createGain();
+  const vol = Math.min(0.28, 0.12 + (speed / 2400) * 0.16);
+  g.gain.setValueAtTime(0.001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+  src.connect(bp);
+  bp.connect(g);
+  g.connect(audioCtx.destination);
+  src.start(t);
+  src.stop(t + dur);
 }
-function playGameOver() {
+
+// 2. 多汁爆裂切碎复合音 (Sharp Metallic Cut + Juicy Squish Burst + Visceral Body Thud)
+function playJuicySlice(fi, comboCount) {
   if (!soundOn || !audioCtx) return;
   const t = audioCtx.currentTime;
-  [660, 520, 392].forEach((f, i) => {
-    const o = audioCtx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
-    const g = audioCtx.createGain();
-    const t0 = t + i * 0.13;
-    g.gain.setValueAtTime(0.001, t0);
-    g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.2);
-    o.connect(g); g.connect(audioCtx.destination); o.start(t0); o.stop(t0 + 0.25);
+
+  // ① 极快金属刀刃切入咔嚓声 (Crisp metallic sheen, 0.035s)
+  const oEdge = audioCtx.createOscillator();
+  const gEdge = audioCtx.createGain();
+  oEdge.type = 'triangle';
+  const edgeBase = 2200 + (fi % 4) * 240;
+  oEdge.frequency.setValueAtTime(edgeBase, t);
+  oEdge.frequency.exponentialRampToValueAtTime(500, t + 0.035);
+  gEdge.gain.setValueAtTime(0.22, t);
+  gEdge.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+  oEdge.connect(gEdge);
+  gEdge.connect(audioCtx.destination);
+  oEdge.start(t);
+  oEdge.stop(t + 0.04);
+
+  // ② 多汁肉质挤压爆浆声 (Wet pulp squirt & burst)
+  const squishDur = 0.13;
+  const sBuf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * squishDur), audioCtx.sampleRate);
+  const sData = sBuf.getChannelData(0);
+  for (let i = 0; i < sData.length; i++) {
+    const k = i / sData.length;
+    sData[i] = (Math.random() * 2 - 1) * Math.pow(1 - k, 1.6);
+  }
+  const sSrc = audioCtx.createBufferSource();
+  sSrc.buffer = sBuf;
+  const sFilter = audioCtx.createBiquadFilter();
+  sFilter.type = 'bandpass';
+  const centerF = 750 + fi * 60;
+  sFilter.frequency.setValueAtTime(centerF * 1.5, t);
+  sFilter.frequency.exponentialRampToValueAtTime(centerF * 0.6, t + squishDur);
+  sFilter.Q.value = 1.8;
+
+  const sGain = audioCtx.createGain();
+  sGain.gain.setValueAtTime(0.5, t);
+  sGain.gain.exponentialRampToValueAtTime(0.001, t + squishDur);
+  sSrc.connect(sFilter);
+  sFilter.connect(sGain);
+  sGain.connect(audioCtx.destination);
+  sSrc.start(t);
+  sSrc.stop(t + squishDur);
+
+  // ③ 低频肉质冲击破裂 (Visceral flesh thud)
+  const oThud = audioCtx.createOscillator();
+  const gThud = audioCtx.createGain();
+  oThud.type = 'sine';
+  oThud.frequency.setValueAtTime(145, t);
+  oThud.frequency.exponentialRampToValueAtTime(42, t + 0.08);
+  gThud.gain.setValueAtTime(0.35, t);
+  gThud.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+  oThud.connect(gThud);
+  gThud.connect(audioCtx.destination);
+  oThud.start(t);
+  oThud.stop(t + 0.09);
+
+  // ④ 连击音调鸣响（阶梯升调，连击越高音色越清亮）
+  if (comboCount > 1) {
+    const oCombo = audioCtx.createOscillator();
+    const gCombo = audioCtx.createGain();
+    const cFreq = (520 + (comboCount % 8) * 80) * Math.pow(2, Math.min(comboCount, 10) / 14);
+    oCombo.type = 'sine';
+    oCombo.frequency.setValueAtTime(cFreq, t + 0.02);
+    oCombo.frequency.exponentialRampToValueAtTime(cFreq * 1.25, t + 0.12);
+    gCombo.gain.setValueAtTime(0.001, t);
+    gCombo.gain.linearRampToValueAtTime(0.18, t + 0.03);
+    gCombo.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+    oCombo.connect(gCombo);
+    gCombo.connect(audioCtx.destination);
+    oCombo.start(t);
+    oCombo.stop(t + 0.18);
+  }
+}
+
+// 3. 水果出场抛物升空音 (Fruit Launch Whoosh)
+function playFruitToss() {
+  if (!soundOn || !audioCtx) return;
+  const now = performance.now();
+  if (now - lastTossT < 220) return;
+  lastTossT = now;
+  const t = audioCtx.currentTime;
+  const dur = 0.15;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(180, t);
+  o.frequency.exponentialRampToValueAtTime(75, t + dur);
+  g.gain.setValueAtTime(0.001, t);
+  g.gain.linearRampToValueAtTime(0.15, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  o.start(t);
+  o.stop(t + dur);
+}
+
+// 4. 连击太鼓重击与和风庆贺声 (Taiko Drum Strike & Chime Fanfare)
+function playComboFanfare(comboCount) {
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+
+  // 太鼓重击 (Taiko Deep Bass Strike)
+  const oDrum = audioCtx.createOscillator();
+  const gDrum = audioCtx.createGain();
+  oDrum.type = 'sine';
+  oDrum.frequency.setValueAtTime(110, t);
+  oDrum.frequency.exponentialRampToValueAtTime(36, t + 0.32);
+  gDrum.gain.setValueAtTime(0.55, t);
+  gDrum.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+  oDrum.connect(gDrum);
+  gDrum.connect(audioCtx.destination);
+  oDrum.start(t);
+  oDrum.stop(t + 0.36);
+
+  // 和风铜锣 / 五声音阶鸣响
+  const notes = comboCount >= 5 ? [523, 659, 784, 1046] : [587, 880];
+  notes.forEach((freq, idx) => {
+    const oBell = audioCtx.createOscillator();
+    const gBell = audioCtx.createGain();
+    const t0 = t + idx * 0.07;
+    oBell.type = 'triangle';
+    oBell.frequency.setValueAtTime(freq, t0);
+    gBell.gain.setValueAtTime(0.001, t0);
+    gBell.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
+    gBell.gain.exponentialRampToValueAtTime(0.001, t0 + 0.45);
+    oBell.connect(gBell);
+    gBell.connect(audioCtx.destination);
+    oBell.start(t0);
+    oBell.stop(t0 + 0.46);
   });
+}
+
+// 5. 倒计时警报滴答声 (Countdown Tick)
+function playTick(urgent = false) {
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(urgent ? 1050 : 780, t);
+  o.frequency.exponentialRampToValueAtTime(200, t + 0.035);
+  g.gain.setValueAtTime(urgent ? 0.22 : 0.14, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  o.start(t);
+  o.stop(t + 0.04);
+}
+
+// 6. 游戏结束铜锣鸣响 (Authentic Gong)
+function playGameOverGong() {
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const gongFreqs = [110, 175, 260, 395, 580];
+  gongFreqs.forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = i === 0 ? 'sine' : 'triangle';
+    o.frequency.setValueAtTime(freq, t);
+    const initialVol = 0.35 / (i + 1);
+    g.gain.setValueAtTime(initialVol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 2.2);
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start(t);
+    o.stop(t + 2.3);
+  });
+}
+
+/* ---------------- 背景果汁喷溅与流淌系统（Fruit Ninja 灵魂木墙水渍） ---------------- */
+function addWallSplat(x, y, fi) {
+  const f = FRUITS[fi] || FRUITS[0];
+  const color = f.flesh || f.color;
+  const baseR = fruitRadius() * (1.1 + Math.random() * 0.45);
+  const drips = [];
+  const dripCount = (Math.random() * 3 + 1) | 0;
+  for (let d = 0; d < dripCount; d++) {
+    drips.push({
+      x: x + (Math.random() - 0.5) * baseR * 0.7,
+      y: y + Math.random() * baseR * 0.25,
+      len: 0,
+      maxLen: baseR * (0.8 + Math.random() * 1.6),
+      speed: H * (0.045 + Math.random() * 0.08),
+      r: 2.2 + Math.random() * 2.5,
+    });
+  }
+  const spots = [];
+  const spotCount = 6 + ((Math.random() * 6) | 0);
+  for (let s = 0; s < spotCount; s++) {
+    const a = Math.random() * Math.PI * 2;
+    const dist = baseR * (0.6 + Math.random() * 0.85);
+    spots.push({
+      x: x + Math.cos(a) * dist,
+      y: y + Math.sin(a) * dist,
+      r: baseR * (0.12 + Math.random() * 0.18),
+    });
+  }
+
+  wallSplats.push({
+    x, y,
+    r: baseR,
+    color,
+    drips,
+    spots,
+    t: 0,
+    life: 12.0,
+  });
+
+  if (wallSplats.length > 25) wallSplats.shift();
+}
+
+function updateWallSplats(dt) {
+  for (let i = wallSplats.length - 1; i >= 0; i--) {
+    const s = wallSplats[i];
+    s.t += dt;
+    if (s.t >= s.life) {
+      wallSplats.splice(i, 1);
+      continue;
+    }
+    for (const d of s.drips) {
+      if (d.len < d.maxLen) d.len = Math.min(d.maxLen, d.len + d.speed * dt);
+    }
+  }
+}
+
+function drawWallSplats() {
+  for (const s of wallSplats) {
+    const remainRatio = 1 - s.t / s.life;
+    const alpha = Math.min(0.52, remainRatio * 0.52);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = s.color;
+
+    // 核心泼溅斑块（多点融合柔化果汁浆液）
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r * 0.75, 0, Math.PI * 2);
+    ctx.arc(s.x + s.r * 0.2, s.y - s.r * 0.15, s.r * 0.55, 0, Math.PI * 2);
+    ctx.arc(s.x - s.r * 0.18, s.y + s.r * 0.2, s.r * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 周围散溅水珠
+    for (const sp of s.spots) {
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 沿墙面向下滴淌的液滴
+    ctx.strokeStyle = s.color;
+    ctx.lineCap = 'round';
+    for (const d of s.drips) {
+      if (d.len > 0.5) {
+        ctx.lineWidth = d.r * 1.5;
+        ctx.beginPath();
+        ctx.moveTo(d.x, d.y);
+        ctx.lineTo(d.x, d.y + d.len);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(d.x, d.y + d.len, d.r * 1.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+}
+
+/* ---------------- 刀光火花星芒系统 ---------------- */
+function spawnSparks(x, y, count, color = '#ffe14d', speedScale = 1) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = W * (0.06 + 0.18 * Math.random()) * speedScale;
+    sparks.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - H * (0.02 + 0.08 * Math.random()),
+      color,
+      r: 1.6 + Math.random() * 2.4,
+      t: 0,
+      life: 0.25 + Math.random() * 0.22,
+    });
+  }
+  while (sparks.length > 70) sparks.shift();
+}
+
+function updateSparks(dt) {
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const sp = sparks[i];
+    sp.t += dt;
+    if (sp.t >= sp.life) {
+      sparks.splice(i, 1);
+      continue;
+    }
+    sp.x += sp.vx * dt;
+    sp.y += sp.vy * dt;
+    sp.vy += G_FACTOR * H * 0.3 * dt;
+    sp.vx *= 0.93;
+  }
+}
+
+function drawSparks() {
+  for (const sp of sparks) {
+    const k = sp.t / sp.life;
+    ctx.save();
+    ctx.globalAlpha = 1 - k;
+    ctx.fillStyle = sp.color;
+    ctx.shadowColor = sp.color;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(sp.x, sp.y, sp.r * (1 - k * 0.6), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* ---------------- 打击感屏幕微震 ---------------- */
+function triggerScreenShake(intensity = 4, duration = 0.12) {
+  screenShake.intensity = Math.max(screenShake.intensity, intensity);
+  screenShake.duration = duration;
+  screenShake.t = 0;
+}
+
+function updateScreenShake(dt) {
+  if (screenShake.t < screenShake.duration) {
+    screenShake.t += dt;
+    const progress = screenShake.t / screenShake.duration;
+    const cur = screenShake.intensity * (1 - progress);
+    const a = Math.random() * Math.PI * 2;
+    screenShake.x = Math.cos(a) * cur;
+    screenShake.y = Math.sin(a) * cur;
+  } else {
+    screenShake.x = 0;
+    screenShake.y = 0;
+    screenShake.intensity = 0;
+  }
+}
+
+/* ---------------- 连击荣耀爆破大横幅 ---------------- */
+function spawnComboBanner(count, x, y) {
+  let title = `💥 ${count} 连击!`;
+  let sub = `+${count * 10} 分`;
+  let col = '#fbbf24';
+  if (count >= 5) {
+    title = `⚡ 超神 ${count} 连击!`;
+    sub = `UNBELIEVABLE COMBO!`;
+    col = '#f43f5e';
+  } else if (count >= 4) {
+    title = `🔥 ${count} 连击狂暴!`;
+    sub = `GREAT COMBO!`;
+    col = '#f97316';
+  }
+  comboBanners.push({
+    text: title,
+    subText: sub,
+    x: Math.max(W * 0.25, Math.min(W * 0.75, x)),
+    y: Math.max(H * 0.25, Math.min(H * 0.6, y)),
+    color: col,
+    t: 0,
+    life: 1.1,
+  });
+  while (comboBanners.length > 4) comboBanners.shift();
+}
+
+function updateComboBanners(dt) {
+  for (let i = comboBanners.length - 1; i >= 0; i--) {
+    const cb = comboBanners[i];
+    cb.t += dt;
+    if (cb.t >= cb.life) {
+      comboBanners.splice(i, 1);
+      continue;
+    }
+    cb.y -= 28 * dt;
+  }
+}
+
+function drawComboBanners(now) {
+  for (const cb of comboBanners) {
+    const k = cb.t / cb.life;
+    const alpha = Math.max(0, 1 - Math.pow(k, 2));
+    const scale = k < 0.2 ? (k / 0.2) * 1.25 : 1.25 - 0.25 * ((k - 0.2) / 0.8);
+    ctx.save();
+    ctx.translate(cb.x, cb.y);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = alpha;
+
+    // 旋转星芒光晕
+    ctx.save();
+    ctx.rotate((now / 1000) * 1.5);
+    ctx.strokeStyle = cb.color;
+    ctx.lineWidth = 2;
+    for (let r = 0; r < 8; r++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      const ra = (r / 8) * Math.PI * 2;
+      ctx.lineTo(Math.cos(ra) * 55, Math.sin(ra) * 55);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 徽章背景
+    ctx.shadowColor = cb.color;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = cb.color;
+    ctx.lineWidth = 2.5;
+    const bw = 180, bh = 54;
+    ctx.beginPath();
+    ctx.roundRect(-bw / 2, -bh / 2, bw, bh, 27);
+    ctx.fill();
+    ctx.stroke();
+
+    // 文字
+    ctx.font = '800 20px Inter, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(cb.text, 0, -4);
+
+    ctx.font = '700 13px Inter, -apple-system, sans-serif';
+    ctx.fillStyle = cb.color;
+    ctx.fillText(cb.subText, 0, 15);
+
+    ctx.restore();
+  }
 }
 
 /* ---------------- 几何 / 生成 / 碰撞 ---------------- */
@@ -310,6 +758,7 @@ function spawnFruit() {
     rot: Math.random() * Math.PI * 2,
     vr: (Math.random() - 0.5) * 7,
   });
+  if (state === 'playing') playFruitToss();
 }
 
 // 线段（刀光上一帧→当前帧）与水果圆的相交检测，保证重复命中不重复计分
@@ -323,24 +772,35 @@ function segCircle(x0, y0, x1, y1, cx, cy, r) {
   return Math.hypot(cx - px, cy - py) <= r;
 }
 
-function applyCut(x0, y0, x1, y1) {
+function applyCut(x0, y0, x1, y1, cutter) {
   for (let i = fruits.length - 1; i >= 0; i--) {
-    if (segCircle(x0, y0, x1, y1, fruits[i].x, fruits[i].y, fruits[i].r)) sliceFruit(i);
+    if (segCircle(x0, y0, x1, y1, fruits[i].x, fruits[i].y, fruits[i].r)) sliceFruit(i, cutter);
   }
 }
 
-function sliceFruit(i) {
+function sliceFruit(i, cutter) {
   const f = fruits[i];
   fruits.splice(i, 1);
   const fruitMeta = FRUITS[f.fi] || FRUITS[0];
 
+  const c = cutter || blades[0];
+  const cdx = (c && c.hasPrev) ? (c.x - c.px) : (f.vx || 1);
+  const cdy = (c && c.hasPrev) ? (c.y - c.py) : (f.vy || 0);
+  const clen = Math.hypot(cdx, cdy) || 1;
+  const cutAngle = Math.atan2(cdy, cdx);
+  // 法向矢量（垂直于切割刀线分离）
+  const nx = -cdy / clen;
+  const ny = cdx / clen;
+  const pushSpeed = W * (0.09 + Math.random() * 0.05);
+
+  // 严格沿切割刀线法向垂直蹦出，带真实剖切角度
   for (const side of [-1, 1]) {
     halves.push({
       x: f.x, y: f.y,
-      vx: f.vx + side * W * 0.1,
-      vy: f.vy - H * 0.05,
-      r: f.r, rot: f.rot,
-      vr: f.vr + side * 4,
+      vx: f.vx * 0.35 + side * nx * pushSpeed,
+      vy: f.vy * 0.35 + side * ny * pushSpeed - H * 0.03,
+      r: f.r, rot: cutAngle,
+      vr: side * (Math.random() * 4 + 3.5),
       fi: f.fi,
       side,
     });
@@ -349,7 +809,13 @@ function sliceFruit(i) {
   // 1. 多汁高频果汁粒子（带重力与速度拉伸水滴）
   spawnParticles(f.x, f.y, f.fi);
 
-  // 2. 果肉破裂冲击波涟漪
+  // 2. 背景木墙果汁流淌印迹（Fruit Ninja 灵魂水渍）
+  addWallSplat(f.x, f.y, f.fi);
+
+  // 3. 刀光切割碰撞星芒火花
+  spawnSparks(f.x, f.y, 14, fruitMeta.color, 1.2);
+
+  // 4. 果肉破裂冲击波涟漪
   splats.push({
     x: f.x, y: f.y,
     r: f.r * 0.25,
@@ -359,11 +825,11 @@ function sliceFruit(i) {
     t: 0,
   });
 
-  // 3. 刀芒切割受击瞬间闪光
-  if (blade.hasPrev) {
+  // 5. 刀芒切割受击瞬间闪光
+  if (c && c.hasPrev) {
     flashes.push({
-      x0: blade.px, y0: blade.py,
-      x1: blade.x, y1: blade.y,
+      x0: c.px, y0: c.py,
+      x1: c.x, y1: c.y,
       glow: fruitMeta.color,
       life: 0.14,
       t: 0,
@@ -375,7 +841,18 @@ function sliceFruit(i) {
   score += SCORE_PER_FRUIT;
   combo++;
   comboTimer = COMBO_WINDOW;
-  playSlice(f.fi, combo);
+
+  // 真实爆浆切割复合音
+  playJuicySlice(f.fi, combo);
+
+  // 连击达成：太鼓重击 + 庆贺横幅 + 强震屏
+  if (combo >= 3) {
+    playComboFanfare(combo);
+    spawnComboBanner(combo, f.x, f.y);
+    triggerScreenShake(combo >= 5 ? 8 : 4.8, 0.22);
+  } else {
+    triggerScreenShake(2.2, 0.08);
+  }
 }
 
 function spawnParticles(x, y, fi) {
@@ -454,43 +931,71 @@ function updatePops(dt) {
   }
 }
 
-function updateBlade(now) {
-  if (!blade.targetSet) return;
-  const sx = oex.filter(blade.tx, now);
-  const sy = oey.filter(blade.ty, now);
-  blade.x = sx; blade.y = sy;
-  if (!blade.active) { blade.hasPrev = false; return; }
-  if (!blade.hasPrev) {
-    blade.px = sx; blade.py = sy; blade.hasPrev = true;
+function updateBlade(b, now, dt) {
+  if (!b.targetSet) {
+    b.hasPrev = false;
     return;
   }
-  const d = Math.hypot(sx - blade.px, sy - blade.py);
+  const sx = b.oex.filter(b.tx, now);
+  const sy = b.oey.filter(b.ty, now);
+  b.x = sx; b.y = sy;
+  if (!b.active) { b.hasPrev = false; return; }
+  if (!b.hasPrev) {
+    b.px = sx; b.py = sy; b.hasPrev = true;
+    return;
+  }
+  const d = Math.hypot(sx - b.px, sy - b.py);
   const maxJump = MAX_JUMP_FACTOR * H;
   if (d > maxJump) { // 跳点保护：断点不判定
-    blade.px = sx; blade.py = sy;
+    b.px = sx; b.py = sy;
     return;
   }
   if (d > 0.01) {
-    applyCut(blade.px, blade.py, sx, sy);
-    if (d > 1.5) trail.push({ x: sx, y: sy, t: now });
-    blade.px = sx; blade.py = sy;
+    applyCut(b.px, b.py, sx, sy, b);
+    if (d > 1.5) b.trail.push({ x: sx, y: sy, t: now });
+
+    // 水果忍者经典高速破空呼啸声与刀尖电火花
+    const speed = dt > 0 ? d / dt : 0;
+    if (speed > W * 0.65) {
+      if (!b.lastWhooshT || now - b.lastWhooshT > 120) {
+        b.lastWhooshT = now;
+        playWhoosh(speed);
+      }
+      if (Math.random() < 0.45) {
+        spawnSparks(sx, sy, b.color === 'emerald' ? '#34d399' : '#fbbf24', 2);
+      }
+    }
+
+    b.px = sx; b.py = sy;
   }
 }
 
 function updateGame(dt, now) {
   remaining -= dt * 1000;
   if (remaining <= 0) { remaining = 0; endGame(); return; }
+
+  // 倒计时最后 10 秒紧张滴答声
+  const sec = Math.ceil(remaining / 1000);
+  if (sec <= 10 && sec > 0 && sec !== lastTickSec) {
+    lastTickSec = sec;
+    playTick(sec <= 5);
+  }
+
   spawnAcc += dt * 1000;
   if (spawnAcc >= SPAWN_MS) { spawnAcc = 0; if (fruits.length < MAX_FRUITS) spawnFruit(); }
   if (comboTimer > 0) {
     comboTimer -= dt;
     if (comboTimer <= 0) combo = 0;
   }
-  updateBlade(now);
+  for (const b of blades) updateBlade(b, now, dt);
   updateFruits(dt);
   updateHalves(dt);
   updateParticles(dt);
   updateSplats(dt);
+  updateWallSplats(dt);
+  updateSparks(dt);
+  updateComboBanners(dt);
+  updateScreenShake(dt);
   updateFlashes(dt);
   updatePops(dt);
   updateHud();
@@ -503,12 +1008,20 @@ function updateAmbient(dt) { // 菜单背景：水果缓缓飞出
   updateHalves(dt);
   updateParticles(dt);
   updateSplats(dt);
+  updateWallSplats(dt);
+  updateSparks(dt);
+  updateComboBanners(dt);
   updateFlashes(dt);
   updatePops(dt);
 }
 
 /* ---------------- 绘制 ---------------- */
 function draw(now) {
+  ctx.save();
+  if (screenShake.timer > 0) {
+    ctx.translate(screenShake.x, screenShake.y);
+  }
+
   // 背景
   const bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, '#101b33'); bg.addColorStop(0.55, '#0c1426'); bg.addColorStop(1, '#080d1a');
@@ -516,6 +1029,9 @@ function draw(now) {
   const vg = ctx.createRadialGradient(W / 2, H * 0.45, H * 0.2, W / 2, H * 0.5, Math.max(W, H) * 0.75);
   vg.addColorStop(0, 'rgba(255,255,255,0.05)'); vg.addColorStop(1, 'rgba(0,0,0,0.35)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+  // 木质背景墙果汁浸染印痕与流淌泪滴（水果忍者经典木墙污渍）
+  drawWallSplats();
 
   // 1. 完整水果
   for (const f of fruits) {
@@ -558,6 +1074,9 @@ function draw(now) {
   }
   ctx.globalAlpha = 1;
 
+  // 刀锋划痕与火花星芒
+  drawSparks();
+
   // 5. 刀锋切割受击高光闪芒
   for (const fl of flashes) {
     const k = fl.t / fl.life;
@@ -571,16 +1090,21 @@ function draw(now) {
   }
   ctx.globalAlpha = 1;
 
-  // 6. 绚丽刀光轨迹
-  drawTrail(now);
+  // 6. 绚丽刀光轨迹（支持双手双刀独立轨迹）
+  drawTrails(now);
 
-  // 手势空闲指示（检测到手但未伸食指）
-  if (mode === 'hand' && handPresent && !blade.active && blade.targetSet) {
-    const pulse = 1 + 0.15 * Math.sin(now / 180);
-    ctx.strokeStyle = 'rgba(255,225,77,0.85)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(blade.x, blade.y, 13 * pulse, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,225,77,0.9)';
-    ctx.beginPath(); ctx.arc(blade.x, blade.y, 4, 0, Math.PI * 2); ctx.fill();
+  // 手势空闲指示（检测到手但握拳或未挥砍）
+  if (mode === 'hand' && handPresent) {
+    for (const b of blades) {
+      if (b.targetSet && !b.active) {
+        const pulse = 1 + 0.15 * Math.sin(now / 180);
+        const col = b.color === 'emerald' ? 'rgba(52, 211, 153, 0.85)' : 'rgba(251, 191, 36, 0.85)';
+        ctx.strokeStyle = col; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 13 * pulse, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill();
+      }
+    }
   }
 
   // 7. 得分飘字（带缩放弹性与柔光）
@@ -596,7 +1120,11 @@ function draw(now) {
     ctx.fillText(`+${SCORE_PER_FRUIT}`, p.x, p.y - p.t * 50);
   }
   ctx.globalAlpha = 1;
+  // 连击暴击大横幅与星芒爆炸
+  drawComboBanners(now);
+
   while (trail.length && now - trail[0].t > TRAIL_MS) trail.shift();
+  ctx.restore();
 }
 
 function drawHalf(h) {
@@ -711,36 +1239,44 @@ function drawHalf(h) {
   ctx.restore();
 }
 
-function drawTrail(now) {
-  const n = trail.length;
-  if (n < 2) return;
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  // 外层翡翠柔光
-  for (let i = 1; i < n; i++) {
-    const p0 = trail[i - 1], p1 = trail[i];
-    const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
-    if (a <= 0) continue;
-    ctx.strokeStyle = `rgba(52, 211, 153, ${(0.42 * a).toFixed(3)})`;
-    ctx.lineWidth = 18 * a;
-    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
-  }
-  // 中层电光碧青
-  for (let i = 1; i < n; i++) {
-    const p0 = trail[i - 1], p1 = trail[i];
-    const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
-    if (a <= 0) continue;
-    ctx.strokeStyle = `rgba(167, 243, 208, ${(0.82 * a).toFixed(3)})`;
-    ctx.lineWidth = 7.5 * a;
-    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
-  }
-  // 核心白刃刀芒
-  for (let i = 1; i < n; i++) {
-    const p0 = trail[i - 1], p1 = trail[i];
-    const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
-    if (a <= 0) continue;
-    ctx.strokeStyle = `rgba(255, 255, 255, ${(0.96 * a).toFixed(3)})`;
-    ctx.lineWidth = 3.2 * a;
-    ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+function drawTrails(now) {
+  for (const b of blades) {
+    const tr = b.trail;
+    const n = tr.length;
+    if (n < 2) continue;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const isEmerald = b.color === 'emerald';
+    const cOuter = isEmerald ? '52, 211, 153' : '251, 191, 36';
+    const cMid = isEmerald ? '167, 243, 208' : '254, 240, 138';
+
+    // 外层柔光
+    for (let i = 1; i < n; i++) {
+      const p0 = tr[i - 1], p1 = tr[i];
+      const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
+      if (a <= 0) continue;
+      ctx.strokeStyle = `rgba(${cOuter}, ${(0.42 * a).toFixed(3)})`;
+      ctx.lineWidth = 18 * a;
+      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    }
+    // 中层电光
+    for (let i = 1; i < n; i++) {
+      const p0 = tr[i - 1], p1 = tr[i];
+      const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
+      if (a <= 0) continue;
+      ctx.strokeStyle = `rgba(${cMid}, ${(0.82 * a).toFixed(3)})`;
+      ctx.lineWidth = 7.5 * a;
+      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    }
+    // 核心白刃刀芒
+    for (let i = 1; i < n; i++) {
+      const p0 = tr[i - 1], p1 = tr[i];
+      const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
+      if (a <= 0) continue;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${(0.96 * a).toFixed(3)})`;
+      ctx.lineWidth = 3.2 * a;
+      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    }
+    while (tr.length && now - tr[0].t > TRAIL_MS) tr.shift();
   }
 }
 
@@ -784,11 +1320,25 @@ function toast(msg, ms = 3000) {
 }
 
 /* ---------------- 状态机 ---------------- */
+function resetBlades() {
+  for (const b of blades) {
+    b.hasPrev = false;
+    b.active = false;
+    b.targetSet = false;
+    b.trail.length = 0;
+    b.oex.reset();
+    b.oey.reset();
+    b.lastWhooshT = 0;
+  }
+}
+
 function startGame() {
   score = 0; combo = 0; comboTimer = 0;
   remaining = ROUND_MS; spawnAcc = 0; ambientAcc = 0;
-  fruits.length = 0; halves.length = 0; particles.length = 0; splats.length = 0; flashes.length = 0; pops.length = 0; trail.length = 0;
-  blade.hasPrev = false; blade.active = false; pointerActive = false; lastHandT = 0;
+  fruits.length = 0; halves.length = 0; particles.length = 0; splats.length = 0; flashes.length = 0; pops.length = 0;
+  wallSplats.length = 0; sparks.length = 0; comboBanners.length = 0; screenShake.timer = 0; lastTickSec = -1;
+  resetBlades();
+  pointerActive = false; lastHandT = 0;
   state = 'playing';
   btnPause.textContent = '⏸️';
   hideOverlay();
@@ -812,7 +1362,7 @@ function endGame() {
   goBest.textContent = best;
   updateBest();
   showPanel(panelGameover);
-  playGameOver();
+  playGameOverGong();
 }
 
 function togglePause() {
@@ -858,9 +1408,7 @@ function teardownCamera() {
   camPicker.textContent = '';
   camDevices = [];
   handPresent = false;
-  blade.active = false;
-  blade.hasPrev = false;
-  blade.targetSet = false;
+  resetBlades();
   octx.clearRect(0, 0, camOverlay.width, camOverlay.height);
   if (handLandmarker) { try { handLandmarker.close(); } catch (e) { /* 忽略 */ } handLandmarker = null; }
 }
@@ -878,10 +1426,10 @@ async function loadLandmarker() {
   const opts = {
     baseOptions: { modelAssetPath: HAND_MODEL, delegate: 'GPU' },
     runningMode: 'VIDEO',
-    numHands: 1,
-    minHandDetectionConfidence: 0.5,
-    minHandPresenceConfidence: 0.5,
-    minTrackingConfidence: 0.5,
+    numHands: 2, // 允许同时追踪双手（支持左手/右手单手及双手双刀）
+    minHandDetectionConfidence: 0.45,
+    minHandPresenceConfidence: 0.45,
+    minTrackingConfidence: 0.45,
   };
   try {
     handLandmarker = await createLandmarker(mod, fileset, opts, epoch);
@@ -1035,8 +1583,7 @@ async function initCamPicker() {
 function usePointerFallback(message) {
   teardownCamera();
   mode = 'pointer';
-  oex.reset(); oey.reset();
-  blade.targetSet = false;
+  resetBlades();
   if (state === 'playing' || state === 'paused') hudMode.textContent = '🖱️ 鼠标';
   toast(message);
 }
@@ -1199,17 +1746,15 @@ async function startHandMode() {
     await initCamPicker();
     mode = 'hand';
     watchActiveCamera(camStream);
-    oex.reset(); oey.reset();
-    blade.targetSet = false;
+    resetBlades();
     startGame();
-    toast('伸出食指在空中挥砍，握拳停止');
+    toast('左手、右手或双手挥砍均可（食指或手刀），握拳停止');
   } catch (err) {
     clearTimeout(permHint);
     console.warn('[FruitWave] 摄像头模式启动失败：', err);
     teardownCamera();
     mode = 'pointer';
-    oex.reset(); oey.reset();
-    blade.targetSet = false;
+    resetBlades();
     startGame();
     if (err && err.name === 'TimeoutError') {
       toast('摄像头响应超时，本局已切换为鼠标模式');
@@ -1233,7 +1778,59 @@ async function startHandMode() {
   }
 }
 
-// 节流到约 30fps 的本地手势推理
+function analyzeHand(lm) {
+  const p0 = lm[0]; // 手腕
+  // 食指关节与指尖
+  const p5 = lm[5]; // 食指根部 MCP
+  const p6 = lm[6]; // 食指第一关节 PIP
+  const p8 = lm[8]; // 食指尖 TIP
+  // 中指关节与指尖
+  const p9 = lm[9]; // 中指根部 MCP
+  const p10 = lm[10]; // 中指第一关节 PIP
+  const p12 = lm[12]; // 中指尖 TIP
+  // 无名指与小指
+  const p13 = lm[13], p16 = lm[16];
+  const p17 = lm[17], p20 = lm[20];
+
+  // 计算指尖相对手腕距离（无视俯仰角，鲁棒性极高）
+  const dIndexTip = Math.hypot(p8.x - p0.x, p8.y - p0.y);
+  const dIndexPip = Math.hypot(p6.x - p0.x, p6.y - p0.y);
+  const dIndexMcp = Math.hypot(p5.x - p0.x, p5.y - p0.y);
+
+  const dMidTip = Math.hypot(p12.x - p0.x, p12.y - p0.y);
+  const dMidPip = Math.hypot(p10.x - p0.x, p10.y - p0.y);
+
+  const dRingTip = Math.hypot(p16.x - p0.x, p16.y - p0.y);
+  const dRingMcp = Math.hypot(p13.x - p0.x, p13.y - p0.y);
+
+  const dPinkyTip = Math.hypot(p20.x - p0.x, p20.y - p0.y);
+  const dPinkyMcp = Math.hypot(p17.x - p0.x, p17.y - p0.y);
+
+  // 食指或中指伸直判定（左右手、食指指点、双指剑指、手掌手刀均可触发）
+  const indexExtended = dIndexTip > dIndexPip * 1.05 && dIndexTip > 0.12;
+  const midExtended = dMidTip > dMidPip * 1.05 && dMidTip > 0.12;
+
+  // 握拳检测：四指全部紧缩回掌部
+  const isFist = (dIndexTip < dIndexPip * 0.98 || dIndexTip < 0.11) &&
+                 (dMidTip < dMidPip * 0.98 || dMidTip < 0.11) &&
+                 (dRingTip < dRingMcp * 1.1) &&
+                 (dPinkyTip < dPinkyMcp * 1.1);
+
+  // 挥砍有效：非握拳，并且食指、中指或整个手掌伸展
+  const active = !isFist && (indexExtended || midExtended || (dIndexTip > dIndexMcp * 1.12));
+
+  // 刀刃点：优先食指尖，若中指更伸出则取中指尖
+  let tip = p8;
+  if (!indexExtended && midExtended) tip = p12;
+
+  // 镜像到用户视角（摄像头自拍视角，横坐标翻转）
+  const tx = (1 - tip.x) * W;
+  const ty = tip.y * H;
+
+  return { active, tx, ty, tip, isFist, lm };
+}
+
+// 节流到约 30fps 的本地手势推理（支持单手/双手同屏识别）
 function detectHand(now) {
   if (mode !== 'hand' || !handLandmarker || video.readyState < 2) return;
   if (video.currentTime === lastVideoTime) return;
@@ -1250,27 +1847,47 @@ function detectHand(now) {
     }
     return;
   }
-  const lm = res.landmarks && res.landmarks[0];
-  if (lm) {
+
+  const landmarks = res.landmarks || [];
+  if (landmarks.length > 0) {
     handPresent = true;
     lastHandT = now;
-    // 食指伸直判定：PIP(5)→指尖(8) 与 PIP(5)→DIP(6) 方向一致，且指尖离手腕足够远
-    const p0 = lm[0], p5 = lm[5], p6 = lm[6], p8 = lm[8];
-    const v1 = [p6.x - p5.x, p6.y - p5.y];
-    const v2 = [p8.x - p5.x, p8.y - p5.y];
-    const l1 = Math.hypot(v1[0], v1[1]), l2 = Math.hypot(v2[0], v2[1]);
-    const cos = l1 && l2 ? (v1[0] * v2[0] + v1[1] * v2[1]) / (l1 * l2) : 0;
-    const wristDist = Math.hypot(p8.x - p0.x, p8.y - p0.y);
-    blade.active = cos > 0.85 && wristDist > 0.15;
-    // 原始帧镜像后即为用户视角：x 取 1 - x
-    blade.tx = (1 - p8.x) * W;
-    blade.ty = p8.y * H;
-    blade.targetSet = true;
-    drawSkeleton(lm);
+
+    // 分析所有检测到的手部（支持左手、右手、双手）
+    const analyzedHands = landmarks.map((lm) => analyzeHand(lm));
+
+    if (analyzedHands.length === 1) {
+      // 只有一只手（无论是左手还是右手），都稳定分配给第 1 把刀
+      const h0 = analyzedHands[0];
+      blades[0].active = h0.active;
+      blades[0].tx = h0.tx;
+      blades[0].ty = h0.ty;
+      blades[0].targetSet = true;
+
+      // 第 2 把刀收起
+      blades[1].active = false;
+      blades[1].targetSet = false;
+      blades[1].hasPrev = false;
+    } else {
+      // 双手同屏：按屏幕横向位置排序，左侧给 blade 0，右侧给 blade 1，稳定不跳手
+      analyzedHands.sort((a, b) => a.tx - b.tx);
+      for (let i = 0; i < 2; i++) {
+        const h = analyzedHands[i];
+        blades[i].active = h.active;
+        blades[i].tx = h.tx;
+        blades[i].ty = h.ty;
+        blades[i].targetSet = true;
+      }
+    }
+
+    drawSkeletons(analyzedHands);
   } else {
     handPresent = false;
-    blade.active = false;
-    blade.hasPrev = false;
+    for (const b of blades) {
+      b.active = false;
+      b.hasPrev = false;
+      b.targetSet = false;
+    }
     octx.clearRect(0, 0, camOverlay.width, camOverlay.height);
     if (state === 'playing' && lastHandT > 0 && now - lastHandT > 2500 && now - lastToastT > 4000) {
       toast('未检测到手部，请把手伸到摄像头前');
@@ -1287,29 +1904,34 @@ const HAND_CONNECTIONS = [
   [0, 17],
 ];
 
-// 在小窗预览上绘制手部骨架（随外层 CSS 水平镜像）
-function drawSkeleton(lm) {
+// 在小窗预览上绘制手部骨架（随外层 CSS 水平镜像，双手分色展示）
+function drawSkeletons(analyzedHands) {
   const vw = video.videoWidth, vh = video.videoHeight;
   if (!vw) return;
   if (camOverlay.width !== vw) { camOverlay.width = vw; camOverlay.height = vh; }
   octx.clearRect(0, 0, vw, vh);
-  octx.strokeStyle = 'rgba(80,230,160,0.9)';
-  octx.lineWidth = vw * 0.008;
-  octx.lineCap = 'round';
-  for (const [a, b] of HAND_CONNECTIONS) {
-    const A = lm[a], B = lm[b];
-    octx.beginPath();
-    octx.moveTo(A.x * vw, A.y * vh);
-    octx.lineTo(B.x * vw, B.y * vh);
-    octx.stroke();
-  }
-  octx.fillStyle = 'rgba(255,255,255,0.95)';
-  for (const p of lm) {
-    octx.beginPath(); octx.arc(p.x * vw, p.y * vh, vw * 0.012, 0, Math.PI * 2); octx.fill();
-  }
-  const t = lm[8];
-  octx.fillStyle = '#ffe14d';
-  octx.beginPath(); octx.arc(t.x * vw, t.y * vh, vw * 0.02, 0, Math.PI * 2); octx.fill();
+
+  analyzedHands.forEach((h, idx) => {
+    const lm = h.lm;
+    const isEmerald = idx === 0;
+    octx.strokeStyle = isEmerald ? 'rgba(80, 230, 160, 0.95)' : 'rgba(251, 191, 36, 0.95)';
+    octx.lineWidth = vw * 0.009;
+    octx.lineCap = 'round';
+    for (const [a, b] of HAND_CONNECTIONS) {
+      const A = lm[a], B = lm[b];
+      octx.beginPath();
+      octx.moveTo(A.x * vw, A.y * vh);
+      octx.lineTo(B.x * vw, B.y * vh);
+      octx.stroke();
+    }
+    octx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    for (const p of lm) {
+      octx.beginPath(); octx.arc(p.x * vw, p.y * vh, vw * 0.012, 0, Math.PI * 2); octx.fill();
+    }
+    const t = h.tip;
+    octx.fillStyle = h.active ? (isEmerald ? '#34d399' : '#fbbf24') : '#94a3b8';
+    octx.beginPath(); octx.arc(t.x * vw, t.y * vh, vw * 0.024, 0, Math.PI * 2); octx.fill();
+  });
 }
 
 /* ---------------- 主循环 ---------------- */
@@ -1342,10 +1964,10 @@ function canvasPos(e) {
 function setPointerTarget(e) {
   if (mode !== 'pointer') return;
   pointerActive = true;
-  blade.active = true;
+  blades[0].active = true;
   const p = canvasPos(e);
-  blade.tx = p.x; blade.ty = p.y;
-  blade.targetSet = true;
+  blades[0].tx = p.x; blades[0].ty = p.y;
+  blades[0].targetSet = true;
 }
 
 function bindEvents() {
@@ -1353,8 +1975,8 @@ function bindEvents() {
 
   canvas.addEventListener('pointerdown', setPointerTarget);
   canvas.addEventListener('pointermove', setPointerTarget);
-  canvas.addEventListener('pointerup', () => { pointerActive = false; blade.active = false; blade.hasPrev = false; });
-  canvas.addEventListener('pointercancel', () => { pointerActive = false; blade.active = false; blade.hasPrev = false; });
+  canvas.addEventListener('pointerup', () => { pointerActive = false; blades[0].active = false; blades[0].hasPrev = false; });
+  canvas.addEventListener('pointercancel', () => { pointerActive = false; blades[0].active = false; blades[0].hasPrev = false; });
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   window.addEventListener('keydown', (e) => {
@@ -1381,11 +2003,40 @@ function bindEvents() {
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
     navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
   }
+
+  const btnCamPos = $('btn-cam-pos');
+  if (btnCamPos) {
+    btnCamPos.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isTop = cameraStack.classList.contains('pos-top-right');
+      if (isTop) {
+        cameraStack.classList.remove('pos-top-right');
+        cameraStack.classList.add('pos-bottom-right');
+        toast('摄像头小窗已移至右下角');
+      } else {
+        cameraStack.classList.remove('pos-bottom-right');
+        cameraStack.classList.add('pos-top-right');
+        toast('摄像头小窗已移至右上角');
+      }
+    });
+  }
+
+  const btnCamToggle = $('btn-cam-toggle');
+  if (btnCamToggle) {
+    btnCamToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isCollapsed = cameraStack.classList.toggle('is-collapsed');
+      btnCamToggle.textContent = isCollapsed ? '👁️ 展开' : '👁️ 收起';
+      const badge = $('cam-badge');
+      if (badge) badge.textContent = isCollapsed ? '🎥 运行中' : '🎥 摄像头识别中';
+      toast(isCollapsed ? '摄像头小窗已折叠收起' : '摄像头小窗已展开');
+    });
+  }
+
   $('btn-pointer-mode').addEventListener('click', () => {
     ensureAudio();
     mode = 'pointer';
-    oex.reset(); oey.reset();
-    blade.targetSet = false;
+    resetBlades();
     startGame();
     toast('移动鼠标 / 触控板 / 手指来切水果');
   });

@@ -38,7 +38,14 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
         <button class="mini-btn" id="btn-quit" title="退出到菜单">🚪</button>
       </div>
 
-      <div class="camera-stack" id="camera-stack" hidden>
+      <div class="camera-stack pos-top-right" id="camera-stack" hidden>
+        <div class="cam-bar">
+          <span class="cam-badge" id="cam-badge">🎥 摄像头识别中</span>
+          <div class="cam-actions">
+            <button type="button" class="cam-btn" id="btn-cam-pos" title="切换停靠位置（右上 / 右下）">↕️ 换位置</button>
+            <button type="button" class="cam-btn" id="btn-cam-toggle" title="收起或展开画面">👁️ 收起</button>
+          </div>
+        </div>
         <select class="cam-picker" id="cam-picker" title="切换摄像头" hidden></select>
         <div class="video-wrap" id="video-wrap">
           <video id="cam-video" autoplay playsinline muted></video>
@@ -58,7 +65,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
           <button class="btn btn-secondary" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
           <p id="cam-status-hint" class="panel-hint" style="color: #e11d48; font-weight: 500;" hidden></p>
           <p class="panel-hint">
-            💡 食指空中挥砍（或直接划动鼠标） · 快捷键 P 暂停 · M 静音
+            💡 支持双手 / 单手挥砍（食指或手刀）· 握拳停止 · 快捷键 P 暂停 · M 静音
           </p>
         </div>
 
@@ -89,8 +96,8 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     <div class="game-notes">
       <h2>游戏指引</h2>
       <ul>
-        <li>🎮 <strong>操作双模</strong>：摄像头对准后伸出食指在空中挥砍，握拳或移出画面停止；未授权或无摄像头时自动切换鼠标 / 触控。</li>
-        <li>📷 <strong>摄像头授权</strong>：若无法开启，请在浏览器地址栏（🔒 图标）将摄像头设为【允许】，并在系统隐私设置中放行浏览器。若在嵌套窗口中受限，可新标签页直接打开。</li>
+        <li>🎮 <strong>左右手 / 双手双刀</strong>：已全面支持左手、右手单独挥砍，或双手同屏挥砍双刀（食指或手刀均可识别，握拳停止）。</li>
+        <li>📷 <strong>摄像头小窗防遮挡</strong>：默认置于右上角避开水果下落区，支持一键【收起 / 展开】或【换位置】（右上 / 右下自选），半透明背景不遮视野。</li>
         <li>⚡ <strong>连击音效</strong>：快速连续切中水果可触发连击，音调逐级攀升，不同水果音色各有特色。</li>
         <li>🔒 <strong>本地安全</strong>：画面与手势关键点纯浏览器本地识别，零视频数据上传；最高分自动保存在本地。</li>
       </ul>
@@ -203,13 +210,87 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
 
   .camera-stack {
     position: absolute;
-    right: 14px;
-    bottom: 14px;
-    width: min(200px, 30%);
     z-index: 6;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    width: min(150px, 22%);
+    min-width: 120px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    opacity: 0.65;
+  }
+
+  .camera-stack:hover {
+    opacity: 0.98;
+  }
+
+  /* 默认停靠在右上角（避开底部水果飞行动线） */
+  .camera-stack.pos-top-right {
+    top: 58px;
+    right: 14px;
+    bottom: auto;
+  }
+
+  /* 可切换停靠在右下角 */
+  .camera-stack.pos-bottom-right {
+    bottom: 14px;
+    right: 14px;
+    top: auto;
+  }
+
+  .cam-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    pointer-events: auto;
+  }
+
+  .cam-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #a7f3d0;
+    background: rgba(10, 16, 32, 0.85);
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+  }
+
+  .cam-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .cam-btn {
+    background: rgba(10, 16, 32, 0.85);
+    color: #f1f5f9;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 6px;
+    font-size: 0.68rem;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    backdrop-filter: blur(4px);
+  }
+
+  .cam-btn:hover {
+    background: rgba(30, 45, 80, 0.95);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+  }
+
+  /* 折叠状态 */
+  .camera-stack.is-collapsed {
+    width: auto;
+    min-width: 0;
+  }
+
+  .camera-stack.is-collapsed .cam-picker,
+  .camera-stack.is-collapsed .video-wrap {
+    display: none !important;
   }
 
   .video-wrap {
@@ -222,6 +303,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     transform: scaleX(-1);
     background: #000;
     pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
 
   #cam-video,
@@ -236,12 +318,12 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
   .cam-picker {
     width: 100%;
     min-width: 0;
-    padding: 4px 8px;
-    border-radius: 8px;
+    padding: 3px 6px;
+    border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.25);
-    background: rgba(10, 16, 32, 0.7);
+    background: rgba(10, 16, 32, 0.8);
     color: #fff;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     backdrop-filter: blur(4px);
   }
 
