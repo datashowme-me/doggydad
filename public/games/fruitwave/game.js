@@ -46,12 +46,40 @@ const COMBO_WINDOW = 0.9;        // 连击窗口（秒）
 const TRAIL_MS = 140;            // 刀光轨迹时长（ms）
 const MAX_JUMP_FACTOR = 0.3;     // 刀光跳点保护（相对画布高度）
 const G_FACTOR = 1.9;            // 重力（相对画布高度 / 秒²）
-const SCRIPT_BASE = new URL('./', document.currentScript ? document.currentScript.src : window.location.href);
+function getScriptBase() {
+  const scriptTag = document.getElementById('fruitwave-script') ||
+                    document.querySelector('script[src*="fruitwave/game.js"]');
+  if (scriptTag) {
+    if (scriptTag.dataset && scriptTag.dataset.gameDir) {
+      return new URL(scriptTag.dataset.gameDir, window.location.origin).href;
+    }
+    if (scriptTag.src) {
+      return new URL('./', scriptTag.src).href;
+    }
+  }
+  if (document.currentScript && document.currentScript.src) {
+    return new URL('./', document.currentScript.src).href;
+  }
+  const path = window.location.pathname;
+  const match = path.match(/^(.*\/games\/fruitwave)(\/.*)?$/);
+  if (match) {
+    return new URL(match[1] + '/', window.location.origin).href;
+  }
+  return new URL('/games/fruitwave/', window.location.origin).href;
+}
+
+const SCRIPT_BASE = getScriptBase();
 const HAND_BUNDLE = new URL('vendor/vision_bundle.mjs', SCRIPT_BASE).href;
-const HAND_WASM = new URL('vendor/wasm', SCRIPT_BASE).href;
+const HAND_WASM = new URL('vendor/wasm', SCRIPT_BASE).href.replace(/\/$/, '');
 const HAND_MODEL = new URL('vendor/models/hand_landmarker.task', SCRIPT_BASE).href;
+
+// 备用公共 CDN（在本地文件缺失或被 CSP 限制时作为第二层保障）
+const CDN_BUNDLE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
+const CDN_WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
+const CDN_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+
 const CAMERA_TIMEOUT_MS = 10000;
-const MODEL_TIMEOUT_MS = 20000;
+const MODEL_STEP_TIMEOUT_MS = 8000;
 
 const FRUITS = [
   { name: '西瓜',   emoji: '🍉', color: '#22c55e', flesh: '#ff2d55', rind: '#15803d', seeds: true,  juice: ['#ff2a5f', '#ff477e', '#ffe4e6', '#22c55e'] },
@@ -1415,32 +1443,75 @@ function teardownCamera() {
 
 async function loadLandmarker() {
   const epoch = camEpoch;
-  const mod = await withTimeout(import(HAND_BUNDLE), MODEL_TIMEOUT_MS, 'model module timeout');
+
+  const setStatus = (title, sub = '') => {
+    if (loadingText) loadingText.textContent = title;
+    const subEl = $('loading-subtext');
+    if (subEl) {
+      subEl.textContent = sub;
+      subEl.hidden = !sub;
+    }
+  };
+
+  let mod = null;
+  let fileset = null;
+  let usingCdn = false;
+
+  // 阶段 1：加载 JS 模块与 WASM 引擎（优先本地，超时 8 秒自动无缝切换备用 CDN）
+  setStatus('正在初始化手势识别组件…', '正在加载计算核心 (WASM)');
+  try {
+    mod = await withTimeout(import(HAND_BUNDLE), MODEL_STEP_TIMEOUT_MS, 'local bundle timeout');
+    if (epoch !== camEpoch) throw abortError();
+
+    fileset = await withTimeout(
+      mod.FilesetResolver.forVisionTasks(HAND_WASM),
+      MODEL_STEP_TIMEOUT_MS,
+      'local wasm timeout'
+    );
+  } catch (errLocal) {
+    if (errLocal && errLocal.name === 'AbortError') throw errLocal;
+    console.warn('[FruitWave] 本地手势核心加载受阻，正在启用备用 CDN 通道：', errLocal);
+    usingCdn = true;
+    setStatus('正在切换备用通道加载手势模型…', '正在连接 CDN 加速网络');
+
+    mod = await withTimeout(import(CDN_BUNDLE), MODEL_STEP_TIMEOUT_MS, 'cdn bundle timeout');
+    if (epoch !== camEpoch) throw abortError();
+
+    fileset = await withTimeout(
+      mod.FilesetResolver.forVisionTasks(CDN_WASM),
+      MODEL_STEP_TIMEOUT_MS,
+      'cdn wasm timeout'
+    );
+  }
+
   if (epoch !== camEpoch) throw abortError();
-  const fileset = await withTimeout(
-    mod.FilesetResolver.forVisionTasks(HAND_WASM),
-    MODEL_TIMEOUT_MS,
-    'model wasm timeout',
-  );
-  if (epoch !== camEpoch) throw abortError();
-  const opts = {
-    baseOptions: { modelAssetPath: HAND_MODEL, delegate: 'GPU' },
+
+  // 阶段 2：加载手部姿态识别模型权重
+  setStatus('正在载入手势识别模型（约 8MB）…', '首次载入耗时数秒，已启用本地持久缓存');
+  const modelPath = usingCdn ? CDN_MODEL : HAND_MODEL;
+
+  const baseOpts = {
+    baseOptions: { modelAssetPath: modelPath, delegate: 'GPU' },
     runningMode: 'VIDEO',
     numHands: 2, // 允许同时追踪双手（支持左手/右手单手及双手双刀）
     minHandDetectionConfidence: 0.45,
     minHandPresenceConfidence: 0.45,
     minTrackingConfidence: 0.45,
   };
+
   try {
-    handLandmarker = await createLandmarker(mod, fileset, opts, epoch);
-  } catch (e) {
-    if (e && (e.name === 'TimeoutError' || e.name === 'AbortError')) throw e;
-    opts.baseOptions.delegate = 'CPU'; // 部分设备不支持 GPU 代理
-    handLandmarker = await createLandmarker(mod, fileset, opts, epoch);
+    handLandmarker = await createLandmarker(mod, fileset, baseOpts, epoch, MODEL_STEP_TIMEOUT_MS);
+  } catch (errGpu) {
+    if (errGpu && errGpu.name === 'AbortError') throw errGpu;
+    console.warn('[FruitWave] GPU 模式初始化失败，切换为 CPU 模式：', errGpu);
+    baseOpts.baseOptions.delegate = 'CPU';
+    handLandmarker = await createLandmarker(mod, fileset, baseOpts, epoch, MODEL_STEP_TIMEOUT_MS);
   }
+
+  setStatus('手势识别已就绪！');
 }
 
-async function createLandmarker(mod, fileset, opts, epoch) {
+async function createLandmarker(mod, fileset, opts, epoch, timeoutMs = MODEL_STEP_TIMEOUT_MS) {
   let abandoned = false;
   const pending = mod.HandLandmarker.createFromOptions(fileset, opts);
   pending.then((instance) => {
@@ -1449,7 +1520,7 @@ async function createLandmarker(mod, fileset, opts, epoch) {
     }
   }, () => {});
   try {
-    const instance = await withTimeout(pending, MODEL_TIMEOUT_MS, 'model init timeout');
+    const instance = await withTimeout(pending, timeoutMs, 'model init timeout');
     if (epoch !== camEpoch) {
       try { instance.close(); } catch (e) { /* 忽略 */ }
       throw abortError();
@@ -1741,7 +1812,6 @@ async function startHandMode() {
     await withTimeout(video.play(), CAMERA_TIMEOUT_MS, 'video play timeout');
     clearTimeout(permHint);
     cameraStack.hidden = false;
-    loadingText.textContent = '正在加载手势识别模型（约 8MB，首次较慢）…';
     if (!handLandmarker) await loadLandmarker();
     await initCamPicker();
     mode = 'hand';
@@ -1751,15 +1821,15 @@ async function startHandMode() {
     toast('左手、右手或双手挥砍均可（食指或手刀），握拳停止');
   } catch (err) {
     clearTimeout(permHint);
-    console.warn('[FruitWave] 摄像头模式启动失败：', err);
+    console.warn('[FruitWave] 摄像头或手势模型启动失败：', err);
     teardownCamera();
     mode = 'pointer';
     resetBlades();
     startGame();
     if (err && err.name === 'TimeoutError') {
-      toast('摄像头响应超时，本局已切换为鼠标模式');
+      toast('手势加载超时，已自动为您开启鼠标模式！', 4000);
       if (camHint) {
-        camHint.textContent = '⚠️ 摄像头响应超时，请确认摄像头未被其他软件占用。';
+        camHint.textContent = '⚠️ 模型或摄像头响应超时，已为您开启鼠标模式体验。';
         camHint.hidden = false;
       }
     } else if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
@@ -1769,9 +1839,9 @@ async function startHandMode() {
         camHint.hidden = false;
       }
     } else {
-      toast('未检测到可用摄像头，已切换为鼠标 / 触控模式');
+      toast('未能启动手势摄像头，已为您开启鼠标模式！', 4000);
       if (camHint) {
-        camHint.textContent = '⚠️ 未检测到可用摄像头或环境受阻，可使用鼠标模式体验。';
+        camHint.textContent = '⚠️ 未能启动手势识别，已为您开启鼠标模式体验。';
         camHint.hidden = false;
       }
     }
@@ -1999,6 +2069,17 @@ function bindEvents() {
       showPanel(panelMenu);
     });
   }
+  const btnSkip = $('btn-skip-loading');
+  if (btnSkip) {
+    btnSkip.addEventListener('click', () => {
+      teardownCamera();
+      ensureAudio();
+      mode = 'pointer';
+      resetBlades();
+      startGame();
+      toast('已切换为鼠标 / 触控板划屏模式，尽情切水果！');
+    });
+  }
   camPicker.addEventListener('change', () => { if (camPicker.value) switchCamera(camPicker.value); });
   if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
     navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
@@ -2057,6 +2138,19 @@ function toggleSound() {
   if (soundOn) ensureAudio();
 }
 
+/* ---------------- 资源静默预热 ---------------- */
+function preloadVisionAssets() {
+  if (handLandmarker) return;
+  try {
+    import(HAND_BUNDLE).then((mod) => {
+      if (mod && mod.FilesetResolver) {
+        mod.FilesetResolver.forVisionTasks(HAND_WASM).catch(() => {});
+      }
+    }).catch(() => {});
+    fetch(HAND_MODEL, { mode: 'cors', cache: 'force-cache' }).catch(() => {});
+  } catch (e) { /* 忽略 */ }
+}
+
 /* ---------------- 初始化 ---------------- */
 function init() {
   resize();
@@ -2066,6 +2160,13 @@ function init() {
   btnSound.textContent = soundOn ? '🔊' : '🔇';
   updateBest();
   requestAnimationFrame(loop);
+
+  // 页面空闲时静默预加载手势模型，点击按钮时秒开
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(preloadVisionAssets, { timeout: 3500 });
+  } else {
+    setTimeout(preloadVisionAssets, 1500);
+  }
 }
 init();
 
