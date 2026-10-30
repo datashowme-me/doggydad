@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 500" width="100%" height="100%" style="background:#0f172a; border-radius:16px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;">
+  <defs>
+    <linearGradient id="step1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="step2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="step3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="step4" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="boxShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Title Banner -->
+  <text x="460" y="45" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="800">基本面拐点的四个层次：避免将叙事等同于商业价值</text>
+  <text x="460" y="72" text-anchor="middle" fill="#94a3b8" font-size="13">同一家公司在不同业务维度可能处于截然不同的拐点阶段</text>
+
+  <!-- Level 1: 需求拐点 -->
+  <g transform="translate(40, 100)" filter="url(#boxShadow)">
+    <rect width="200" height="340" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect width="200" height="48" rx="12" fill="url(#step1)"/>
+    <rect y="36" width="200" height="12" fill="url(#step1)"/>
+    <text x="100" y="30" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">1. 需求拐点</text>
+
+    <text x="16" y="78" fill="#93c5fd" font-size="12" font-weight="700">核心检验问题：</text>
+    <text x="16" y="98" fill="#e2e8f0" font-size="12" font-weight="500">客户是否真的在</text>
+    <text x="16" y="118" fill="#e2e8f0" font-size="12" font-weight="500">增加购买与使用？</text>
+
+    <line x1="16" y1="140" x2="184" y2="140" stroke="#334155"/>
+
+    <text x="16" y="164" fill="#64748b" font-size="11" font-weight="700">观察标志：</text>
+    <text x="16" y="184" fill="#cbd5e1" font-size="11.5">• 订单积压增加</text>
+    <text x="16" y="204" fill="#cbd5e1" font-size="11.5">• 活跃客户数扩张</text>
+    <text x="16" y="224" fill="#cbd5e1" font-size="11.5">• API与算力调用量飙升</text>
+
+    <rect x="12" y="250" width="176" height="74" rx="8" fill="#0f172a" stroke="#1d4ed8" stroke-width="1"/>
+    <text x="20" y="272" fill="#60a5fa" font-size="11" font-weight="700">企业现状对照：</text>
+    <text x="20" y="292" fill="#cbd5e1" font-size="10.5">• Intel DCAI 需求强劲</text>
+    <text x="20" y="310" fill="#cbd5e1" font-size="10.5">• Google/AWS 云算力告罄</text>
+  </g>
+
+  <!-- Arrow 1 to 2 -->
+  <path d="M 245 270 L 255 270" stroke="#475569" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="250" y="260" text-anchor="middle" fill="#64748b" font-size="18">→</text>
+
+  <!-- Level 2: 经营拐点 -->
+  <g transform="translate(260, 100)" filter="url(#boxShadow)">
+    <rect width="200" height="340" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect width="200" height="48" rx="12" fill="url(#step2)"/>
+    <rect y="36" width="200" height="12" fill="url(#step2)"/>
+    <text x="100" y="30" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">2. 经营拐点</text>
+
+    <text x="16" y="78" fill="#67e8f9" font-size="12" font-weight="700">核心检验问题：</text>
+    <text x="16" y="98" fill="#e2e8f0" font-size="12" font-weight="500">需求能否转化为</text>
+    <text x="16" y="118" fill="#e2e8f0" font-size="12" font-weight="500">营收与经营利润？</text>
+
+    <line x1="16" y1="140" x2="184" y2="140" stroke="#334155"/>
+
+    <text x="16" y="164" fill="#64748b" font-size="11" font-weight="700">观察标志：</text>
+    <text x="16" y="184" fill="#cbd5e1" font-size="11.5">• 收入同比强劲增长</text>
+    <text x="16" y="204" fill="#cbd5e1" font-size="11.5">• 产能利用率攀升</text>
+    <text x="16" y="224" fill="#cbd5e1" font-size="11.5">• 经营利润率开始修复</text>
+
+    <rect x="12" y="250" width="176" height="74" rx="8" fill="#0f172a" stroke="#0891b2" stroke-width="1"/>
+    <text x="20" y="272" fill="#22d3ee" font-size="11" font-weight="700">企业现状对照：</text>
+    <text x="20" y="292" fill="#cbd5e1" font-size="10.5">• Intel Q3 收入 +21%</text>
+    <text x="20" y="310" fill="#cbd5e1" font-size="10.5">• Google Cloud 利润创新高</text>
+  </g>
+
+  <!-- Arrow 2 to 3 -->
+  <text x="470" y="260" text-anchor="middle" fill="#64748b" font-size="18">→</text>
+
+  <!-- Level 3: 现金流拐点 -->
+  <g transform="translate(480, 100)" filter="url(#boxShadow)">
+    <rect width="200" height="340" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect width="200" height="48" rx="12" fill="url(#step3)"/>
+    <rect y="36" width="200" height="12" fill="url(#step3)"/>
+    <text x="100" y="30" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">3. 现金流拐点</text>
+
+    <text x="16" y="78" fill="#6ee7b7" font-size="12" font-weight="700">核心检验问题：</text>
+    <text x="16" y="98" fill="#e2e8f0" font-size="12" font-weight="500">利润能否覆盖投资，</text>
+    <text x="16" y="118" fill="#e2e8f0" font-size="12" font-weight="500">产生正自由现金流？</text>
+
+    <line x1="16" y1="140" x2="184" y2="140" stroke="#334155"/>
+
+    <text x="16" y="164" fill="#64748b" font-size="11" font-weight="700">观察标志：</text>
+    <text x="16" y="184" fill="#cbd5e1" font-size="11.5">• 经营现金流超过 CapEx</text>
+    <text x="16" y="204" fill="#cbd5e1" font-size="11.5">• FCF 摆脱赤字</text>
+    <text x="16" y="224" fill="#cbd5e1" font-size="11.5">• 自我造血无需依赖外部融资</text>
+
+    <rect x="12" y="250" width="176" height="74" rx="8" fill="#0f172a" stroke="#059669" stroke-width="1"/>
+    <text x="20" y="272" fill="#34d399" font-size="11" font-weight="700">企业现状对照：</text>
+    <text x="20" y="292" fill="#cbd5e1" font-size="10.5">• Intel: 2027年 FCF 仍为负</text>
+    <text x="20" y="310" fill="#cbd5e1" font-size="10.5">• Amazon: 巨额CapEx承压</text>
+  </g>
+
+  <!-- Arrow 3 to 4 -->
+  <text x="690" y="260" text-anchor="middle" fill="#64748b" font-size="18">→</text>
+
+  <!-- Level 4: 资本回报拐点 -->
+  <g transform="translate(700, 100)" filter="url(#boxShadow)">
+    <rect width="180" height="340" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect width="180" height="48" rx="12" fill="url(#step4)"/>
+    <rect y="36" width="180" height="12" fill="url(#step4)"/>
+    <text x="90" y="30" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="700">4. 资本回报拐点</text>
+
+    <text x="14" y="78" fill="#fcd34d" font-size="12" font-weight="700">核心检验问题：</text>
+    <text x="14" y="98" fill="#e2e8f0" font-size="12" font-weight="500">新增投资能否长期</text>
+    <text x="14" y="118" fill="#e2e8f0" font-size="12" font-weight="500">超越资本成本(WACC)？</text>
+
+    <line x1="14" y1="140" x2="166" y2="140" stroke="#334155"/>
+
+    <text x="14" y="164" fill="#64748b" font-size="11" font-weight="700">观察标志：</text>
+    <text x="14" y="184" fill="#cbd5e1" font-size="11.5">• ROIC 持续提升</text>
+    <text x="14" y="204" fill="#cbd5e1" font-size="11.5">• 增量资本产出超额价值</text>
+    <text x="14" y="224" fill="#cbd5e1" font-size="11.5">• 经济护城河稳固</text>
+
+    <rect x="10" y="250" width="160" height="74" rx="8" fill="#0f172a" stroke="#d97706" stroke-width="1"/>
+    <text x="16" y="272" fill="#fbbf24" font-size="11" font-weight="700">终极投资判断：</text>
+    <text x="16" y="292" fill="#cbd5e1" font-size="10.5">• 三家均未提供独立AI ROI</text>
+    <text x="16" y="310" fill="#cbd5e1" font-size="10.5">• 仍处在大规模投入期</text>
+  </g>
+
+  <!-- Bottom Insight Strip -->
+  <rect x="40" y="455" width="840" height="32" rx="8" fill="#1e293b" stroke="#334155"/>
+  <text x="460" y="476" text-anchor="middle" fill="#94a3b8" font-size="12">
+    💡 <tspan fill="#f1f5f9" font-weight="600">投资法则：</tspan> 需求拐点容易让人兴奋，经营拐点带来账面反弹，但唯有跨过现金流与资本回报拐点，企业才真正脱离价值陷阱。
+  </text>
+</svg>

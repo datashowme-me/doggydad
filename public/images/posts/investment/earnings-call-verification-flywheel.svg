@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%" style="background:#0f172a; border-radius:16px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;">
+  <defs>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="nodeShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <text x="460" y="45" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="800">财报电话会跟踪与可证伪验证闭环</text>
+  <text x="460" y="70" text-anchor="middle" fill="#94a3b8" font-size="13">好的投资研究，不是不断寻找支持观点的证据，而是提前明确什么证据会证明自己错了</text>
+
+  <!-- Central Flywheel Hub -->
+  <circle cx="460" cy="265" r="75" fill="#1e293b" stroke="url(#ringGrad)" stroke-width="4" filter="url(#nodeShadow)"/>
+  <text x="460" y="255" text-anchor="middle" fill="#f8fafc" font-size="14" font-weight="800">管理层承诺</text>
+  <text x="460" y="275" text-anchor="middle" fill="#38bdf8" font-size="14" font-weight="800">兑现检验飞轮</text>
+  <text x="460" y="295" text-anchor="middle" fill="#94a3b8" font-size="11">跨季度持续证伪</text>
+
+  <!-- Node 1: Top Left -->
+  <g transform="translate(60, 105)" filter="url(#nodeShadow)">
+    <rect width="260" height="120" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect x="0" y="0" width="8" height="120" rx="4" fill="#3b82f6"/>
+    <text x="22" y="28" fill="#60a5fa" font-size="14" font-weight="700">1. 提取管理层表述</text>
+    <text x="22" y="48" fill="#94a3b8" font-size="11">Management Claims &amp; Goals</text>
+    <line x1="22" y1="56" x2="245" y2="56" stroke="#334155"/>
+    <text x="22" y="75" fill="#e2e8f0" font-size="11">• 记录指引、目标 ROI 与扩张计划</text>
+    <text x="22" y="93" fill="#e2e8f0" font-size="11">• 区分“已实现结果”与“主观愿景”</text>
+    <text x="22" y="111" fill="#fca5a5" font-size="10.5">⚠️ 警惕：不要把管理层表态直接当事实</text>
+  </g>
+
+  <!-- Node 2: Top Right -->
+  <g transform="translate(600, 105)" filter="url(#nodeShadow)">
+    <rect width="260" height="120" rx="12" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="0" y="0" width="8" height="120" rx="4" fill="#10b981"/>
+    <text x="22" y="28" fill="#34d399" font-size="14" font-weight="700">2. 锁定当期确凿证据</text>
+    <text x="22" y="48" fill="#94a3b8" font-size="11">Hard Quantifiable Evidence</text>
+    <line x1="22" y1="56" x2="245" y2="56" stroke="#334155"/>
+    <text x="22" y="75" fill="#e2e8f0" font-size="11">• 真实收入、成本、良率与 CapEx</text>
+    <text x="22" y="93" fill="#e2e8f0" font-size="11">• 经营现金流与真实自由现金流</text>
+    <text x="22" y="111" fill="#6ee7b7" font-size="10.5">✓ 核心：财报陈述已发生事实的基础</text>
+  </g>
+
+  <!-- Node 3: Bottom Right -->
+  <g transform="translate(600, 305)" filter="url(#nodeShadow)">
+    <rect width="260" height="120" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="0" y="0" width="8" height="120" rx="4" fill="#f59e0b"/>
+    <text x="22" y="28" fill="#fbbf24" font-size="14" font-weight="700">3. 识别可证伪缺口</text>
+    <text x="22" y="48" fill="#94a3b8" font-size="11">Falsifiable Evidence Gaps</text>
+    <line x1="22" y1="56" x2="245" y2="56" stroke="#334155"/>
+    <text x="22" y="75" fill="#e2e8f0" font-size="11">• 哪些核心数字在问答中被回避？</text>
+    <text x="22" y="93" fill="#e2e8f0" font-size="11">• 哪些关键指标无法独立回测推导？</text>
+    <text x="22" y="111" fill="#fde68a" font-size="10.5">⚡ 关键：未被披露的缺口必须保留为风险</text>
+  </g>
+
+  <!-- Node 4: Bottom Left -->
+  <g transform="translate(60, 305)" filter="url(#nodeShadow)">
+    <rect width="260" height="120" rx="12" fill="#1e293b" stroke="#ec4899" stroke-width="1.5"/>
+    <rect x="0" y="0" width="8" height="120" rx="4" fill="#ec4899"/>
+    <text x="22" y="28" fill="#f472b6" font-size="14" font-weight="700">4. 跨季追踪与动态修正</text>
+    <text x="22" y="48" fill="#94a3b8" font-size="11">Multi-Quarter Thesis Updating</text>
+    <line x1="22" y1="56" x2="245" y2="56" stroke="#334155"/>
+    <text x="22" y="75" fill="#e2e8f0" font-size="11">• 对照前序季度承诺与实际兑现率</text>
+    <text x="22" y="93" fill="#e2e8f0" font-size="11">• 若假设被证伪，果断下调估值预期</text>
+    <text x="22" y="111" fill="#fbcfe8" font-size="10.5">🔄 闭环：新财报检验上一场电话会</text>
+  </g>
+
+  <!-- Connecting Curved Arrows -->
+  <!-- 1 -> 2 -->
+  <path d="M 330 155 Q 460 125 590 155" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,5"/>
+  <polygon points="590,155 580,150 582,160" fill="#3b82f6"/>
+
+  <!-- 2 -> 3 -->
+  <path d="M 730 230 Q 755 265 730 300" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="5,5"/>
+  <polygon points="730,300 738,292 728,295" fill="#10b981"/>
+
+  <!-- 3 -> 4 -->
+  <path d="M 590 375 Q 460 405 330 375" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5,5"/>
+  <polygon points="330,375 340,380 338,370" fill="#f59e0b"/>
+
+  <!-- 4 -> 1 -->
+  <path d="M 190 300 Q 165 265 190 230" fill="none" stroke="#ec4899" stroke-width="2.5" stroke-dasharray="5,5"/>
+  <polygon points="190,230 182,238 192,235" fill="#ec4899"/>
+
+  <!-- Bottom Tip -->
+  <text x="460" y="455" text-anchor="middle" fill="#64748b" font-size="11.5">
+    财报告诉我们公司已经创造了什么 · 电话会告诉我们管理层如何解释 · 下一份财报检验这些解释靠不靠谱
+  </text>
+</svg>

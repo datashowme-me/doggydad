@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 540" width="100%" height="100%" style="background:#0f172a; border-radius:16px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;">
+  <defs>
+    <linearGradient id="intelGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="googleGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ea4335"/>
+      <stop offset="100%" stop-color="#c5221f"/>
+    </linearGradient>
+    <linearGradient id="amazonGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Title Banner -->
+  <text x="460" y="45" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="800" letter-spacing="0.5">三家科技巨头财报电话会：披露透明度与资本回报验证矩阵</text>
+  <text x="460" y="72" text-anchor="middle" fill="#94a3b8" font-size="13">回答直接程度 ≠ 预测一定正确 ≠ 具备投资价值 · 拆解管理层说辞与关键证据缺口</text>
+
+  <!-- 3 Company Columns -->
+  <!-- Column 1: Intel -->
+  <g transform="translate(30, 95)" filter="url(#cardShadow)">
+    <rect width="270" height="415" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <!-- Header -->
+    <rect width="270" height="52" rx="12" fill="url(#intelGrad)"/>
+    <rect y="40" width="270" height="12" fill="url(#intelGrad)"/>
+    <text x="135" y="32" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">Intel (英特尔)</text>
+    <text x="135" y="47" text-anchor="middle" fill="#e0f2fe" font-size="11">制造重压下的直接坦诚</text>
+
+    <!-- Block 1: 困难坦诚度 -->
+    <g transform="translate(14, 68)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">【经营困难讨论】评级：A</text>
+      <text x="0" y="32" fill="#cbd5e1" font-size="11.5" line-height="1.4">直接承认 2027 年自由现金流为负</text>
+      <text x="0" y="48" fill="#cbd5e1" font-size="11.5">承认代工持续亏损与先进制程成本压力</text>
+    </g>
+
+    <line x1="14" y1="130" x2="256" y2="130" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 2: 经营指标验证 -->
+    <g transform="translate(14, 142)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">【指标可证伪性】评级：A/B</text>
+      <text x="0" y="32" fill="#cbd5e1" font-size="11.5">明确 20% ROI 目标与 18A 良率进展</text>
+      <text x="0" y="48" fill="#cbd5e1" font-size="11.5">Q4指引拆分与细分份额量化仍有缺失</text>
+    </g>
+
+    <line x1="14" y1="205" x2="256" y2="205" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 3: AI与资本回报 -->
+    <g transform="translate(14, 218)">
+      <text x="0" y="14" fill="#f87171" font-size="12" font-weight="700">【关键证据缺口】</text>
+      <text x="0" y="32" fill="#fca5a5" font-size="11.5">缺少外部 Foundry 客户确切量产规模</text>
+      <text x="0" y="48" fill="#fca5a5" font-size="11.5">缺少外部代工正式订单兑现时间表</text>
+    </g>
+
+    <line x1="14" y1="280" x2="256" y2="280" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 4: 追踪核心结论 -->
+    <g transform="translate(14, 292)">
+      <rect width="242" height="108" rx="8" fill="#0f172a" stroke="#0284c7" stroke-width="1"/>
+      <text x="121" y="24" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="700">核心洞察</text>
+      <text x="14" y="46" fill="#e2e8f0" font-size="11">坦诚说出坏消息值得尊重，</text>
+      <text x="14" y="66" fill="#e2e8f0" font-size="11">但预测负现金流 ≠ 商业成功；</text>
+      <text x="14" y="86" fill="#fbbf24" font-size="11" font-weight="600">下阶段核心验证：代工订单与 FCF</text>
+    </g>
+  </g>
+
+  <!-- Column 2: Google -->
+  <g transform="translate(325, 95)" filter="url(#cardShadow)">
+    <rect width="270" height="415" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <!-- Header -->
+    <rect width="270" height="52" rx="12" fill="url(#googleGrad)"/>
+    <rect y="40" width="270" height="12" fill="url(#googleGrad)"/>
+    <text x="135" y="32" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">Google (Alphabet)</text>
+    <text x="135" y="47" text-anchor="middle" fill="#fee2e2" font-size="11">生态飞轮与垂直整合叙事</text>
+
+    <!-- Block 1: 困难坦诚度 -->
+    <g transform="translate(14, 68)">
+      <text x="0" y="14" fill="#f87171" font-size="12" font-weight="700">【经营困难讨论】评级：B/C</text>
+      <text x="0" y="32" fill="#cbd5e1" font-size="11.5">较少直接展开巨额CapEx带来的风险</text>
+      <text x="0" y="48" fill="#cbd5e1" font-size="11.5">主要从客户需求和市场长期机遇切入</text>
+    </g>
+
+    <line x1="14" y1="130" x2="256" y2="130" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 2: 经营指标验证 -->
+    <g transform="translate(14, 142)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">【指标可证伪性】评级：B</text>
+      <text x="0" y="32" fill="#cbd5e1" font-size="11.5">清晰披露 Cloud 收入、利润与 CapEx</text>
+      <text x="0" y="48" fill="#cbd5e1" font-size="11.5">但混合了传统云计算与 AI 增量利润</text>
+    </g>
+
+    <line x1="14" y1="205" x2="256" y2="205" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 3: AI与资本回报 -->
+    <g transform="translate(14, 218)">
+      <text x="0" y="14" fill="#f87171" font-size="12" font-weight="700">【关键证据缺口】</text>
+      <text x="0" y="32" fill="#fca5a5" font-size="11.5">自研 TPU 软硬件协同缺乏独立 ROI</text>
+      <text x="0" y="48" fill="#fca5a5" font-size="11.5">全要素成本（研发+制造+折旧）未解构</text>
+    </g>
+
+    <line x1="14" y1="280" x2="256" y2="280" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 4: 追踪核心结论 -->
+    <g transform="translate(14, 292)">
+      <rect width="242" height="108" rx="8" fill="#0f172a" stroke="#ea4335" stroke-width="1"/>
+      <text x="121" y="24" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700">核心洞察</text>
+      <text x="14" y="46" fill="#e2e8f0" font-size="11">战略逻辑自洽有很强说服力，</text>
+      <text x="14" y="66" fill="#e2e8f0" font-size="11">但无法独立计算的数据属于不确定性；</text>
+      <text x="14" y="86" fill="#fbbf24" font-size="11" font-weight="600">下阶段核心验证：Cloud利润与CapEx比值</text>
+    </g>
+  </g>
+
+  <!-- Column 3: Amazon -->
+  <g transform="translate(620, 95)" filter="url(#cardShadow)">
+    <rect width="270" height="415" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <!-- Header -->
+    <rect width="270" height="52" rx="12" fill="url(#amazonGrad)"/>
+    <rect y="40" width="270" height="12" fill="url(#amazonGrad)"/>
+    <text x="135" y="32" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">Amazon (亚马逊)</text>
+    <text x="135" y="47" text-anchor="middle" fill="#fef3c7" font-size="11">设备经济学与基建扩张周期</text>
+
+    <!-- Block 1: 困难坦诚度 -->
+    <g transform="translate(14, 68)">
+      <text x="0" y="14" fill="#fbbf24" font-size="12" font-weight="700">【经营困难讨论】评级：B</text>
+      <text x="0" y="32" fill="#cbd5e1" font-size="11.5">客观解释前置投资对现金流的压制</text>
+      <text x="0" y="48" fill="#cbd5e1" font-size="11.5">解释基础设施先行与产能消化时滞</text>
+    </g>
+
+    <line x1="14" y1="130" x2="256" y2="130" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 2: 经营指标验证 -->
+    <g transform="translate(14, 142)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">【指标可证伪性】评级：B+</text>
+      <text x="0" y="32" fill="#cbd5e1" font-size="11.5">公开讨论服务器与网络设备回收周期</text>
+      <text x="0" y="48" fill="#cbd5e1" font-size="11.5">比纯故事更接近资本真实回收效率</text>
+    </g>
+
+    <line x1="14" y1="205" x2="256" y2="205" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 3: AI与资本回报 -->
+    <g transform="translate(14, 218)">
+      <text x="0" y="14" fill="#f87171" font-size="12" font-weight="700">【关键证据缺口】</text>
+      <text x="0" y="32" fill="#fca5a5" font-size="11.5">设备回收期 ≠ 完整数据中心 ROIC</text>
+      <text x="0" y="48" fill="#fca5a5" font-size="11.5">电力、土建、运维与资产折旧仍有敞口</text>
+    </g>
+
+    <line x1="14" y1="280" x2="256" y2="280" stroke="#334155" stroke-dasharray="3,3"/>
+
+    <!-- Block 4: 追踪核心结论 -->
+    <g transform="translate(14, 292)">
+      <rect width="242" height="108" rx="8" fill="#0f172a" stroke="#d97706" stroke-width="1"/>
+      <text x="121" y="24" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700">核心洞察</text>
+      <text x="14" y="46" fill="#e2e8f0" font-size="11">设备回收解释比单纯画饼更扎实，</text>
+      <text x="14" y="66" fill="#e2e8f0" font-size="11">但巨额资本开支仍需长期利用率支持；</text>
+      <text x="14" y="86" fill="#fbbf24" font-size="11" font-weight="600">下阶段核心验证：AWS增长与FCF恢复</text>
+    </g>
+  </g>
+</svg>
