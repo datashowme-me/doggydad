@@ -1,1640 +1,2336 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const siteUrl = 'https://wordsmaster.app';
+const canonicalUrl = `${siteUrl}/games/math/`;
 ---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>口算大冲关 · 100以内速算小能手 | WordsMaster</title>
+  <meta name="description" content="专为小学低年级学生（1–3年级）设计的 100 以内口算速算练习独立单页 Web 应用：11级数段平滑晋阶、加减乘除与比大小、智能按键切换、手写草稿纸与错题闭环。" />
+  <meta name="keywords" content="口算练习,100以内口算,小学数学,速算训练,加减混合,九九乘除,幼小衔接,口算小游戏" />
+  <link rel="canonical" href={canonicalUrl} />
 
-<BaseLayout
-  title="口算大冲关 · 100以内速算小能手 | WordsMaster 游戏模块"
-  description="专为小学低年级学生（1–3年级）设计的 100 以内口算速算练习神器：11级数段递增进阶、加减混合、九九乘除、比大小智能按键切换、草稿纸、连对粒子与错题闭环。"
-  keywords={['口算练习', '口算小游戏', '小学数学', '100以内加减法', '速算训练', '凑十法破十法', '九九乘除法', '幼小衔接']}
-  breadcrumbs={[
-    { name: '首页', url: `${base}/` },
-    { name: '游戏模块', url: `${base}/games/` },
-    { name: '口算大冲关', url: `${base}/games/math/` }
-  ]}
->
-  <div class="math-app-container" id="math-app">
-    <!-- 顶部极简导航栏 -->
-    <header class="math-top-bar">
-      <div class="top-bar-left">
-        <a href={`${base}/games/`} class="top-nav-btn" title="返回游戏大厅">
-          <span class="icon">‹</span> 游戏大厅
+  <!-- OpenGraph -->
+  <meta property="og:title" content="口算大冲关 · 100以内速算小能手" />
+  <meta property="og:description" content="专为小学 1–3 年级设计的 100 以内口算速算练习应用：11级梯度逐级闯关、智能键盘、手写草稿纸与错题闭环。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Schema.org -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    'name': '口算大冲关 · 100以内速算小能手',
+    'url': canonicalUrl,
+    'applicationCategory': 'EducationalApplication',
+    'operatingSystem': 'Any',
+    'description': '专为小学低年级学生（1–3年级）设计的 100 以内口算速算练习单页 Web 应用。',
+    'offers': {
+      '@type': 'Offer',
+      'price': '0',
+      'priceCurrency': 'CNY'
+    }
+  })} />
+
+  <style>
+    /* 全局 CSS 变量与护眼调色 */
+    :root {
+      --bg-page: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --brand: #2563eb;
+      --brand-hover: #1d4ed8;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 8px 20px -4px rgba(0,0,0,0.08);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
+    }
+
+    body.eye-mode {
+      --bg-page: #fbf7ee;
+      --card-bg: #fffefb;
+      --text-main: #2d261e;
+      --text-muted: #796b58;
+      --border: #ede3ce;
+    }
+
+    /* 必须强制 hidden 生效，防止被 display: flex / grid 覆盖 */
+    [hidden] {
+      display: none !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: background-color 0.25s, color 0.25s;
+    }
+
+    /* 粒子特效 Canvas */
+    .fx-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* 独立页面顶部状态栏 */
+    .app-header {
+      width: 100%;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.04);
+      padding: 0.4rem 0.75rem;
+      border-radius: 0.5rem;
+      transition: all 0.15s;
+    }
+
+    .back-btn:hover {
+      color: var(--brand);
+      background: rgba(37,99,235,0.08);
+    }
+
+    .app-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .badge-standalone {
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #ecfdf5;
+      color: #065f46;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      margin-left: 0.25rem;
+    }
+
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tool-btn {
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text-main);
+      padding: 0.4rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tool-btn:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+
+    .tool-btn.highlight {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+
+    .tool-btn.active {
+      background: var(--brand);
+      color: #ffffff;
+      border-color: var(--brand);
+    }
+
+    /* 核心舞台主容器 */
+    .app-viewport {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 3rem 1rem;
+    }
+
+    .view-panel {
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .view-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 1. 设置与模式选择页 */
+    .hero-box {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-kicker {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 0.3rem 0.85rem;
+      border-radius: 9999px;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-box h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+
+    .hero-box p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .setup-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.65rem;
+    }
+
+    .form-label .sub {
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    /* 模式切换卡片 */
+    .mode-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .mode-card {
+      background: var(--bg-page);
+      border: 2px solid transparent;
+      padding: 1rem;
+      border-radius: 0.85rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .mode-card:hover {
+      background: #f1f5f9;
+    }
+
+    .mode-card.active {
+      background: #eff6ff;
+      border-color: var(--brand);
+    }
+
+    .mode-card .t {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+      color: var(--text-main);
+    }
+
+    .mode-card .d {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* 11 梯级网格 */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .tier-btn {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.4rem;
+      border-radius: 0.6rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .tier-btn:hover {
+      border-color: var(--brand);
+    }
+
+    .tier-btn.active {
+      background: var(--brand);
+      color: #ffffff;
+      border-color: var(--brand);
+      box-shadow: 0 4px 10px rgba(37,99,235,0.25);
+    }
+
+    .tier-btn.special {
+      grid-column: span 2;
+      background: #fffbeb;
+      border-color: #fde68a;
+      color: #b45309;
+    }
+
+    .tier-btn.special.active {
+      background: #d97706;
+      color: #ffffff;
+      border-color: #d97706;
+    }
+
+    /* 选项按钮药丸 */
+    .pill-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
+      flex: 1;
+      min-width: 65px;
+      padding: 0.6rem 0.4rem;
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: 0.6rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .pill-btn:hover {
+      border-color: var(--brand);
+    }
+
+    .pill-btn.active {
+      background: var(--brand);
+      color: #ffffff;
+      border-color: var(--brand);
+    }
+
+    /* 底部操作区 */
+    .setup-actions {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .btn-start {
+      width: 100%;
+      max-width: 400px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 800;
+      border-radius: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(37,99,235,0.3);
+      transition: all 0.15s;
+    }
+
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(37,99,235,0.38);
+    }
+
+    .sub-actions {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-sub {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.55rem 1rem;
+      border-radius: 0.6rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-sub:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+
+    /* 2. 核心答题竞技页 */
+    .play-hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 0.75rem 1.25rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .hud-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .hud-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .hud-progress {
+      flex: 2;
+      min-width: 160px;
+    }
+
+    .prog-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .prog-track {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      transition: width 0.3s;
+    }
+
+    .hud-combo {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.3rem;
+      background: #fffbeb;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.6rem;
+      border: 1px solid #fef3c7;
+    }
+
+    .combo-fire.active {
+      animation: flameShake 0.4s infinite alternate;
+    }
+
+    @keyframes flameShake {
+      0% { transform: scale(1) rotate(-5deg); filter: drop-shadow(0 0 4px #f59e0b); }
+      100% { transform: scale(1.3) rotate(5deg); filter: drop-shadow(0 0 10px #ef4444); }
+    }
+
+    .combo-num {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: #b45309;
+    }
+
+    /* 算式卡片核心舞台 */
+    .math-card-stage {
+      position: relative;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 2.25rem 1.5rem 1.75rem 1.5rem;
+      box-shadow: var(--shadow-md);
+      min-height: 460px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* 升级全屏金色横幅 */
+    .levelup-banner {
+      position: absolute;
+      top: 15%;
+      left: 6%;
+      right: 6%;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #78350f;
+      padding: 1.25rem;
+      border-radius: 1.25rem;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(245, 158, 11, 0.4);
+      z-index: 50;
+      border: 3px solid #fef3c7;
+      animation: popBanner 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popBanner {
+      0% { transform: scale(0.6) translateY(30px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    /* 浮动飘字层 */
+    .float-layer {
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    .float-popup {
+      font-size: 1.8rem;
+      font-weight: 900;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      animation: floatUp 1.2s forwards;
+      white-space: nowrap;
+    }
+
+    .float-popup.good { color: #10b981; }
+    .float-popup.bad { color: #f43f5e; }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 0; }
+      20% { transform: translateY(-15px) scale(1.15); opacity: 1; }
+      80% { transform: translateY(-40px) scale(1.05); opacity: 0.9; }
+      100% { transform: translateY(-65px) scale(0.9); opacity: 0; }
+    }
+
+    /* 算式展示 */
+    .equation-area {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+      margin: auto 0;
+    }
+
+    .eq-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.15rem;
+      flex-wrap: wrap;
+    }
+
+    .eq-expr, .eq-comp-part {
+      font-size: 3.5rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-main);
+    }
+
+    .eq-op {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .eq-input-slot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 125px;
+      height: 80px;
+      padding: 0 1rem;
+      background: var(--bg-page);
+      border: 3px dashed #94a3b8;
+      border-radius: 1rem;
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--brand);
+      transition: all 0.15s;
+    }
+
+    .eq-input-slot.has-val {
+      border-style: solid;
+      border-color: var(--brand);
+      background: #eff6ff;
+    }
+
+    .eq-input-slot.wrong {
+      border-color: #f43f5e;
+      background: #fff1f2;
+      color: #f43f5e;
+    }
+
+    .slot-cursor {
+      display: inline-block;
+      width: 3px;
+      height: 48px;
+      background: var(--brand);
+      margin-left: 4px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .eq-comp-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 3px dashed #94a3b8;
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: #475569;
+      transition: all 0.15s;
+    }
+
+    .eq-comp-circle.wrong {
+      background: #fff1f2;
+      border-color: #f43f5e;
+      color: #f43f5e;
+    }
+
+    /* 智能互斥按键区 */
+    /* 比大小 3 键 */
+    .keypad-comp {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .btn-comp {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.4rem 0.5rem;
+      border-radius: 1.25rem;
+      border: 2px solid transparent;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.04);
+      transition: all 0.15s;
+    }
+
+    .btn-comp:active { transform: scale(0.96); }
+    .btn-comp .sym { font-size: 3.2rem; font-weight: 900; line-height: 1; }
+    .btn-comp .sym-name { font-size: 1.1rem; font-weight: 700; margin-top: 0.25rem; }
+    .btn-comp .key-hint { font-size: 0.72rem; opacity: 0.75; margin-top: 0.2rem; }
+
+    .btn-greater { background: #fff1f2; border-color: #fecdd3; color: #e11d48; }
+    .btn-equal { background: #fffbeb; border-color: #fef3c7; color: #d97706; }
+    .btn-less { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }
+
+    /* 常规计算 0-9 小键盘 */
+    .keypad-calc {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .num-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+
+    .num-key {
+      height: 60px;
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+    }
+
+    .num-key:active { transform: scale(0.95); background: #e2e8f0; }
+    .num-key.action-c { color: #e11d48; background: #fff1f2; }
+    .num-key.action-b { color: #0284c7; background: #f0f9ff; font-size: 1.5rem; }
+
+    .btn-submit {
+      height: 52px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+      transition: all 0.15s;
+    }
+
+    .btn-submit:active { transform: scale(0.97); }
+
+    .play-hint {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* 3. 结算大报告 */
+    .result-card {
+      max-width: 640px;
+      margin: 1rem auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 2.25rem 1.75rem;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .trophy-icon {
+      font-size: 4.2rem;
+      margin-bottom: 0.4rem;
+      animation: bounce 1s infinite alternate;
+    }
+
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+    .honor-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #ffffff;
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 0.35rem 1.25rem;
+      border-radius: 9999px;
+      margin: 0.75rem 0 1.5rem 0;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.65rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      padding: 1rem 0.4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .metric-card.good {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+    }
+
+    .metric-card.good .v { color: #059669; }
+    .metric-card .v { font-size: 1.75rem; font-weight: 900; }
+    .metric-card .l { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 0.2rem; }
+
+    .result-msg {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      background: var(--bg-page);
+      border-radius: 0.75rem;
+      padding: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .round-mistakes-box {
+      text-align: left;
+      margin-bottom: 1.5rem;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 0.85rem;
+      padding: 0.85rem;
+    }
+
+    .round-mistakes-box h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #9f1239;
+      margin-bottom: 0.5rem;
+    }
+
+    .round-mistakes-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.4rem;
+    }
+
+    .m-chip {
+      background: #ffffff;
+      border: 1px solid #ffe4e6;
+      border-radius: 0.4rem;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.82rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .m-chip .w { color: #e11d48; text-decoration: line-through; margin-right: 4px; }
+    .m-chip .c { color: #059669; font-weight: 700; }
+
+    .result-buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* 4. 模态弹窗系统 (严格受控隐藏) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      padding: 1rem;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    /* 只有未 hidden 时才 display: flex */
+    .modal-overlay:not([hidden]) {
+      display: flex !important;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      text-align: center;
+      animation: popIn 0.2s ease-out;
+    }
+
+    .modal-box.wide {
+      max-width: 640px;
+      text-align: left;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-head h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+    }
+
+    .mistake-scroll {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 360px;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.6rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .mistake-row {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: 0.6rem;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .btn-del-m {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      padding: 0.25rem 0.55rem;
+      border-radius: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .hist-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .hist-stat-item {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: 0.6rem;
+      padding: 0.65rem;
+      text-align: center;
+    }
+
+    .hist-stat-item .val { font-size: 1.35rem; font-weight: 800; color: var(--brand); display: block; }
+    .hist-stat-item .lbl { font-size: 0.75rem; color: var(--text-muted); }
+
+    .hist-scroll {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 300px;
+      border: 1px solid var(--border);
+      border-radius: 0.6rem;
+      padding: 0.5rem;
+    }
+
+    .hist-log {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+
+    /* 5. 草稿纸手写抽屉 */
+    .pad-drawer {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 460px;
+      max-width: 100vw;
+      height: 360px;
+      background: #ffffff;
+      border-top-left-radius: 1.25rem;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.18);
+      border: 2px solid var(--border);
+      border-bottom: none;
+      z-index: 900;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .pad-bar {
+      height: 44px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 0.75rem;
+    }
+
+    .pad-tools {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .color-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+    }
+
+    .color-dot.active {
+      outline: 2px solid var(--brand);
+      outline-offset: 1px;
+    }
+
+    .btn-pad-tool {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-pad-tool.active { background: #e2e8f0; }
+
+    .pad-body {
+      flex: 1;
+      position: relative;
+      background-color: #ffffff;
+      background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .pad-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 移动端与平板响应式适配 */
+    @media (max-width: 640px) {
+      .hero-box h2 { font-size: 1.6rem; }
+      .mode-cards { grid-template-columns: 1fr; }
+      .eq-expr, .eq-comp-part, .eq-op { font-size: 2.4rem; }
+      .eq-input-slot { min-width: 90px; height: 64px; font-size: 2.4rem; }
+      .eq-comp-circle { width: 64px; height: 64px; font-size: 2.2rem; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .btn-comp .sym { font-size: 2.4rem; }
+      .num-key { height: 50px; font-size: 1.5rem; }
+      .pad-drawer { width: 100vw; height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 粒子特效 Canvas -->
+  <canvas id="fx-canvas" class="fx-canvas"></canvas>
+
+  <!-- 独立应用专属导航顶栏 -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <a href={`${base}/games/`} class="back-btn" title="返回 WordsMaster 游戏大厅">
+          <span>‹</span> 游戏大厅
         </a>
-        <h1 class="math-title">🧮 口算大冲关</h1>
+        <h1 class="app-title">
+          <span>🧮</span> 口算大冲关
+          <span class="badge-standalone">速算冲关</span>
+        </h1>
       </div>
-      <div class="top-bar-right">
-        <button id="btn-theme-mode" class="tool-btn" title="切换护眼模式">🌿 护眼</button>
-        <button id="btn-sound-toggle" class="tool-btn" title="开关音效">🔊 音效</button>
-        <button id="btn-scratchpad-toggle" class="tool-btn highlight" title="打开/关闭草稿纸">📝 草稿纸</button>
-        <button id="btn-fullscreen-toggle" class="tool-btn" title="全屏练习">⛶ 全屏</button>
-      </div>
-    </header>
-
-    <!-- 粒子特效 Canvas（全局覆盖） -->
-    <canvas id="fx-canvas" class="fx-canvas"></canvas>
-
-    <!-- 主视口内容区 -->
-    <main class="math-main">
-      <!-- 1. 开始与配置面板 -->
-      <section id="view-setup" class="view-panel active">
-        <div class="setup-hero">
-          <div class="hero-badge">小学生（1–3年级）专属速算冲关神器</div>
-          <h2>每天 5 分钟，成为心算小天才</h2>
-          <p class="hero-desc">10 到 100 以内数段梯级自选、平滑闯关、比大小与混合运算，练就扎实运算基本功！</p>
-        </div>
-
-        <div class="setup-card">
-          <!-- 模式选择 -->
-          <div class="setting-group">
-            <label class="group-label">🎮 训练模式</label>
-            <div class="mode-tabs">
-              <button type="button" class="mode-tab active" data-mode="progressive">
-                <span class="tab-title">🚀 逐级递增闯关（主打推荐）</span>
-                <span class="tab-desc">从 10 以内起步，每连对 3 题自动向下一个数段升级，直冲 100 与乘除</span>
-              </button>
-              <button type="button" class="mode-tab" data-mode="custom">
-                <span class="tab-title">🎯 自选梯级专项</span>
-                <span class="tab-desc">自选特定数段或表内乘除进行高强度专项训练</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- 数段阶梯选择（自选模式生效） -->
-          <div class="setting-group" id="tier-picker-group">
-            <label class="group-label">
-              <span>📈 目标数段（共 11 个独立梯度）</span>
-              <span class="tier-tip" id="tier-tip-text">当前：逐级闯关模式将从 10 以内开始动态递增</span>
-            </label>
-            <div class="tier-grid" id="tier-grid">
-              <button type="button" class="tier-chip active" data-tier="0">10 以内</button>
-              <button type="button" class="tier-chip" data-tier="1">20 以内</button>
-              <button type="button" class="tier-chip" data-tier="2">30 以内</button>
-              <button type="button" class="tier-chip" data-tier="3">40 以内</button>
-              <button type="button" class="tier-chip" data-tier="4">50 以内</button>
-              <button type="button" class="tier-chip" data-tier="5">60 以内</button>
-              <button type="button" class="tier-chip" data-tier="6">70 以内</button>
-              <button type="button" class="tier-chip" data-tier="7">80 以内</button>
-              <button type="button" class="tier-chip" data-tier="8">90 以内</button>
-              <button type="button" class="tier-chip" data-tier="9">100 以内</button>
-              <button type="button" class="tier-chip special" data-tier="10">表内乘除综合</button>
-            </div>
-          </div>
-
-          <!-- 题量与时间配置 -->
-          <div class="setting-row">
-            <div class="setting-group half">
-              <label class="group-label">🎯 目标题量</label>
-              <div class="option-pills" id="count-picker">
-                <button type="button" class="pill-btn" data-count="30">30 题</button>
-                <button type="button" class="pill-btn active" data-count="50">50 题（推荐）</button>
-                <button type="button" class="pill-btn" data-count="100">100 题</button>
-                <button type="button" class="pill-btn" data-count="0">极速刷题</button>
-              </div>
-            </div>
-
-            <div class="setting-group half">
-              <label class="group-label">⏱️ 限时挑战</label>
-              <div class="option-pills" id="time-picker">
-                <button type="button" class="pill-btn active" data-time="300">5 分钟（300s）</button>
-                <button type="button" class="pill-btn" data-time="180">3 分钟</button>
-                <button type="button" class="pill-btn" data-time="600">10 分钟</button>
-                <button type="button" class="pill-btn" data-time="0">不限时</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 启动与辅助入口 -->
-          <div class="setup-actions">
-            <button type="button" id="btn-start-game" class="btn-cta">
-              ⚡ 立即开始口算冲关
-            </button>
-            <div class="secondary-actions">
-              <button type="button" id="btn-open-mistakes" class="sub-btn">
-                📕 错题本 (<span id="mistake-count-badge">0</span>)
-              </button>
-              <button type="button" id="btn-open-history" class="sub-btn">
-                🏆 历史战绩
-              </button>
-              <button type="button" id="btn-download-standalone" class="sub-btn" title="下载无网络单文件版，随时双击离线练习">
-                💾 导出单文件离线版
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 2. 核心答题竞技面板 -->
-      <section id="view-play" class="view-panel">
-        <!-- 实时 HUD 状态栏 -->
-        <div class="play-hud">
-          <div class="hud-item hud-tier">
-            <span class="hud-label">当前梯度</span>
-            <span class="hud-value" id="hud-current-tier">10 以内</span>
-          </div>
-          <div class="hud-item hud-progress">
-            <div class="progress-info">
-              <span>进度: <strong id="hud-question-index">1</strong> / <span id="hud-question-total">50</span></span>
-              <span>正确率: <strong id="hud-accuracy">100%</strong></span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-bar" id="hud-progress-fill" style="width: 2%"></div>
-            </div>
-          </div>
-          <div class="hud-item hud-time" id="hud-time-container">
-            <span class="hud-label">剩余时间</span>
-            <span class="hud-value time-val" id="hud-timer-text">05:00</span>
-          </div>
-          <div class="hud-item hud-combo" id="hud-combo-container">
-            <span class="combo-flame" id="combo-flame">🔥</span>
-            <span class="combo-num" id="hud-combo-val">0</span>
-            <span class="combo-unit">连对</span>
-          </div>
-          <div class="hud-item hud-controls">
-            <button type="button" id="btn-pause-game" class="hud-btn" title="暂停游戏 (P)">⏸️ 暂停</button>
-          </div>
-        </div>
-
-        <!-- 算式卡片核心舞台 -->
-        <div class="card-stage" id="card-stage">
-          <!-- 升级全屏金色弹窗横幅（升级时弹出） -->
-          <div class="levelup-banner" id="levelup-banner" hidden>
-            <div class="banner-sparkle">⭐ 🎉 ⚡</div>
-            <div class="banner-title" id="levelup-title">晋级成功！</div>
-            <div class="banner-sub" id="levelup-sub">进入 20 以内数段挑战，继续加油！</div>
-          </div>
-
-          <!-- 动态飘字容器 -->
-          <div id="float-text-layer" class="float-text-layer"></div>
-
-          <!-- 算式展示区 -->
-          <div class="equation-box" id="equation-box">
-            <!-- 常规计算题结构 -->
-            <div class="eq-row" id="eq-calc-row">
-              <span class="eq-expr" id="eq-calc-expr">12 + 15</span>
-              <span class="eq-op">=</span>
-              <span class="eq-input-slot" id="eq-input-slot">
-                <span class="slot-val" id="eq-slot-val"></span>
-                <span class="slot-cursor"></span>
-              </span>
-            </div>
-
-            <!-- 比大小题结构 -->
-            <div class="eq-row" id="eq-comp-row" hidden>
-              <span class="eq-comp-part" id="eq-comp-left">38 + 24</span>
-              <span class="eq-comp-circle" id="eq-comp-circle">○</span>
-              <span class="eq-comp-part" id="eq-comp-right">60</span>
-            </div>
-          </div>
-
-          <!-- 智能互斥交互键盘 -->
-          <!-- A. 比大小专用超大按键（当题目为大小比较时激活） -->
-          <div class="keypad-compare" id="keypad-compare" hidden>
-            <button type="button" class="btn-comp btn-greater" data-symbol=">">
-              <span class="sym">&gt;</span>
-              <span class="sym-name">大于</span>
-              <span class="key-hint">键盘 &gt; 或 .</span>
-            </button>
-            <button type="button" class="btn-comp btn-equal" data-symbol="=">
-              <span class="sym">=</span>
-              <span class="sym-name">等于</span>
-              <span class="key-hint">键盘 = 或回车</span>
-            </button>
-            <button type="button" class="btn-comp btn-less" data-symbol="<">
-              <span class="sym">&lt;</span>
-              <span class="sym-name">小于</span>
-              <span class="key-hint">键盘 &lt; 或 ,</span>
-            </button>
-          </div>
-
-          <!-- B. 常规计算专用超大触控数字键盘（常规计算时激活） -->
-          <div class="keypad-calc" id="keypad-calc">
-            <div class="num-grid">
-              <button type="button" class="num-btn" data-key="1">1</button>
-              <button type="button" class="num-btn" data-key="2">2</button>
-              <button type="button" class="num-btn" data-key="3">3</button>
-              <button type="button" class="num-btn" data-key="4">4</button>
-              <button type="button" class="num-btn" data-key="5">5</button>
-              <button type="button" class="num-btn" data-key="6">6</button>
-              <button type="button" class="num-btn" data-key="7">7</button>
-              <button type="button" class="num-btn" data-key="8">8</button>
-              <button type="button" class="num-btn" data-key="9">9</button>
-              <button type="button" class="num-btn action-clear" data-key="clear" title="清空">C</button>
-              <button type="button" class="num-btn" data-key="0">0</button>
-              <button type="button" class="num-btn action-back" data-key="back" title="退格">⌫</button>
-            </div>
-            <button type="button" class="btn-submit" id="btn-submit-calc">
-              ✓ 确认提交 (Enter)
-            </button>
-          </div>
-        </div>
-
-        <div class="play-tips">
-          <span>💡 提示：支持实体键盘按键（数字 0–9、回车提交、退格修改、ESC 暂停）</span>
-        </div>
-      </section>
-
-      <!-- 3. 大结算报告面板 -->
-      <section id="view-result" class="view-panel">
-        <div class="result-card">
-          <div class="result-header">
-            <div class="result-trophy" id="result-trophy">🏆</div>
-            <h2 class="result-title">练习大通关！</h2>
-            <div class="honor-badge" id="result-honor">速算小能手</div>
-          </div>
-
-          <div class="result-metrics">
-            <div class="metric-box">
-              <span class="metric-val" id="res-total">0</span>
-              <span class="metric-lbl">总作答题数</span>
-            </div>
-            <div class="metric-box highlight">
-              <span class="metric-val" id="res-accuracy">0%</span>
-              <span class="metric-lbl">正确率</span>
-            </div>
-            <div class="metric-box">
-              <span class="metric-val" id="res-speed">0.0s</span>
-              <span class="metric-lbl">平均每题速度</span>
-            </div>
-            <div class="metric-box">
-              <span class="metric-val" id="res-streak">0</span>
-              <span class="metric-lbl">最高连对数</span>
-            </div>
-          </div>
-
-          <div class="result-summary" id="result-summary-msg">
-            表现优异！进位加减法熟练度达到高阶水平，坚持练习运算更快更准！
-          </div>
-
-          <!-- 本局错题快速预览 -->
-          <div class="round-mistakes-box" id="round-mistakes-box" hidden>
-            <div class="round-mistakes-head">
-              <span>⚠️ 本轮存在 <strong id="round-mistake-count">0</strong> 道错题，已自动沉淀到错题本：</span>
-            </div>
-            <div class="round-mistakes-list" id="round-mistakes-list"></div>
-          </div>
-
-          <div class="result-actions">
-            <button type="button" id="btn-play-again" class="btn-cta">
-              🔁 再来一轮
-            </button>
-            <button type="button" id="btn-redo-mistakes" class="sub-btn warn" hidden>
-              🎯 立即重做本轮错题
-            </button>
-            <button type="button" id="btn-result-home" class="sub-btn">
-              🏠 返回主菜单
-            </button>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- 暂停遮罩弹窗 -->
-    <div class="modal-overlay" id="modal-pause" hidden>
-      <div class="modal-box">
-        <h3>⏸️ 练习已暂停</h3>
-        <p>稍事休息，放松双眼，准备好随时继续！</p>
-        <div class="modal-buttons">
-          <button type="button" id="btn-resume-game" class="btn-cta">▶️ 继续练习</button>
-          <button type="button" id="btn-restart-round" class="sub-btn">🔁 重新开始本轮</button>
-          <button type="button" id="btn-quit-game" class="sub-btn danger">🚪 退出到设置</button>
-        </div>
+      <div class="header-tools">
+        <button id="btn-toggle-eye" class="tool-btn" title="切换护眼模式">🌿 护眼</button>
+        <button id="btn-toggle-sound" class="tool-btn" title="开关音效">🔊 音效</button>
+        <button id="btn-toggle-pad" class="tool-btn highlight" title="随手手写列竖式">📝 草稿纸</button>
+        <button id="btn-toggle-fs" class="tool-btn" title="全屏练习">⛶ 全屏</button>
       </div>
     </div>
+  </header>
 
-    <!-- 错题本全屏模态框 -->
-    <div class="modal-overlay" id="modal-mistakes" hidden>
-      <div class="modal-box wide">
-        <div class="modal-head">
-          <h3>📕 错题专练闭环</h3>
-          <button type="button" class="modal-close" id="btn-close-mistakes">✕</button>
+  <!-- 主视口视图容器 -->
+  <main class="app-viewport">
+    <!-- 1. 设置与开始界面 (初始激活) -->
+    <section id="view-setup" class="view-panel active">
+      <div class="hero-box">
+        <span class="hero-kicker">小学 1–3 年级运算能力进阶神器</span>
+        <h2>每天 5 分钟 · 算力大冲关</h2>
+        <p>11 级数段平滑晋阶、加减混合、九九乘除与比大小，智能键盘切换，练就扎实运算基本功！</p>
+      </div>
+
+      <div class="setup-card">
+        <!-- 训练模式 -->
+        <div class="form-group">
+          <label class="form-label">
+            <span>🎮 训练模式</span>
+          </label>
+          <div class="mode-cards">
+            <button type="button" class="mode-card active" data-mode="progressive">
+              <div class="t">🚀 逐级递增闯关（推荐）</div>
+              <div class="d">从 10 以内起步，每连对 3 题平滑晋级下一个数段，直冲百内与乘除</div>
+            </button>
+            <button type="button" class="mode-card" data-mode="custom">
+              <div class="t">🎯 自选梯级专项</div>
+              <div class="d">挑选特定数段（如 20以内退位减法、百内加减或表内乘除）专项冲刺</div>
+            </button>
+          </div>
         </div>
-        <p class="modal-desc">
-          系统已记录所有答错的题目。掌握一道即移除一道，点击「一键重做」直到全部消灭！
+
+        <!-- 11 级数段阶梯 -->
+        <div class="form-group">
+          <label class="form-label">
+            <span>📈 目标数段（覆盖 11 个独立梯度）</span>
+            <span class="sub" id="tier-hint">逐级闯关模式将从 10 以内开始动态晋阶</span>
+          </label>
+          <div class="tier-grid" id="tier-grid">
+            <button type="button" class="tier-btn active" data-tier="0">10 以内</button>
+            <button type="button" class="tier-btn" data-tier="1">20 以内</button>
+            <button type="button" class="tier-btn" data-tier="2">30 以内</button>
+            <button type="button" class="tier-btn" data-tier="3">40 以内</button>
+            <button type="button" class="tier-btn" data-tier="4">50 以内</button>
+            <button type="button" class="tier-btn" data-tier="5">60 以内</button>
+            <button type="button" class="tier-btn" data-tier="6">70 以内</button>
+            <button type="button" class="tier-btn" data-tier="7">80 以内</button>
+            <button type="button" class="tier-btn" data-tier="8">90 以内</button>
+            <button type="button" class="tier-btn" data-tier="9">100 以内</button>
+            <button type="button" class="tier-btn special" data-tier="10">表内乘除综合</button>
+          </div>
+        </div>
+
+        <!-- 题量与限时 -->
+        <div class="form-group" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 240px;">
+            <label class="form-label"><span>🎯 目标题量</span></label>
+            <div class="pill-row" id="count-pills">
+              <button type="button" class="pill-btn" data-count="30">30 题</button>
+              <button type="button" class="pill-btn active" data-count="50">50 题（推荐）</button>
+              <button type="button" class="pill-btn" data-count="100">100 题</button>
+              <button type="button" class="pill-btn" data-count="0">极速刷题</button>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 240px;">
+            <label class="form-label"><span>⏱️ 限时挑战</span></label>
+            <div class="pill-row" id="time-pills">
+              <button type="button" class="pill-btn active" data-time="300">5 分钟</button>
+              <button type="button" class="pill-btn" data-time="180">3 分钟</button>
+              <button type="button" class="pill-btn" data-time="600">10 分钟</button>
+              <button type="button" class="pill-btn" data-time="0">不限时</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 启动操作区 -->
+        <div class="setup-actions">
+          <button type="button" id="btn-start" class="btn-start">
+            ⚡ 立即开始口算冲关
+          </button>
+          <div class="sub-actions">
+            <button type="button" id="btn-view-mistakes" class="btn-sub">
+              📕 错题本 (<span id="txt-mistake-count">0</span>)
+            </button>
+            <button type="button" id="btn-view-history" class="btn-sub">
+              🏆 历史战绩
+            </button>
+            <button type="button" id="btn-get-standalone" class="btn-sub" title="无网离线单文件版">
+              💾 下载离线单文件
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 核心答题竞技页 -->
+    <section id="view-play" class="view-panel">
+      <!-- 实时状态 HUD -->
+      <div class="play-hud">
+        <div class="hud-col">
+          <span class="hud-label">当前梯度</span>
+          <span class="hud-val" id="hud-tier-name">10 以内</span>
+        </div>
+        <div class="hud-col hud-progress">
+          <div class="prog-text">
+            <span>第 <strong id="hud-q-idx" style="color:var(--brand)">1</strong> / <span id="hud-q-total">50</span> 题</span>
+            <span>正确率 <strong id="hud-q-acc" style="color:#059669">100%</strong></span>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill" id="hud-prog-bar" style="width: 2%"></div>
+          </div>
+        </div>
+        <div class="hud-col" id="hud-timer-box">
+          <span class="hud-label">剩余时间</span>
+          <span class="hud-val" id="hud-timer-txt">05:00</span>
+        </div>
+        <div class="hud-col hud-combo">
+          <span id="hud-fire" class="combo-fire" style="font-size:1.3rem">🔥</span>
+          <span class="combo-num" id="hud-streak-val">0</span>
+          <span style="font-size:0.75rem; color:#92400e; font-weight:600">连对</span>
+        </div>
+        <button type="button" id="btn-pause" class="btn-sub" style="padding:0.4rem 0.75rem">⏸️ 暂停</button>
+      </div>
+
+      <!-- 核心算式舞台 -->
+      <div class="math-card-stage" id="card-stage">
+        <!-- 晋级全屏横幅 (默认 hidden) -->
+        <div class="levelup-banner" id="banner-levelup" hidden>
+          <div style="font-size:2rem; margin-bottom:0.25rem">🎉 ⭐ ⚡</div>
+          <div style="font-size:1.75rem; font-weight:900" id="txt-levelup-title">恭喜晋级！进入 20 以内数段！</div>
+          <div style="font-size:1rem; font-weight:600; margin-top:0.25rem" id="txt-levelup-sub">攻克进退位与破十法，继续冲刺！</div>
+        </div>
+
+        <!-- 浮动飘字层 -->
+        <div class="float-layer" id="float-layer"></div>
+
+        <!-- 算式卡片核心展示区 -->
+        <div class="equation-area">
+          <!-- A. 常规计算题 (12 + 15 = ?) -->
+          <div class="eq-row" id="row-calc">
+            <span class="eq-expr" id="txt-calc-expr">12 + 15</span>
+            <span class="eq-op">=</span>
+            <div class="eq-input-slot" id="slot-calc">
+              <span id="txt-calc-val"></span>
+              <span class="slot-cursor"></span>
+            </div>
+          </div>
+
+          <!-- B. 比大小题 (38 + 24 ○ 60) -->
+          <div class="eq-row" id="row-comp" hidden>
+            <span class="eq-comp-part" id="txt-comp-left">38 + 24</span>
+            <div class="eq-comp-circle" id="circle-comp">○</div>
+            <span class="eq-comp-part" id="txt-comp-right">60</span>
+          </div>
+        </div>
+
+        <!-- 智能互斥键盘 -->
+        <!-- 比大小：只显示超大 > = < 符号 -->
+        <div class="keypad-comp" id="keys-comp" hidden>
+          <button type="button" class="btn-comp btn-greater" data-sym=">">
+            <span class="sym">&gt;</span>
+            <span class="sym-name">大于</span>
+            <span class="key-hint">键盘 &gt; 或 .</span>
+          </button>
+          <button type="button" class="btn-comp btn-equal" data-sym="=">
+            <span class="sym">=</span>
+            <span class="sym-name">等于</span>
+            <span class="key-hint">键盘 = 或回车</span>
+          </button>
+          <button type="button" class="btn-comp btn-less" data-sym="<">
+            <span class="sym">&lt;</span>
+            <span class="sym-name">小于</span>
+            <span class="key-hint">键盘 &lt; 或 ,</span>
+          </button>
+        </div>
+
+        <!-- 常规计算：0-9 触控键盘 -->
+        <div class="keypad-calc" id="keys-calc">
+          <div class="num-grid">
+            <button type="button" class="num-key" data-k="1">1</button>
+            <button type="button" class="num-key" data-k="2">2</button>
+            <button type="button" class="num-key" data-k="3">3</button>
+            <button type="button" class="num-key" data-k="4">4</button>
+            <button type="button" class="num-key" data-k="5">5</button>
+            <button type="button" class="num-key" data-k="6">6</button>
+            <button type="button" class="num-key" data-k="7">7</button>
+            <button type="button" class="num-key" data-k="8">8</button>
+            <button type="button" class="num-key" data-k="9">9</button>
+            <button type="button" class="num-key action-c" data-k="clear">C</button>
+            <button type="button" class="num-key" data-k="0">0</button>
+            <button type="button" class="num-key action-b" data-k="back">⌫</button>
+          </div>
+          <button type="button" class="btn-submit" id="btn-submit-calc">
+            ✓ 确认提交 (Enter)
+          </button>
+        </div>
+      </div>
+
+      <p class="play-hint">💡 支持实体键盘数字键直接键入与回车提交 · 随时按 Esc 键暂停</p>
+    </section>
+
+    <!-- 3. 大结算报告页 -->
+    <section id="view-result" class="view-panel">
+      <div class="result-card">
+        <div class="trophy-icon" id="res-trophy">🏆</div>
+        <h2 style="font-size:1.85rem; font-weight:800; margin-bottom:0.25rem">练习大通关！</h2>
+        <div class="honor-tag" id="res-honor">速算小能手</div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="v" id="res-total">0</span>
+            <span class="l">总作答题数</span>
+          </div>
+          <div class="metric-card good">
+            <span class="v" id="res-acc">0%</span>
+            <span class="l">正确率</span>
+          </div>
+          <div class="metric-card">
+            <span class="v" id="res-speed">0.0s</span>
+            <span class="l">平均每题</span>
+          </div>
+          <div class="metric-card">
+            <span class="v" id="res-streak">0</span>
+            <span class="l">最高连对</span>
+          </div>
+        </div>
+
+        <p class="result-msg" id="res-summary-msg">
+          表现优异！进位加减法熟练度达到高阶水平，坚持练习运算更快更准！
         </p>
-        <div class="mistakes-container" id="mistakes-container">
-          <div class="empty-state" id="mistakes-empty">
-            🎉 太棒了！当前没有任何错题，算力满分！
-          </div>
-          <div class="mistakes-list" id="mistakes-list"></div>
-        </div>
-        <div class="modal-foot">
-          <button type="button" id="btn-drill-all-mistakes" class="btn-cta">
-            🎯 一键重做全部错题 (<span id="drill-mistake-btn-count">0</span>)
-          </button>
-          <button type="button" id="btn-clear-mistakes" class="sub-btn danger">
-            🗑️ 清空所有记录
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <!-- 历史成长脚印模态框 -->
-    <div class="modal-overlay" id="modal-history" hidden>
-      <div class="modal-box wide">
-        <div class="modal-head">
-          <h3>🏆 历史练习成绩与成长脚印</h3>
-          <button type="button" class="modal-close" id="btn-close-history">✕</button>
+        <!-- 本轮错题列表 -->
+        <div class="round-mistakes-box" id="box-round-mistakes" hidden>
+          <h4>⚠️ 本轮存在 <span id="txt-round-m-count">0</span> 道错题，已自动沉淀到错题本：</h4>
+          <div class="round-mistakes-list" id="list-round-mistakes"></div>
         </div>
-        <div class="lifetime-summary">
-          <div class="lifetime-item">
-            <span class="val" id="lt-total-count">0</span>
-            <span class="lbl">累计练习题数</span>
-          </div>
-          <div class="lifetime-item">
-            <span class="val" id="lt-avg-acc">0%</span>
-            <span class="lbl">综合正确率</span>
-          </div>
-          <div class="lifetime-item">
-            <span class="val" id="lt-best-streak">0</span>
-            <span class="lbl">最高连击纪录</span>
-          </div>
-        </div>
-        <div class="history-list" id="history-log-list">
-          <p class="history-empty" id="history-empty">暂无练习历史，完成一轮练习后将在这里沉淀脚印！</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- 内置草稿纸画板浮层 -->
-    <div class="scratchpad-drawer" id="scratchpad-drawer" hidden>
-      <div class="pad-header">
-        <div class="pad-title">
-          <span>📝 手写草稿纸（随数列竖式）</span>
-        </div>
-        <div class="pad-tools">
-          <div class="color-picker">
-            <button type="button" class="color-dot active" data-color="#1e293b" style="background:#1e293b" title="铅笔黑"></button>
-            <button type="button" class="color-dot" data-color="#2563eb" style="background:#2563eb" title="蓝色"></button>
-            <button type="button" class="color-dot" data-color="#dc2626" style="background:#dc2626" title="红色标注"></button>
-          </div>
-          <button type="button" class="pad-tool-btn" id="pad-tool-eraser" title="橡皮擦">🧹 橡皮</button>
-          <button type="button" class="pad-tool-btn" id="pad-tool-clear" title="清空全部">🗑️ 清空</button>
-          <button type="button" class="pad-tool-btn primary" id="pad-tool-hide" title="收起草稿纸">✖️ 收起</button>
+        <div class="result-buttons">
+          <button type="button" id="btn-replay" class="btn-start" style="max-width:200px; padding:0.75rem 1.25rem">
+            🔁 再来一轮
+          </button>
+          <button type="button" id="btn-redo-mistakes" class="btn-sub" style="background:#fff1f2; color:#e11d48; border-color:#fecdd3" hidden>
+            🎯 立即重做错题
+          </button>
+          <button type="button" id="btn-go-home" class="btn-sub">
+            🏠 返回主菜单
+          </button>
         </div>
       </div>
-      <div class="pad-canvas-wrapper">
-        <canvas id="scratch-canvas" class="scratch-canvas"></canvas>
+    </section>
+  </main>
+
+  <!-- 4. 模态弹窗系统 (全声明 hidden 且严格控制) -->
+  <!-- 暂停弹窗 -->
+  <div class="modal-overlay" id="modal-pause" hidden>
+    <div class="modal-box">
+      <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:0.5rem">⏸️ 练习已暂停</h3>
+      <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem">稍事休息，放松双眼，准备好随时继续！</p>
+      <div style="display:flex; flex-direction:column; gap:0.6rem">
+        <button type="button" id="btn-resume" class="btn-start" style="padding:0.75rem">▶️ 继续练习</button>
+        <button type="button" id="btn-restart" class="btn-sub">🔁 重新开始本轮</button>
+        <button type="button" id="btn-quit" class="btn-sub" style="color:#dc2626">🚪 退出到设置</button>
       </div>
     </div>
   </div>
-</BaseLayout>
 
-<script is:inline>
-  // 口算游戏原生闭环脚本
-  (function () {
-    // -------------------------------------------------------------
-    // 0. 音效引擎 (Web Audio API 纯代码合成)
-    // -------------------------------------------------------------
-    let audioCtx = null;
-    let isMuted = localStorage.getItem('kousuan_muted') === 'true';
+  <!-- 错题本弹窗 -->
+  <div class="modal-overlay" id="modal-mistakes" hidden>
+    <div class="modal-box wide">
+      <div class="modal-head">
+        <h3>📕 错题专练闭环</h3>
+        <button type="button" class="modal-close-btn" id="btn-close-m">✕</button>
+      </div>
+      <p class="modal-desc">系统已沉淀所有答错的题目。掌握一道即移除一道，点击「一键重做」直到完全消灭！</p>
+      <div class="mistake-scroll" id="box-m-items">
+        <div id="hint-m-empty" style="text-align:center; color:var(--text-muted); padding:2rem 0; font-size:0.9rem">
+          🎉 太棒了！当前没有任何错题，算力满分！
+        </div>
+        <div id="list-m-items"></div>
+      </div>
+      <div style="display:flex; gap:0.75rem; justify-content:space-between">
+        <button type="button" id="btn-drill-m" class="btn-start" style="padding:0.75rem 1.25rem; font-size:0.95rem">
+          🎯 一键重做全部错题 (<span id="txt-m-btn-count">0</span>)
+        </button>
+        <button type="button" id="btn-clear-m" class="btn-sub" style="color:#dc2626">
+          🗑️ 清空记录
+        </button>
+      </div>
+    </div>
+  </div>
 
-    function initAudio() {
-      if (!audioCtx) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioCtx = new AudioContextClass();
+  <!-- 历史战绩弹窗 -->
+  <div class="modal-overlay" id="modal-history" hidden>
+    <div class="modal-box wide">
+      <div class="modal-head">
+        <h3>🏆 历史练习成绩与成长脚印</h3>
+        <button type="button" class="modal-close-btn" id="btn-close-h">✕</button>
+      </div>
+      <div class="hist-stats-row">
+        <div class="hist-stat-item">
+          <span class="val" id="lt-total">0</span>
+          <span class="lbl">累计练习题数</span>
+        </div>
+        <div class="hist-stat-item">
+          <span class="val" id="lt-acc">0%</span>
+          <span class="lbl">综合正确率</span>
+        </div>
+        <div class="hist-stat-item">
+          <span class="val" id="lt-streak">0</span>
+          <span class="lbl">最高连对纪录</span>
+        </div>
+      </div>
+      <div class="hist-scroll" id="box-h-logs">
+        <p id="hint-h-empty" style="text-align:center; color:var(--text-muted); padding:2rem 0; font-size:0.88rem">
+          暂无练习历史，完成一轮练习后将在这里沉淀脚印！
+        </p>
+        <div id="list-h-logs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 内置草稿纸手写抽屉 -->
+  <div class="pad-drawer" id="drawer-pad" hidden>
+    <div class="pad-bar">
+      <span style="font-size:0.85rem; font-weight:700">📝 手写草稿纸（随数列竖式）</span>
+      <div class="pad-tools">
+        <div style="display:flex; gap:0.3rem">
+          <button class="color-dot active" data-c="#0f172a" style="background:#0f172a" title="铅笔黑"></button>
+          <button class="color-dot" data-c="#2563eb" style="background:#2563eb" title="蓝色"></button>
+          <button class="color-dot" data-c="#dc2626" style="background:#dc2626" title="红色标注"></button>
+        </div>
+        <button id="btn-pad-eraser" class="btn-pad-tool">🧹 橡皮</button>
+        <button id="btn-pad-clear" class="btn-pad-tool">🗑️ 清空</button>
+        <button id="btn-pad-close" class="btn-pad-tool" style="color:#b91c1c">✖️ 收起</button>
+      </div>
+    </div>
+    <div class="pad-body">
+      <canvas id="canvas-pad" class="pad-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- 原生 JavaScript 逻辑 -->
+  <script is:inline>
+    (function() {
+      // -----------------------------------------------------------
+      // 0. 音效引擎 (Web Audio API 纯代码合成)
+      // -----------------------------------------------------------
+      let audioCtx = null;
+      let isMuted = localStorage.getItem('kousuan_muted') === 'true';
+
+      function playTone(freq, duration, type = 'sine', gainVal = 0.2, delay = 0) {
+        if (isMuted) return;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if (!audioCtx) return;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const startTime = audioCtx.currentTime + delay;
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(gainVal, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      }
+
+      function soundCorrect() {
+        playTone(523.25, 0.15, 'triangle', 0.25, 0);
+        playTone(659.25, 0.15, 'triangle', 0.25, 0.08);
+        playTone(783.99, 0.25, 'triangle', 0.3, 0.16);
+      }
+      function soundWrong() {
+        playTone(220, 0.18, 'sine', 0.2, 0);
+        playTone(180, 0.22, 'sine', 0.2, 0.12);
+      }
+      function soundLevelUp() {
+        [261.63, 329.63, 392.00, 523.25, 659.25].forEach((f, idx) => playTone(f, 0.2, 'sawtooth', 0.15, idx * 0.08));
+      }
+      function soundVictory() {
+        [392.00, 523.25, 659.25, 783.99, 1046.50].forEach((f, idx) => playTone(f, 0.35, 'triangle', 0.22, idx * 0.1));
+      }
+      function soundClick() {
+        playTone(600, 0.04, 'sine', 0.08, 0);
+      }
+
+      // -----------------------------------------------------------
+      // 1. 11 级数段题库生成器
+      // -----------------------------------------------------------
+      const TIERS = [
+        { id: 0, name: '10 以内', max: 10, title: '10 以内加减基础' },
+        { id: 1, name: '20 以内', max: 20, title: '20 以内进位加与退位减（凑十破十）' },
+        { id: 2, name: '30 以内', max: 30, title: '30 以内加减与连加' },
+        { id: 3, name: '40 以内', max: 40, title: '40 以内加减混合运算' },
+        { id: 4, name: '50 以内', max: 50, title: '50 以内速算挑战' },
+        { id: 5, name: '60 以内', max: 60, title: '60 以内口算' },
+        { id: 6, name: '70 以内', max: 70, title: '70 以内混合运算' },
+        { id: 7, name: '80 以内', max: 80, title: '80 以内综合进退位' },
+        { id: 8, name: '90 以内', max: 90, title: '90 以内大数计算' },
+        { id: 9, name: '100 以内', max: 100, title: '100 以内满十进退位与连加减' },
+        { id: 10, name: '表内乘除综合', max: 100, title: '九九乘法口诀与表内整除' }
+      ];
+
+      function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function buildQuestion(tierIdx) {
+        // 第 11 关：表内乘除综合
+        if (tierIdx === 10) {
+          if (Math.random() < 0.25) {
+            const a = randInt(2, 9), b = randInt(2, 9), prod = a * b;
+            const target = prod + [0, -randInt(1, 4), randInt(1, 4)][randInt(0, 2)];
+            let sym = '=';
+            if (prod > target) sym = '>';
+            if (prod < target) sym = '<';
+            return { type: 'compare', left: `${a} × ${b}`, right: String(target), answer: sym, hash: `cmp_${a}x${b}_${sym}_${target}` };
+          }
+          if (Math.random() < 0.5) {
+            const a = randInt(2, 9), b = randInt(2, 9);
+            return { type: 'calc', expr: `${a} × ${b}`, answer: String(a * b), hash: `m_${a}x${b}` };
+          } else {
+            const divisor = randInt(2, 9), quotient = randInt(1, 9);
+            return { type: 'calc', expr: `${divisor * quotient} ÷ ${divisor}`, answer: String(quotient), hash: `d_${divisor*quotient}/${divisor}` };
+          }
+        }
+
+        const tier = TIERS[tierIdx] || TIERS[0];
+        const maxVal = tier.max;
+
+        // 28% 几率出比大小
+        if (Math.random() < 0.28) {
+          const isAdd = Math.random() < 0.6;
+          let leftVal = 0, leftExpr = '';
+          if (isAdd) {
+            const a = randInt(1, maxVal - 2), b = randInt(1, maxVal - a);
+            leftVal = a + b; leftExpr = `${a} + ${b}`;
+          } else {
+            const a = randInt(3, maxVal), b = randInt(1, a - 1);
+            leftVal = a - b; leftExpr = `${a} - ${b}`;
+          }
+          const mode = randInt(0, 2);
+          let rightVal = leftVal, sym = '=';
+          if (mode === 1) { rightVal = leftVal - randInt(1, Math.min(8, Math.max(1, leftVal - 1))); sym = '>'; }
+          else if (mode === 2) { rightVal = leftVal + randInt(1, 8); sym = '<'; }
+          return { type: 'compare', left: leftExpr, right: String(rightVal), answer: sym, hash: `cmp_${leftExpr}_${sym}_${rightVal}` };
+        } else {
+          // 常规计算
+          const allowed = [0, 1];
+          if (tierIdx >= 2) allowed.push(2); // 连加
+          if (tierIdx >= 3) allowed.push(3); // 混合
+          const form = allowed[randInt(0, allowed.length - 1)];
+
+          if (form === 0) {
+            const a = randInt(1, maxVal - 1), b = randInt(1, maxVal - a);
+            return { type: 'calc', expr: `${a} + ${b}`, answer: String(a + b), hash: `c_${a}+${b}` };
+          } else if (form === 1) {
+            const a = randInt(2, maxVal), b = randInt(1, a);
+            return { type: 'calc', expr: `${a} - ${b}`, answer: String(a - b), hash: `c_${a}-${b}` };
+          } else if (form === 2) {
+            const a = randInt(1, Math.floor(maxVal / 3)), b = randInt(1, Math.floor(maxVal / 3));
+            const c = randInt(1, maxVal - a - b);
+            return { type: 'calc', expr: `${a} + ${b} + ${c}`, answer: String(a + b + c), hash: `c_${a}+${b}+${c}` };
+          } else {
+            const a = randInt(2, Math.floor(maxVal * 0.6)), b = randInt(2, Math.floor(maxVal * 0.4));
+            const sum = a + b;
+            const c = randInt(1, Math.min(sum - 1, Math.floor(maxVal * 0.5)));
+            return { type: 'calc', expr: `${a} + ${b} - ${c}`, answer: String(sum - c), hash: `c_${a}+${b}-${c}` };
+          }
         }
       }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    }
 
-    function playTone(freq, duration, type = 'sine', gainVal = 0.2, delay = 0) {
-      if (isMuted) return;
-      initAudio();
-      if (!audioCtx) return;
+      // -----------------------------------------------------------
+      // 2. 状态机
+      // -----------------------------------------------------------
+      const state = {
+        mode: 'progressive', // 'progressive' | 'custom' | 'drill'
+        currentTier: 0,
+        customTier: 0,
+        targetCount: 50,
+        timeLimit: 300,
+        timeLeft: 300,
+        timerId: null,
+        isPaused: false,
 
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      const startTime = audioCtx.currentTime + delay;
+        currentIndex: 0,
+        totalAnswered: 0,
+        correctCount: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+        tierStreak: 0,
 
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, startTime);
+        currentQuestion: null,
+        inputValue: '',
+        seenHashes: new Set(),
 
-      gain.gain.setValueAtTime(gainVal, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        startTime: 0,
+        qStartTime: 0,
+        totalQTime: 0,
 
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.start(startTime);
-      osc.stop(startTime + duration);
-    }
-
-    function soundCorrect() {
-      // 欢快双音琴声 (C5 -> E5 -> G5)
-      playTone(523.25, 0.15, 'triangle', 0.25, 0);
-      playTone(659.25, 0.15, 'triangle', 0.25, 0.08);
-      playTone(783.99, 0.25, 'triangle', 0.3, 0.16);
-    }
-
-    function soundWrong() {
-      // 柔和低音双咚 (非惩罚性)
-      playTone(220, 0.18, 'sine', 0.2, 0);
-      playTone(180, 0.22, 'sine', 0.2, 0.12);
-    }
-
-    function soundLevelUp() {
-      // 金色号角 (C4 -> E4 -> G4 -> C5 -> E5 琶音)
-      const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
-      notes.forEach((f, idx) => {
-        playTone(f, 0.2, 'sawtooth', 0.15, idx * 0.09);
-      });
-    }
-
-    function soundVictory() {
-      // 通关凯歌
-      const notes = [392.00, 523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((f, idx) => {
-        playTone(f, 0.35, 'triangle', 0.22, idx * 0.12);
-      });
-    }
-
-    function soundClick() {
-      playTone(600, 0.04, 'sine', 0.08, 0);
-    }
-
-    // -------------------------------------------------------------
-    // 1. 题库与生成逻辑 (11级阶梯全覆盖，加减/连加/混合/乘除/比大小)
-    // -------------------------------------------------------------
-    const TIERS = [
-      { id: 0, name: '10 以内', max: 10, title: '10 以内加减基础' },
-      { id: 1, name: '20 以内', max: 20, title: '20 以内进退位（凑十破十）' },
-      { id: 2, name: '30 以内', max: 30, title: '30 以内加减进阶' },
-      { id: 3, name: '40 以内', max: 40, title: '40 以内混合运算' },
-      { id: 4, name: '50 以内', max: 50, title: '50 以内速算挑战' },
-      { id: 5, name: '60 以内', max: 60, title: '60 以内口算' },
-      { id: 6, name: '70 以内', max: 70, title: '70 以内综合' },
-      { id: 7, name: '80 以内', max: 80, title: '80 以内进退位' },
-      { id: 8, name: '90 以内', max: 90, title: '90 以内大数计算' },
-      { id: 9, name: '100 以内', max: 100, title: '100 以内满十进退位' },
-      { id: 10, name: '表内乘除综合', max: 100, title: '九九乘法与表内整除' }
-    ];
-
-    function randInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    // 生成单题，支持多种题型并确保会话去重
-    function generateQuestion(tierIndex, seenSet) {
-      let q = null;
-      let tries = 0;
-
-      while (tries < 40) {
-        tries++;
-        const candidate = buildRawQuestion(tierIndex);
-        const hash = candidate.hash;
-        if (!seenSet.has(hash)) {
-          seenSet.add(hash);
-          q = candidate;
-          break;
-        }
-      }
-      return q || buildRawQuestion(tierIndex);
-    }
-
-    function buildRawQuestion(tierIndex) {
-      // 针对第 11 关：表内乘除综合
-      if (tierIndex === 10) {
-        return buildMulDivQuestion();
-      }
-
-      const tier = TIERS[tierIndex] || TIERS[0];
-      const maxVal = tier.max;
-
-      // 决定题型：25% 几率出比大小题，75% 几率出常规计算题
-      const isCompare = Math.random() < 0.28;
-
-      if (isCompare) {
-        return buildCompareQuestion(maxVal);
-      } else {
-        return buildCalcQuestion(maxVal, tierIndex);
-      }
-    }
-
-    // 常规计算题
-    function buildCalcQuestion(maxVal, tierIndex) {
-      // 题型变体: 0=双数加, 1=双数减, 2=连加(a+b+c), 3=加减混合(a+b-c 或 a-b+c)
-      const allowedForms = [0, 1];
-      if (tierIndex >= 2) allowedForms.push(2); // 30以内以上允许连加
-      if (tierIndex >= 3) allowedForms.push(3); // 40以内以上允许混合加减
-
-      const form = allowedForms[randInt(0, allowedForms.length - 1)];
-
-      if (form === 0) {
-        // 加法 a + b <= maxVal
-        const a = randInt(1, maxVal - 1);
-        const b = randInt(1, maxVal - a);
-        const ans = a + b;
-        return {
-          type: 'calc',
-          expr: `${a} + ${b}`,
-          answer: String(ans),
-          hash: `c_${a}+${b}`
-        };
-      } else if (form === 1) {
-        // 减法 a - b >= 0
-        const a = randInt(2, maxVal);
-        const b = randInt(1, a);
-        const ans = a - b;
-        return {
-          type: 'calc',
-          expr: `${a} - ${b}`,
-          answer: String(ans),
-          hash: `c_${a}-${b}`
-        };
-      } else if (form === 2) {
-        // 连加 a + b + c <= maxVal
-        const a = randInt(1, Math.floor(maxVal / 3));
-        const b = randInt(1, Math.floor(maxVal / 3));
-        const c = randInt(1, maxVal - a - b);
-        const ans = a + b + c;
-        return {
-          type: 'calc',
-          expr: `${a} + ${b} + ${c}`,
-          answer: String(ans),
-          hash: `c_${a}+${b}+${c}`
-        };
-      } else {
-        // 加减混合 a + b - c
-        const a = randInt(2, Math.floor(maxVal * 0.6));
-        const b = randInt(2, Math.floor(maxVal * 0.4));
-        const sum = a + b;
-        const c = randInt(1, Math.min(sum - 1, Math.floor(maxVal * 0.5)));
-        const ans = sum - c;
-        return {
-          type: 'calc',
-          expr: `${a} + ${b} - ${c}`,
-          answer: String(ans),
-          hash: `c_${a}+${b}-${c}`
-        };
-      }
-    }
-
-    // 比大小题 (38 + 24 ○ 60, 或 7 × 8 ○ 54)
-    function buildCompareQuestion(maxVal) {
-      const isAdd = Math.random() < 0.6;
-      let leftVal = 0;
-      let leftExpr = '';
-
-      if (isAdd) {
-        const a = randInt(1, maxVal - 2);
-        const b = randInt(1, maxVal - a);
-        leftVal = a + b;
-        leftExpr = `${a} + ${b}`;
-      } else {
-        const a = randInt(3, maxVal);
-        const b = randInt(1, a - 1);
-        leftVal = a - b;
-        leftExpr = `${a} - ${b}`;
-      }
-
-      // 右侧数字偏移：有 34% 几率正好相等 (=), 33% 几率大于, 33% 几率小于
-      const mode = randInt(0, 2);
-      let rightVal = leftVal;
-      let symbol = '=';
-
-      if (mode === 0) {
-        // 相等
-        rightVal = leftVal;
-        symbol = '=';
-      } else if (mode === 1) {
-        // left > right
-        const diff = randInt(1, Math.min(10, Math.max(1, leftVal - 1)));
-        rightVal = leftVal - diff;
-        symbol = '>';
-      } else {
-        // left < right
-        const diff = randInt(1, 10);
-        rightVal = leftVal + diff;
-        symbol = '<';
-      }
-
-      return {
-        type: 'compare',
-        leftText: leftExpr,
-        rightText: String(rightVal),
-        answer: symbol,
-        hash: `cmp_${leftExpr}_${symbol}_${rightVal}`
+        roundMistakes: [],
+        drillQueue: []
       };
-    }
 
-    // 表内乘除综合题
-    function buildMulDivQuestion() {
-      const isCompare = Math.random() < 0.25;
+      // DOM 元素引用
+      const $ = id => document.getElementById(id);
+      const els = {
+        vSetup: $('view-setup'),
+        vPlay: $('view-play'),
+        vResult: $('view-result'),
 
-      if (isCompare) {
-        // 乘法比大小 e.g. 7 × 8 ○ 54
-        const a = randInt(2, 9);
-        const b = randInt(2, 9);
-        const prod = a * b;
-        const offset = [0, -randInt(1, 4), randInt(1, 4)][randInt(0, 2)];
-        const target = Math.max(1, prod + offset);
-        let sym = '=';
-        if (prod > target) sym = '>';
-        if (prod < target) sym = '<';
+        btnStart: $('btn-start'),
+        modeCards: document.querySelectorAll('.mode-card'),
+        tierBtns: document.querySelectorAll('.tier-btn'),
+        tierHint: $('tier-hint'),
+        countPills: document.querySelectorAll('#count-pills .pill-btn'),
+        timePills: document.querySelectorAll('#time-pills .pill-btn'),
+        txtMistakeCount: $('txt-mistake-count'),
 
-        return {
-          type: 'compare',
-          leftText: `${a} × ${b}`,
-          rightText: String(target),
-          answer: sym,
-          hash: `cmp_${a}x${b}_${sym}_${target}`
-        };
-      }
+        hudTier: $('hud-tier-name'),
+        hudIdx: $('hud-q-idx'),
+        hudTotal: $('hud-q-total'),
+        hudAcc: $('hud-q-acc'),
+        hudBar: $('hud-prog-bar'),
+        hudTimerBox: $('hud-timer-box'),
+        hudTimerTxt: $('hud-timer-txt'),
+        hudFire: $('hud-fire'),
+        hudStreak: $('hud-streak-val'),
+        btnPause: $('btn-pause'),
 
-      const isMul = Math.random() < 0.55;
-      if (isMul) {
-        const a = randInt(2, 9);
-        const b = randInt(2, 9);
-        return {
-          type: 'calc',
-          expr: `${a} × ${b}`,
-          answer: String(a * b),
-          hash: `m_${a}x${b}`
-        };
-      } else {
-        // 整除: 商 * 除数 = 被除数
-        const divisor = randInt(2, 9);
-        const quotient = randInt(1, 9);
-        const dividend = divisor * quotient;
-        return {
-          type: 'calc',
-          expr: `${dividend} ÷ ${divisor}`,
-          answer: String(quotient),
-          hash: `d_${dividend}/${divisor}`
-        };
-      }
-    }
+        cardStage: $('card-stage'),
+        bannerLevelup: $('banner-levelup'),
+        txtLevelupTitle: $('txt-levelup-title'),
+        txtLevelupSub: $('txt-levelup-sub'),
+        floatLayer: $('float-layer'),
 
-    // -------------------------------------------------------------
-    // 2. 状态机与核心逻辑
-    // -------------------------------------------------------------
-    const state = {
-      mode: 'progressive', // 'progressive' | 'custom' | 'drill'
-      currentTier: 0,
-      customTier: 0,
-      targetCount: 50, // 0 表示不限题量
-      timeLimit: 300,  // 秒, 0 表示不限时
-      timeLeft: 300,
-      timerId: null,
-      isPaused: false,
+        rowCalc: $('row-calc'),
+        txtCalcExpr: $('txt-calc-expr'),
+        slotCalc: $('slot-calc'),
+        txtCalcVal: $('txt-calc-val'),
 
-      // 答题进度
-      currentIndex: 0,
-      totalAnswered: 0,
-      correctCount: 0,
-      currentStreak: 0,
-      maxStreak: 0,
-      tierStreak: 0, // 用于逐级升级判定 (每3连对升一级)
+        rowComp: $('row-comp'),
+        txtCompLeft: $('txt-comp-left'),
+        circleComp: $('circle-comp'),
+        txtCompRight: $('txt-comp-right'),
 
-      currentQuestion: null,
-      inputValue: '',
-      seenHashes: new Set(),
+        keysComp: $('keys-comp'),
+        keysCalc: $('keys-calc'),
+        btnSubmitCalc: $('btn-submit-calc'),
 
-      // 时间速度追踪
-      startTime: 0,
-      questionStartTime: 0,
-      totalQuestionTime: 0,
+        resTrophy: $('res-trophy'),
+        resHonor: $('res-honor'),
+        resTotal: $('res-total'),
+        resAcc: $('res-acc'),
+        resSpeed: $('res-speed'),
+        resStreak: $('res-streak'),
+        resSummary: $('res-summary-msg'),
+        boxRoundMistakes: $('box-round-mistakes'),
+        txtRoundMCount: $('txt-round-m-count'),
+        listRoundMistakes: $('list-round-mistakes'),
+        btnReplay: $('btn-replay'),
+        btnRedoMistakes: $('btn-redo-mistakes'),
+        btnGoHome: $('btn-go-home'),
 
-      // 本轮错题记录
-      roundMistakes: [],
+        // 弹窗
+        modalPause: $('modal-pause'),
+        btnResume: $('btn-resume'),
+        btnRestart: $('btn-restart'),
+        btnQuit: $('btn-quit'),
 
-      // 错题库重做模式专属
-      drillQueue: []
-    };
+        modalMistakes: $('modal-mistakes'),
+        btnViewMistakes: $('btn-view-mistakes'),
+        btnCloseM: $('btn-close-m'),
+        hintMEmpty: $('hint-m-empty'),
+        listMItems: $('list-m-items'),
+        btnDrillM: $('btn-drill-m'),
+        txtMBtnCount: $('txt-m-btn-count'),
+        btnClearM: $('btn-clear-m'),
 
-    // DOM 元素引用
-    const els = {
-      app: document.getElementById('math-app'),
-      viewSetup: document.getElementById('view-setup'),
-      viewPlay: document.getElementById('view-play'),
-      viewResult: document.getElementById('view-result'),
+        modalHistory: $('modal-history'),
+        btnViewHistory: $('btn-view-history'),
+        btnCloseH: $('btn-close-h'),
+        ltTotal: $('lt-total'),
+        ltAcc: $('lt-acc'),
+        ltStreak: $('lt-streak'),
+        hintHEmpty: $('hint-h-empty'),
+        listHLogs: $('list-h-logs'),
 
-      // Setup
-      btnStart: document.getElementById('btn-start-game'),
-      modeTabs: document.querySelectorAll('.mode-tab'),
-      tierGrid: document.getElementById('tier-grid'),
-      tierChips: document.querySelectorAll('.tier-chip'),
-      tierTipText: document.getElementById('tier-tip-text'),
-      countPills: document.querySelectorAll('#count-picker .pill-btn'),
-      timePills: document.querySelectorAll('#time-picker .pill-btn'),
-      btnOpenMistakes: document.getElementById('btn-open-mistakes'),
-      btnOpenHistory: document.getElementById('btn-open-history'),
-      btnDownloadStandalone: document.getElementById('btn-download-standalone'),
-      mistakeBadge: document.getElementById('mistake-count-badge'),
+        btnToggleEye: $('btn-toggle-eye'),
+        btnToggleSound: $('btn-toggle-sound'),
+        btnTogglePad: $('btn-toggle-pad'),
+        btnToggleFs: $('btn-toggle-fs'),
+        btnGetStandalone: $('btn-get-standalone'),
 
-      // Play HUD
-      hudTier: document.getElementById('hud-current-tier'),
-      hudIndex: document.getElementById('hud-question-index'),
-      hudTotal: document.getElementById('hud-question-total'),
-      hudAccuracy: document.getElementById('hud-accuracy'),
-      hudProgressFill: document.getElementById('hud-progress-fill'),
-      hudTimerText: document.getElementById('hud-timer-text'),
-      hudTimeContainer: document.getElementById('hud-time-container'),
-      hudComboVal: document.getElementById('hud-combo-val'),
-      comboFlame: document.getElementById('combo-flame'),
-      btnPause: document.getElementById('btn-pause-game'),
+        drawerPad: $('drawer-pad'),
+        canvasPad: $('canvas-pad'),
+        btnPadEraser: $('btn-pad-eraser'),
+        btnPadClear: $('btn-pad-clear'),
+        btnPadClose: $('btn-pad-close'),
+        padColorDots: document.querySelectorAll('.color-dot'),
 
-      // Stage & Keypads
-      cardStage: document.getElementById('card-stage'),
-      levelupBanner: document.getElementById('levelup-banner'),
-      levelupTitle: document.getElementById('levelup-title'),
-      levelupSub: document.getElementById('levelup-sub'),
-      floatLayer: document.getElementById('float-text-layer'),
+        fxCanvas: $('fx-canvas')
+      };
 
-      eqCalcRow: document.getElementById('eq-calc-row'),
-      eqCalcExpr: document.getElementById('eq-calc-expr'),
-      eqSlotVal: document.getElementById('eq-slot-val'),
-
-      eqCompRow: document.getElementById('eq-comp-row'),
-      eqCompLeft: document.getElementById('eq-comp-left'),
-      eqCompCircle: document.getElementById('eq-comp-circle'),
-      eqCompRight: document.getElementById('eq-comp-right'),
-
-      keypadCompare: document.getElementById('keypad-compare'),
-      keypadCalc: document.getElementById('keypad-calc'),
-      btnSubmitCalc: document.getElementById('btn-submit-calc'),
-
-      // Result
-      resTotal: document.getElementById('res-total'),
-      resAccuracy: document.getElementById('res-accuracy'),
-      resSpeed: document.getElementById('res-speed'),
-      resStreak: document.getElementById('res-streak'),
-      resHonor: document.getElementById('result-honor'),
-      resTrophy: document.getElementById('result-trophy'),
-      resSummaryMsg: document.getElementById('result-summary-msg'),
-      roundMistakesBox: document.getElementById('round-mistakes-box'),
-      roundMistakesCount: document.getElementById('round-mistake-count'),
-      roundMistakesList: document.getElementById('round-mistakes-list'),
-      btnPlayAgain: document.getElementById('btn-play-again'),
-      btnRedoMistakes: document.getElementById('btn-redo-mistakes'),
-      btnResultHome: document.getElementById('btn-result-home'),
-
-      // Modals
-      modalPause: document.getElementById('modal-pause'),
-      btnResume: document.getElementById('btn-resume-game'),
-      btnRestart: document.getElementById('btn-restart-round'),
-      btnQuit: document.getElementById('btn-quit-game'),
-
-      modalMistakes: document.getElementById('modal-mistakes'),
-      btnCloseMistakes: document.getElementById('btn-close-mistakes'),
-      mistakesContainer: document.getElementById('mistakes-container'),
-      mistakesEmpty: document.getElementById('mistakes-empty'),
-      mistakesList: document.getElementById('mistakes-list'),
-      btnDrillMistakes: document.getElementById('btn-drill-all-mistakes'),
-      drillCountSpan: document.getElementById('drill-mistake-btn-count'),
-      btnClearMistakes: document.getElementById('btn-clear-mistakes'),
-
-      modalHistory: document.getElementById('modal-history'),
-      btnCloseHistory: document.getElementById('btn-close-history'),
-      historyLogList: document.getElementById('history-log-list'),
-      historyEmpty: document.getElementById('history-empty'),
-      ltTotalCount: document.getElementById('lt-total-count'),
-      ltAvgAcc: document.getElementById('lt-avg-acc'),
-      ltBestStreak: document.getElementById('lt-best-streak'),
-
-      // Top Bar & Tools
-      btnTheme: document.getElementById('btn-theme-mode'),
-      btnSound: document.getElementById('btn-sound-toggle'),
-      btnScratchpad: document.getElementById('btn-scratchpad-toggle'),
-      btnFullscreen: document.getElementById('btn-fullscreen-toggle'),
-
-      // Scratchpad
-      scratchDrawer: document.getElementById('scratchpad-drawer'),
-      scratchCanvas: document.getElementById('scratch-canvas'),
-      padToolEraser: document.getElementById('pad-tool-eraser'),
-      padToolClear: document.getElementById('pad-tool-clear'),
-      padToolHide: document.getElementById('pad-tool-hide'),
-      padColorDots: document.querySelectorAll('.color-dot'),
-
-      // Particles Canvas
-      fxCanvas: document.getElementById('fx-canvas')
-    };
-
-    // -------------------------------------------------------------
-    // 3. 粒子物理动效引擎 (Canvas Particles & Confetti)
-    // -------------------------------------------------------------
-    let fxCtx = null;
-    let particles = [];
-    let fxAnimId = null;
-
-    function initFxCanvas() {
-      if (!els.fxCanvas) return;
-      fxCtx = els.fxCanvas.getContext('2d');
-      resizeFxCanvas();
-      window.addEventListener('resize', resizeFxCanvas);
-    }
-
-    function resizeFxCanvas() {
-      if (!els.fxCanvas) return;
-      els.fxCanvas.width = window.innerWidth;
-      els.fxCanvas.height = window.innerHeight;
-    }
-
-    function spawnBurst(x, y, count = 35, colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6']) {
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 8 + 3;
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 2,
-          size: Math.random() * 8 + 4,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          alpha: 1,
-          decay: Math.random() * 0.025 + 0.015,
-          shape: Math.random() > 0.5 ? 'circle' : 'star',
-          rot: Math.random() * Math.PI,
-          vrot: (Math.random() - 0.5) * 0.2
+      // 强制确保所有弹窗在初始时彻底隐藏！
+      function closeAllModals() {
+        [els.modalPause, els.modalMistakes, els.modalHistory].forEach(m => {
+          if (m) {
+            m.hidden = true;
+            m.style.display = 'none';
+          }
         });
       }
-      if (!fxAnimId) {
-        fxAnimId = requestAnimationFrame(renderParticles);
-      }
-    }
+      closeAllModals();
 
-    function spawnFireworks() {
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight / 2;
-      spawnBurst(cx - 160, cy - 80, 50);
-      spawnBurst(cx + 160, cy - 80, 50);
-      spawnBurst(cx, cy - 140, 60, ['#ffd700', '#ff6b6b', '#48dbfb', '#1dd1a1']);
-    }
-
-    function renderParticles() {
-      if (!fxCtx) return;
-      fxCtx.clearRect(0, 0, els.fxCanvas.width, els.fxCanvas.height);
-
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.2; // gravity
-        p.alpha -= p.decay;
-        p.rot += p.vrot;
-
-        if (p.alpha <= 0) {
-          particles.splice(i, 1);
-          continue;
+      function showModal(modalEl) {
+        closeAllModals();
+        if (modalEl) {
+          modalEl.hidden = false;
+          modalEl.style.display = 'flex';
+          soundClick();
         }
+      }
 
-        fxCtx.save();
-        fxCtx.globalAlpha = p.alpha;
-        fxCtx.translate(p.x, p.y);
-        fxCtx.rotate(p.rot);
-        fxCtx.fillStyle = p.color;
+      function hideModal(modalEl) {
+        if (modalEl) {
+          modalEl.hidden = true;
+          modalEl.style.display = 'none';
+          soundClick();
+        }
+      }
 
-        if (p.shape === 'circle') {
+      // -----------------------------------------------------------
+      // 3. 粒子系统
+      // -----------------------------------------------------------
+      const fxCtx = els.fxCanvas.getContext('2d');
+      let particles = [];
+      let fxLoop = null;
+
+      function resizeFx() {
+        els.fxCanvas.width = window.innerWidth;
+        els.fxCanvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeFx);
+      resizeFx();
+
+      function spawnBurst(x, y, count = 30) {
+        const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6'];
+        for (let i = 0; i < count; i++) {
+          const a = Math.random() * Math.PI * 2, sp = Math.random() * 8 + 3;
+          particles.push({
+            x, y,
+            vx: Math.cos(a) * sp,
+            vy: Math.sin(a) * sp - 2,
+            size: Math.random() * 7 + 3,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 1,
+            decay: Math.random() * 0.025 + 0.015
+          });
+        }
+        if (!fxLoop) animFx();
+      }
+
+      function spawnFireworks() {
+        const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+        spawnBurst(cx - 150, cy - 60, 40);
+        spawnBurst(cx + 150, cy - 60, 40);
+        spawnBurst(cx, cy - 120, 50);
+      }
+
+      function animFx() {
+        fxCtx.clearRect(0, 0, els.fxCanvas.width, els.fxCanvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.alpha -= p.decay;
+          if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+          fxCtx.save();
+          fxCtx.globalAlpha = p.alpha;
+          fxCtx.fillStyle = p.color;
           fxCtx.beginPath();
-          fxCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+          fxCtx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2);
           fxCtx.fill();
-        } else {
-          // 五角星
-          drawStar(fxCtx, 0, 0, 5, p.size, p.size / 2);
-          fxCtx.fill();
+          fxCtx.restore();
         }
-        fxCtx.restore();
+        if (particles.length > 0) fxLoop = requestAnimationFrame(animFx);
+        else fxLoop = null;
       }
 
-      if (particles.length > 0) {
-        fxAnimId = requestAnimationFrame(renderParticles);
-      } else {
-        fxAnimId = null;
+      function spawnFloatText(txt, isGood = true) {
+        const el = document.createElement('div');
+        el.className = `float-popup ${isGood ? 'good' : 'bad'}`;
+        el.textContent = txt;
+        els.floatLayer.appendChild(el);
+        setTimeout(() => el.remove(), 1200);
       }
-    }
 
-    function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
-      let rot = (Math.PI / 2) * 3;
-      let x = cx;
-      let y = cy;
-      const step = Math.PI / spikes;
+      // -----------------------------------------------------------
+      // 4. 草稿纸画板
+      // -----------------------------------------------------------
+      const padCtx = els.canvasPad.getContext('2d');
+      let padDrawing = false, padColor = '#0f172a', padEraser = false, lx = 0, ly = 0;
 
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - outerRadius);
-      for (let i = 0; i < spikes; i++) {
-        x = cx + Math.cos(rot) * outerRadius;
-        y = cy + Math.sin(rot) * outerRadius;
-        ctx.lineTo(x, y);
-        rot += step;
-
-        x = cx + Math.cos(rot) * innerRadius;
-        y = cy + Math.sin(rot) * innerRadius;
-        ctx.lineTo(x, y);
-        rot += step;
+      function resizePad() {
+        const box = els.drawerPad.getBoundingClientRect();
+        els.canvasPad.width = box.width;
+        els.canvasPad.height = box.height - 44;
       }
-      ctx.lineTo(cx, cy - outerRadius);
-      ctx.closePath();
-    }
 
-    // 动态飘字特效
-    function spawnFloatText(text, isGood = true) {
-      if (!els.floatLayer) return;
-      const el = document.createElement('div');
-      el.className = `float-popup ${isGood ? 'good' : 'bad'}`;
-      el.textContent = text;
-      els.floatLayer.appendChild(el);
+      els.canvasPad.addEventListener('pointerdown', e => {
+        padDrawing = true;
+        const rect = els.canvasPad.getBoundingClientRect();
+        lx = e.clientX - rect.left; ly = e.clientY - rect.top;
+      });
 
-      setTimeout(() => {
-        el.remove();
-      }, 1200);
-    }
+      els.canvasPad.addEventListener('pointermove', e => {
+        if (!padDrawing) return;
+        const rect = els.canvasPad.getBoundingClientRect();
+        const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+        padCtx.beginPath();
+        padCtx.moveTo(lx, ly); padCtx.lineTo(cx, cy);
+        padCtx.lineCap = 'round';
+        padCtx.strokeStyle = padEraser ? '#ffffff' : padColor;
+        padCtx.lineWidth = padEraser ? 24 : 3;
+        padCtx.stroke();
+        lx = cx; ly = cy;
+      });
 
-    // -------------------------------------------------------------
-    // 4. 草稿纸手写绘图板 (Canvas Handwriting Scratchpad)
-    // -------------------------------------------------------------
-    let padCtx = null;
-    let isDrawing = false;
-    let padColor = '#1e293b';
-    let padWidth = 3;
-    let isEraser = false;
-    let lastX = 0;
-    let lastY = 0;
+      window.addEventListener('pointerup', () => padDrawing = false);
 
-    function initScratchpad() {
-      if (!els.scratchCanvas) return;
-      padCtx = els.scratchCanvas.getContext('2d');
-      resizeScratchCanvas();
-      window.addEventListener('resize', resizeScratchCanvas);
-
-      // 触控与鼠标事件
-      const c = els.scratchCanvas;
-      c.addEventListener('pointerdown', startDraw);
-      c.addEventListener('pointermove', drawMove);
-      c.addEventListener('pointerup', endDraw);
-      c.addEventListener('pointercancel', endDraw);
-
-      // 工具栏交互
-      els.padColorDots.forEach(dot => {
-        dot.addEventListener('click', () => {
-          els.padColorDots.forEach(d => d.classList.remove('active'));
-          dot.classList.add('active');
-          padColor = dot.getAttribute('data-color');
-          isEraser = false;
-          els.padToolEraser.classList.remove('active');
+      els.padColorDots.forEach(d => {
+        d.addEventListener('click', () => {
+          els.padColorDots.forEach(x => x.classList.remove('active'));
+          d.classList.add('active');
+          padColor = d.dataset.c;
+          padEraser = false;
+          els.btnPadEraser.classList.remove('active');
         });
       });
 
-      els.padToolEraser.addEventListener('click', () => {
-        isEraser = !isEraser;
-        els.padToolEraser.classList.toggle('active', isEraser);
+      els.btnPadEraser.addEventListener('click', () => {
+        padEraser = !padEraser;
+        els.btnPadEraser.classList.toggle('active', padEraser);
       });
 
-      els.padToolClear.addEventListener('click', clearScratchpad);
-      els.padToolHide.addEventListener('click', toggleScratchpad);
-      els.btnScratchpad.addEventListener('click', toggleScratchpad);
-    }
+      els.btnPadClear.addEventListener('click', () => {
+        padCtx.clearRect(0, 0, els.canvasPad.width, els.canvasPad.height);
+        soundClick();
+      });
 
-    function resizeScratchCanvas() {
-      if (!els.scratchCanvas || !els.scratchDrawer) return;
-      const rect = els.scratchDrawer.getBoundingClientRect();
-      const w = rect.width || window.innerWidth;
-      const h = (rect.height || 360) - 50; // 减去头部
-      if (w > 0 && h > 0) {
-        // 保存现有绘图
-        const temp = padCtx ? padCtx.getImageData(0, 0, els.scratchCanvas.width, els.scratchCanvas.height) : null;
-        els.scratchCanvas.width = w;
-        els.scratchCanvas.height = h;
-        if (temp && padCtx) {
-          padCtx.putImageData(temp, 0, 0);
+      els.btnPadClose.addEventListener('click', togglePad);
+      els.btnTogglePad.addEventListener('click', togglePad);
+
+      function togglePad() {
+        const isHidden = els.drawerPad.hidden;
+        els.drawerPad.hidden = !isHidden;
+        els.btnTogglePad.classList.toggle('active', isHidden);
+        if (isHidden) setTimeout(resizePad, 40);
+        soundClick();
+      }
+
+      // -----------------------------------------------------------
+      // 5. 存储与历史
+      // -----------------------------------------------------------
+      const KEY_MISTAKES = 'kousuan_mistakes_v2';
+      const KEY_HISTORY = 'kousuan_history_v2';
+
+      function getMistakes() {
+        try { return JSON.parse(localStorage.getItem(KEY_MISTAKES) || '[]'); }
+        catch (e) { return []; }
+      }
+      function saveMistakes(list) {
+        try {
+          localStorage.setItem(KEY_MISTAKES, JSON.stringify(list));
+          updateMistakeBadge();
+        } catch (e) {}
+      }
+      function addMistake(q, userAns) {
+        const list = getMistakes();
+        if (!list.some(x => x.hash === q.hash)) {
+          list.push({
+            hash: q.hash,
+            type: q.type,
+            expr: q.type === 'calc' ? q.expr : `${q.left} ○ ${q.right}`,
+            correctAnswer: q.answer,
+            userAnswer: userAns || '(未填)',
+            date: new Date().toLocaleDateString('zh-CN')
+          });
+          saveMistakes(list);
         }
       }
-    }
-
-    function getCanvasCoords(e) {
-      const rect = els.scratchCanvas.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    }
-
-    function startDraw(e) {
-      isDrawing = true;
-      const pos = getCanvasCoords(e);
-      lastX = pos.x;
-      lastY = pos.y;
-    }
-
-    function drawMove(e) {
-      if (!isDrawing || !padCtx) return;
-      const pos = getCanvasCoords(e);
-
-      padCtx.beginPath();
-      padCtx.moveTo(lastX, lastY);
-      padCtx.lineTo(pos.x, pos.y);
-      padCtx.lineCap = 'round';
-      padCtx.lineJoin = 'round';
-
-      if (isEraser) {
-        padCtx.strokeStyle = '#ffffff';
-        padCtx.lineWidth = 24;
-      } else {
-        padCtx.strokeStyle = padColor;
-        padCtx.lineWidth = padWidth;
+      function removeMistake(hash) {
+        const list = getMistakes().filter(x => x.hash !== hash);
+        saveMistakes(list);
       }
-      padCtx.stroke();
-
-      lastX = pos.x;
-      lastY = pos.y;
-    }
-
-    function endDraw() {
-      isDrawing = false;
-    }
-
-    function clearScratchpad() {
-      if (!padCtx) return;
-      padCtx.clearRect(0, 0, els.scratchCanvas.width, els.scratchCanvas.height);
-      soundClick();
-    }
-
-    function toggleScratchpad() {
-      const isHidden = els.scratchDrawer.hidden;
-      els.scratchDrawer.hidden = !isHidden;
-      els.btnScratchpad.classList.toggle('active', isHidden);
-      if (isHidden) {
-        setTimeout(resizeScratchCanvas, 50);
+      function updateMistakeBadge() {
+        const count = getMistakes().length;
+        if (els.txtMistakeCount) els.txtMistakeCount.textContent = count;
       }
-      soundClick();
-    }
 
-    // -------------------------------------------------------------
-    // 5. 错题本与历史战绩存储 (Local Storage)
-    // -------------------------------------------------------------
-    const STORAGE_KEY_MISTAKES = 'kousuan_mistakes_v1';
-    const STORAGE_KEY_HISTORY = 'kousuan_history_v1';
-
-    function getStoredMistakes() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY_MISTAKES);
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        return [];
+      function getHistory() {
+        try { return JSON.parse(localStorage.getItem(KEY_HISTORY) || '[]'); }
+        catch (e) { return []; }
       }
-    }
-
-    function saveStoredMistakes(list) {
-      try {
-        localStorage.setItem(STORAGE_KEY_MISTAKES, JSON.stringify(list));
-        updateMistakeBadge();
-      } catch (e) {}
-    }
-
-    function addMistake(question, userAns) {
-      const list = getStoredMistakes();
-      // 避免重复记录相同题目
-      const exists = list.some(item => item.hash === question.hash);
-      if (!exists) {
-        list.push({
-          id: Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-          hash: question.hash,
-          type: question.type,
-          expr: question.type === 'calc' ? question.expr : `${question.leftText} ○ ${question.rightText}`,
-          correctAnswer: question.answer,
-          userAnswer: userAns,
-          time: new Date().toLocaleDateString('zh-CN')
-        });
-        saveStoredMistakes(list);
+      function saveHistory(item) {
+        try {
+          const list = getHistory();
+          list.unshift(item);
+          if (list.length > 50) list.pop();
+          localStorage.setItem(KEY_HISTORY, JSON.stringify(list));
+        } catch (e) {}
       }
-    }
 
-    function removeMistakeByHash(hash) {
-      let list = getStoredMistakes();
-      list = list.filter(m => m.hash !== hash);
-      saveStoredMistakes(list);
-    }
-
-    function updateMistakeBadge() {
-      const list = getStoredMistakes();
-      if (els.mistakeBadge) {
-        els.mistakeBadge.textContent = list.length;
+      // -----------------------------------------------------------
+      // 6. 游戏核心流程
+      // -----------------------------------------------------------
+      function switchView(viewName) {
+        closeAllModals();
+        [els.vSetup, els.vPlay, els.vResult].forEach(v => v.classList.remove('active'));
+        if (viewName === 'setup') els.vSetup.classList.add('active');
+        if (viewName === 'play') els.vPlay.classList.add('active');
+        if (viewName === 'result') els.vResult.classList.add('active');
       }
-    }
 
-    function getStoredHistory() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY_HISTORY);
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        return [];
-      }
-    }
+      function startGame(isDrill = false) {
+        closeAllModals();
+        state.isPaused = false;
+        state.seenHashes.clear();
+        state.currentIndex = 0;
+        state.totalAnswered = 0;
+        state.correctCount = 0;
+        state.currentStreak = 0;
+        state.maxStreak = 0;
+        state.tierStreak = 0;
+        state.roundMistakes = [];
+        state.inputValue = '';
+        state.totalQTime = 0;
 
-    function saveHistoryRecord(record) {
-      try {
-        const list = getStoredHistory();
-        list.unshift(record);
-        if (list.length > 50) list.pop(); // 保留最近 50 次
-        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(list));
-      } catch (e) {}
-    }
-
-    // -------------------------------------------------------------
-    // 6. 游戏流程控制
-    // -------------------------------------------------------------
-    function switchView(viewName) {
-      els.viewSetup.classList.remove('active');
-      els.viewPlay.classList.remove('active');
-      els.viewResult.classList.remove('active');
-
-      if (viewName === 'setup') els.viewSetup.classList.add('active');
-      if (viewName === 'play') els.viewPlay.classList.add('active');
-      if (viewName === 'result') els.viewResult.classList.add('active');
-    }
-
-    function startGame(isDrill = false) {
-      initAudio();
-      state.isPaused = false;
-      state.seenHashes.clear();
-      state.currentIndex = 0;
-      state.totalAnswered = 0;
-      state.correctCount = 0;
-      state.currentStreak = 0;
-      state.maxStreak = 0;
-      state.tierStreak = 0;
-      state.roundMistakes = [];
-      state.inputValue = '';
-      state.totalQuestionTime = 0;
-
-      if (isDrill) {
-        state.mode = 'drill';
-        const mistakes = getStoredMistakes();
-        state.drillQueue = [...mistakes];
-        state.targetCount = state.drillQueue.length;
-        state.timeLimit = 0;
-      } else {
-        if (state.mode === 'progressive') {
-          state.currentTier = 0; // 从 10 以内开始
+        if (isDrill) {
+          state.mode = 'drill';
+          state.drillQueue = [...getMistakes()];
+          state.targetCount = state.drillQueue.length;
+          state.timeLimit = 0;
         } else {
-          state.currentTier = state.customTier;
+          state.currentTier = state.mode === 'progressive' ? 0 : state.customTier;
         }
+
+        state.timeLeft = state.timeLimit;
+        state.startTime = Date.now();
+
+        switchView('play');
+        startTimer();
+        updateHUD();
+        nextQuestion();
+        soundClick();
       }
 
-      state.timeLeft = state.timeLimit;
-      state.startTime = Date.now();
-
-      // UI 初始化
-      updatePlayHUD();
-      switchView('play');
-      startTimer();
-      nextQuestion();
-      soundClick();
-    }
-
-    function startTimer() {
-      clearInterval(state.timerId);
-      if (state.timeLimit <= 0) {
-        els.hudTimeContainer.hidden = true;
-        return;
-      }
-      els.hudTimeContainer.hidden = false;
-      updateTimerDisplay();
-
-      state.timerId = setInterval(() => {
-        if (state.isPaused) return;
-        state.timeLeft--;
-        updateTimerDisplay();
-
-        if (state.timeLeft <= 0) {
-          clearInterval(state.timerId);
-          finishGame('时间耗尽');
-        }
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      const m = Math.floor(state.timeLeft / 60);
-      const s = state.timeLeft % 60;
-      els.hudTimerText.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      if (state.timeLeft <= 30) {
-        els.hudTimerText.classList.add('urgent');
-      } else {
-        els.hudTimerText.classList.remove('urgent');
-      }
-    }
-
-    function nextQuestion() {
-      // 检查是否达到目标题量
-      if (state.targetCount > 0 && state.currentIndex >= state.targetCount) {
-        finishGame('达到目标题量');
-        return;
-      }
-
-      state.currentIndex++;
-      state.inputValue = '';
-      state.questionStartTime = Date.now();
-
-      if (state.mode === 'drill') {
-        // 错题重做模式
-        const item = state.drillQueue[state.currentIndex - 1];
-        if (!item) {
-          finishGame('错题全部重做完成');
+      function startTimer() {
+        clearInterval(state.timerId);
+        if (state.timeLimit <= 0) {
+          els.hudTimerBox.hidden = true;
           return;
         }
-        if (item.type === 'calc') {
-          state.currentQuestion = {
-            type: 'calc',
-            expr: item.expr,
-            answer: item.correctAnswer,
-            hash: item.hash
-          };
-        } else {
-          const parts = item.expr.split('○');
-          state.currentQuestion = {
-            type: 'compare',
-            leftText: parts[0]?.trim() || '',
-            rightText: parts[1]?.trim() || '',
-            answer: item.correctAnswer,
-            hash: item.hash
-          };
-        }
-      } else {
-        state.currentQuestion = generateQuestion(state.currentTier, state.seenHashes);
+        els.hudTimerBox.hidden = false;
+        updateTimerDisplay();
+
+        state.timerId = setInterval(() => {
+          if (state.isPaused) return;
+          state.timeLeft--;
+          updateTimerDisplay();
+          if (state.timeLeft <= 0) finishGame('时间耗尽');
+        }, 1000);
       }
 
-      renderCurrentQuestion();
-      updatePlayHUD();
-    }
-
-    function renderCurrentQuestion() {
-      const q = state.currentQuestion;
-      if (!q) return;
-
-      if (q.type === 'compare') {
-        // 比大小题型
-        els.eqCalcRow.hidden = true;
-        els.eqCompRow.hidden = false;
-        els.eqCompLeft.textContent = q.leftText;
-        els.eqCompRight.textContent = q.rightText;
-        els.eqCompCircle.textContent = '○';
-        els.eqCompCircle.className = 'eq-comp-circle';
-
-        // 互斥显示：隐藏数字键盘，只展示 3 个超大比大小符号键
-        els.keypadCalc.hidden = true;
-        els.keypadCompare.hidden = false;
-      } else {
-        // 常规计算题型
-        els.eqCompRow.hidden = true;
-        els.eqCalcRow.hidden = false;
-        els.eqCalcExpr.textContent = q.expr;
-        els.eqSlotVal.textContent = '';
-        els.eqSlotVal.parentElement.classList.remove('has-val');
-
-        // 互斥显示：隐藏比大小按键，展示 0-9 数字键盘
-        els.keypadCompare.hidden = true;
-        els.keypadCalc.hidden = false;
-      }
-    }
-
-    function updatePlayHUD() {
-      // 当前数段显示
-      if (state.mode === 'drill') {
-        els.hudTier.textContent = '错题专训模式';
-      } else {
-        const t = TIERS[state.currentTier] || TIERS[0];
-        els.hudTier.textContent = state.mode === 'progressive' ? `第 ${state.currentTier + 1}/11 关 · ${t.name}` : t.name;
+      function updateTimerDisplay() {
+        const m = Math.floor(state.timeLeft / 60);
+        const s = state.timeLeft % 60;
+        els.hudTimerTxt.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        if (state.timeLeft <= 30) els.hudTimerTxt.style.color = '#f43f5e';
+        else els.hudTimerTxt.style.color = 'inherit';
       }
 
-      els.hudIndex.textContent = state.currentIndex || 1;
-      els.hudTotal.textContent = state.targetCount > 0 ? state.targetCount : '∞';
-
-      // 正确率
-      const acc = state.totalAnswered > 0 ? Math.round((state.correctCount / state.totalAnswered) * 100) : 100;
-      els.hudAccuracy.textContent = `${acc}%`;
-
-      // 进度条
-      const pct = state.targetCount > 0 ? Math.min(100, Math.round((state.currentIndex / state.targetCount) * 100)) : 100;
-      els.hudProgressFill.style.width = `${pct}%`;
-
-      // 连对与火焰动效
-      els.hudComboVal.textContent = state.currentStreak;
-      if (state.currentStreak >= 5) {
-        els.comboFlame.classList.add('fire-active');
-      } else {
-        els.comboFlame.classList.remove('fire-active');
-      }
-    }
-
-    // 提交作答判定
-    function evaluateAnswer(userAnswer) {
-      if (!state.currentQuestion) return;
-
-      const q = state.currentQuestion;
-      const isCorrect = String(userAnswer).trim() === String(q.answer).trim();
-      const costSec = Math.max(0.5, (Date.now() - state.questionStartTime) / 1000);
-      state.totalQuestionTime += costSec;
-      state.totalAnswered++;
-
-      if (isCorrect) {
-        state.correctCount++;
-        state.currentStreak++;
-        state.tierStreak++;
-        if (state.currentStreak > state.maxStreak) {
-          state.maxStreak = state.currentStreak;
+      function nextQuestion() {
+        if (state.targetCount > 0 && state.currentIndex >= state.targetCount) {
+          finishGame('达到目标题量');
+          return;
         }
 
-        // 音效与粒子
-        soundCorrect();
-        const rect = els.cardStage.getBoundingClientRect();
-        spawnBurst(rect.left + rect.width / 2, rect.top + rect.height * 0.4, 30);
+        state.currentIndex++;
+        state.inputValue = '';
+        state.qStartTime = Date.now();
 
-        // 浮动飘字
-        let floatMsg = '+10 ⭐';
-        if (state.currentStreak >= 3) {
-          floatMsg = `+${10 + state.currentStreak * 2} 🔥 ${state.currentStreak}连对!`;
-        }
-        if (costSec < 2.0) {
-          floatMsg += ' ⚡极速!';
-        }
-        spawnFloatText(floatMsg, true);
-
-        // 如果是错题重做模式且答对了，从持久化错题本中移除该题
         if (state.mode === 'drill') {
-          removeMistakeByHash(q.hash);
-        }
-
-        // 检查平滑晋级闯关逻辑：每连对 3 题，数段自动平滑晋级
-        if (state.mode === 'progressive' && state.tierStreak >= 3 && state.currentTier < TIERS.length - 1) {
-          state.tierStreak = 0;
-          state.currentTier++;
-          triggerLevelUpBanner(TIERS[state.currentTier]);
-        } else {
-          setTimeout(nextQuestion, 280);
-        }
-      } else {
-        // 答错处理
-        state.currentStreak = 0;
-        state.tierStreak = 0;
-        soundWrong();
-        spawnFloatText('加油，继续冲! ❌', false);
-
-        // 记录错题
-        const mistakeItem = {
-          hash: q.hash,
-          type: q.type,
-          expr: q.type === 'calc' ? q.expr : `${q.leftText} ○ ${q.rightText}`,
-          userAnswer: userAnswer || '(未填)',
-          correctAnswer: q.answer
-        };
-        state.roundMistakes.push(mistakeItem);
-        addMistake(q, userAnswer);
-
-        // 错题在卡片短暂显示正确答案强化记忆
-        if (q.type === 'compare') {
-          els.eqCompCircle.textContent = q.answer;
-          els.eqCompCircle.classList.add('circle-wrong');
-        } else {
-          els.eqSlotVal.textContent = q.answer;
-          els.eqSlotVal.parentElement.classList.add('slot-wrong');
-        }
-
-        setTimeout(() => {
-          if (q.type === 'compare') {
-            els.eqCompCircle.classList.remove('circle-wrong');
+          const item = state.drillQueue[state.currentIndex - 1];
+          if (!item) { finishGame('错题重做完成'); return; }
+          if (item.type === 'calc') {
+            state.currentQuestion = { type: 'calc', expr: item.expr, answer: item.correctAnswer, hash: item.hash };
           } else {
-            els.eqSlotVal.parentElement.classList.remove('slot-wrong');
+            const parts = item.expr.split('○');
+            state.currentQuestion = {
+              type: 'compare',
+              left: parts[0]?.trim() || '',
+              right: parts[1]?.trim() || '',
+              answer: item.correctAnswer,
+              hash: item.hash
+            };
           }
-          nextQuestion();
-        }, 1100);
-      }
-    }
-
-    // 全屏金色晋级横幅动效
-    function triggerLevelUpBanner(tierObj) {
-      soundLevelUp();
-      spawnFireworks();
-      els.levelupTitle.textContent = `🎉 恭喜晋级！进入【${tierObj.name}】！`;
-      els.levelupSub.textContent = tierObj.title;
-      els.levelupBanner.hidden = false;
-      els.levelupBanner.classList.add('pop-in');
-
-      setTimeout(() => {
-        els.levelupBanner.classList.remove('pop-in');
-        els.levelupBanner.hidden = true;
-        nextQuestion();
-      }, 1600);
-    }
-
-    // 结算大报告
-    function finishGame(reason) {
-      clearInterval(state.timerId);
-      soundVictory();
-      spawnFireworks();
-
-      const acc = state.totalAnswered > 0 ? Math.round((state.correctCount / state.totalAnswered) * 100) : 0;
-      const avgSpeed = state.totalAnswered > 0 ? (state.totalQuestionTime / state.totalAnswered).toFixed(1) : '0.0';
-
-      // 称号计算
-      let honor = '🌱 计算新星';
-      let trophy = '🎖️';
-      let summary = '每一次练习都是心算肌肉的积累，继续坚持，你将更快更准！';
-
-      if (acc >= 98 && parseFloat(avgSpeed) <= 3.0) {
-        honor = '⚡ 无敌神算子';
-        trophy = '👑';
-        summary = '太震撼了！极速且零失误，你就是名副其实的心算战神！';
-      } else if (acc >= 95) {
-        honor = '🏆 数学小天才';
-        trophy = '🏆';
-        summary = '准确率超过 95%，数字直觉超强，进退位运用自如！';
-      } else if (acc >= 90) {
-        honor = '🌟 心算大师';
-        trophy = '🌟';
-        summary = '扎实的运算功底，已经完全掌握当前数段技巧！';
-      } else if (acc >= 80) {
-        honor = '✨ 速算小能手';
-        trophy = '⭐';
-        summary = '表现非常出色！稍微留意细节，就能冲击全对！';
-      } else if (acc < 60) {
-        honor = '☀️ 口算萌芽';
-        trophy = '🌱';
-        summary = '不要气馁！多用内置草稿纸随手列竖式，多练几次就能突飞猛进！';
-      }
-
-      els.resHonor.textContent = honor;
-      els.resTrophy.textContent = trophy;
-      els.resSummaryMsg.textContent = summary;
-
-      // 平滑滚动数字展示
-      animateValue(els.resTotal, 0, state.totalAnswered, 800, '');
-      animateValue(els.resAccuracy, 0, acc, 800, '%');
-      animateValue(els.resStreak, 0, state.maxStreak, 800, '');
-      els.resSpeed.textContent = `${avgSpeed}s`;
-
-      // 错题展示与一键重做
-      if (state.roundMistakes.length > 0) {
-        els.roundMistakesBox.hidden = false;
-        els.btnRedoMistakes.hidden = false;
-        els.roundMistakesCount.textContent = state.roundMistakes.length;
-        els.roundMistakesList.innerHTML = state.roundMistakes.map(m => `
-          <div class="m-card">
-            <span class="m-expr">${m.expr}</span>
-            <span class="m-diff">你的答案: <strong class="wrong">${m.userAnswer}</strong> ➔ 正确: <strong class="correct">${m.correctAnswer}</strong></span>
-          </div>
-        `).join('');
-      } else {
-        els.roundMistakesBox.hidden = true;
-        els.btnRedoMistakes.hidden = true;
-      }
-
-      // 保存历史记录
-      saveHistoryRecord({
-        date: new Date().toLocaleDateString('zh-CN'),
-        total: state.totalAnswered,
-        correct: state.correctCount,
-        accuracy: acc,
-        avgSpeed: avgSpeed,
-        maxStreak: state.maxStreak,
-        honor: honor
-      });
-
-      updateMistakeBadge();
-      switchView('result');
-    }
-
-    function animateValue(elem, start, end, duration, suffix = '') {
-      let startTimestamp = null;
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const val = Math.floor(progress * (end - start) + start);
-        elem.textContent = val + suffix;
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
         } else {
-          elem.textContent = end + suffix;
+          state.currentQuestion = buildQuestion(state.currentTier);
         }
-      };
-      window.requestAnimationFrame(step);
-    }
 
-    // -------------------------------------------------------------
-    // 7. 交互绑定 (按键、键盘、弹窗)
-    // -------------------------------------------------------------
-    function setupInteractions() {
-      // 模式切换
-      els.modeTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          els.modeTabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          state.mode = tab.getAttribute('data-mode');
-          if (state.mode === 'progressive') {
-            els.tierTipText.textContent = '当前：逐级闯关模式将从 10 以内开始动态递增';
-            els.tierChips.forEach((c, idx) => c.classList.toggle('active', idx === 0));
+        renderQuestion();
+        updateHUD();
+      }
+
+      function renderQuestion() {
+        const q = state.currentQuestion;
+        if (!q) return;
+
+        if (q.type === 'compare') {
+          els.rowCalc.hidden = true;
+          els.rowComp.hidden = false;
+          els.txtCompLeft.textContent = q.left;
+          els.txtCompRight.textContent = q.right;
+          els.circleComp.textContent = '○';
+          els.circleComp.className = 'eq-comp-circle';
+
+          // 互斥显示：隐藏数字键，显示比大小键
+          els.keysCalc.hidden = true;
+          els.keysComp.hidden = false;
+        } else {
+          els.rowComp.hidden = true;
+          els.rowCalc.hidden = false;
+          els.txtCalcExpr.textContent = q.expr;
+          els.txtCalcVal.textContent = '';
+          els.slotCalc.className = 'eq-input-slot';
+
+          // 互斥显示：隐藏比大小键，显示数字键
+          els.keysComp.hidden = true;
+          els.keysCalc.hidden = false;
+        }
+      }
+
+      function updateHUD() {
+        els.hudTier.textContent = state.mode === 'drill' ? '错题专训' : TIERS[state.currentTier].name;
+        els.hudIdx.textContent = state.currentIndex || 1;
+        els.hudTotal.textContent = state.targetCount > 0 ? state.targetCount : '∞';
+        const acc = state.totalAnswered > 0 ? Math.round((state.correctCount / state.totalAnswered) * 100) : 100;
+        els.hudAcc.textContent = `${acc}%`;
+        els.hudBar.style.width = state.targetCount > 0 ? `${(state.currentIndex / state.targetCount) * 100}%` : '100%';
+        els.hudStreak.textContent = state.currentStreak;
+        if (state.currentStreak >= 5) els.hudFire.classList.add('active');
+        else els.hudFire.classList.remove('active');
+      }
+
+      function evaluateAnswer(userAns) {
+        if (!state.currentQuestion) return;
+        const q = state.currentQuestion;
+        const isOk = String(userAns).trim() === String(q.answer).trim();
+        const cost = Math.max(0.5, (Date.now() - state.qStartTime) / 1000);
+        state.totalQTime += cost;
+        state.totalAnswered++;
+
+        if (isOk) {
+          state.correctCount++;
+          state.currentStreak++;
+          state.tierStreak++;
+          if (state.currentStreak > state.maxStreak) state.maxStreak = state.currentStreak;
+
+          soundCorrect();
+          const rect = els.cardStage.getBoundingClientRect();
+          spawnBurst(rect.left + rect.width / 2, rect.top + rect.height * 0.35, 25);
+
+          let fTxt = '+10 ⭐';
+          if (state.currentStreak >= 3) fTxt = `+${10 + state.currentStreak * 2} 🔥 ${state.currentStreak}连对!`;
+          if (cost < 2.0) fTxt += ' ⚡极速!';
+          spawnFloatText(fTxt, true);
+
+          if (state.mode === 'drill') removeMistake(q.hash);
+
+          // 连对 3 题平滑晋级
+          if (state.mode === 'progressive' && state.tierStreak >= 3 && state.currentTier < TIERS.length - 1) {
+            state.tierStreak = 0;
+            state.currentTier++;
+            soundLevelUp();
+            spawnFireworks();
+            els.txtLevelupTitle.textContent = `🎉 恭喜晋级！进入【${TIERS[state.currentTier].name}】！`;
+            els.txtLevelupSub.textContent = TIERS[state.currentTier].title;
+            els.bannerLevelup.hidden = false;
+            setTimeout(() => {
+              els.bannerLevelup.hidden = true;
+              nextQuestion();
+            }, 1500);
           } else {
-            els.tierTipText.textContent = '当前：自选模式，可随意点击下方任意数段开始高强度专练';
+            setTimeout(nextQuestion, 240);
+          }
+        } else {
+          state.currentStreak = 0;
+          state.tierStreak = 0;
+          soundWrong();
+          spawnFloatText('继续加油 ❌', false);
+
+          const m = {
+            hash: q.hash,
+            type: q.type,
+            expr: q.type === 'calc' ? q.expr : `${q.left} ○ ${q.right}`,
+            userAnswer: userAns || '(未填)',
+            correctAnswer: q.answer
+          };
+          state.roundMistakes.push(m);
+          addMistake(q, userAns);
+
+          if (q.type === 'compare') {
+            els.circleComp.textContent = q.answer;
+            els.circleComp.classList.add('wrong');
+          } else {
+            els.txtCalcVal.textContent = q.answer;
+            els.slotCalc.classList.add('wrong');
+          }
+          setTimeout(nextQuestion, 1100);
+        }
+      }
+
+      function finishGame(reason) {
+        clearInterval(state.timerId);
+        soundVictory();
+        spawnFireworks();
+
+        const acc = state.totalAnswered > 0 ? Math.round((state.correctCount / state.totalAnswered) * 100) : 0;
+        const spd = state.totalAnswered > 0 ? (state.totalQTime / state.totalAnswered).toFixed(1) : '0.0';
+
+        els.resTotal.textContent = state.totalAnswered;
+        els.resAcc.textContent = `${acc}%`;
+        els.resSpeed.textContent = `${spd}s`;
+        els.resStreak.textContent = state.maxStreak;
+
+        let honor = '✨ 速算小能手';
+        if (acc >= 98 && parseFloat(spd) < 3) honor = '⚡ 无敌神算子';
+        else if (acc >= 95) honor = '🏆 数学小天才';
+        else if (acc >= 90) honor = '🌟 心算大师';
+        else if (acc < 60) honor = '☀️ 口算萌芽';
+        els.resHonor.textContent = honor;
+
+        if (state.roundMistakes.length > 0) {
+          els.boxRoundMistakes.hidden = false;
+          els.btnRedoMistakes.hidden = false;
+          els.txtRoundMCount.textContent = state.roundMistakes.length;
+          els.listRoundMistakes.innerHTML = state.roundMistakes.map(m => `
+            <div class="m-chip">
+              <strong>${m.expr}</strong>
+              <span>你的答案: <span class="w">${m.userAnswer}</span> ➔ 正确: <strong class="c">${m.correctAnswer}</strong></span>
+            </div>
+          `).join('');
+        } else {
+          els.boxRoundMistakes.hidden = true;
+          els.btnRedoMistakes.hidden = true;
+        }
+
+        saveHistory({
+          date: new Date().toLocaleDateString('zh-CN'),
+          total: state.totalAnswered,
+          correct: state.correctCount,
+          accuracy: acc,
+          speed: spd,
+          streak: state.maxStreak,
+          honor: honor
+        });
+
+        updateMistakeBadge();
+        switchView('result');
+      }
+
+      // -----------------------------------------------------------
+      // 7. 用户交互绑定
+      // -----------------------------------------------------------
+      // 模式切换
+      els.modeCards.forEach(card => {
+        card.addEventListener('click', () => {
+          els.modeCards.forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          state.mode = card.dataset.mode;
+          if (state.mode === 'progressive') {
+            els.tierHint.textContent = '逐级闯关模式将从 10 以内开始动态晋阶';
+            els.tierBtns.forEach((b, idx) => b.classList.toggle('active', idx === 0));
+          } else {
+            els.tierHint.textContent = '自选模式：可点击下方任意数段高强度练习';
           }
           soundClick();
         });
       });
 
       // 梯级选择
-      els.tierChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          els.tierChips.forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          const tIdx = parseInt(chip.getAttribute('data-tier'), 10);
-          state.customTier = tIdx;
-          // 切换到自选模式
-          els.modeTabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-mode') === 'custom'));
+      els.tierBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          els.tierBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.customTier = parseInt(btn.dataset.tier, 10);
           state.mode = 'custom';
-          els.tierTipText.textContent = `已锁定梯级：【${TIERS[tIdx].name}】${TIERS[tIdx].title}`;
+          els.modeCards.forEach(c => c.classList.toggle('active', c.dataset.mode === 'custom'));
+          els.tierHint.textContent = `已锁定梯级：【${TIERS[state.customTier].name}】${TIERS[state.customTier].title}`;
           soundClick();
         });
       });
 
-      // 题量选择
-      els.countPills.forEach(pill => {
-        pill.addEventListener('click', () => {
-          els.countPills.forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          state.targetCount = parseInt(pill.getAttribute('data-count'), 10);
+      // 题量
+      els.countPills.forEach(p => {
+        p.addEventListener('click', () => {
+          els.countPills.forEach(x => x.classList.remove('active'));
+          p.classList.add('active');
+          state.targetCount = parseInt(p.dataset.count, 10);
           soundClick();
         });
       });
 
-      // 限时选择
-      els.timePills.forEach(pill => {
-        pill.addEventListener('click', () => {
-          els.timePills.forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          state.timeLimit = parseInt(pill.getAttribute('data-time'), 10);
+      // 限时
+      els.timePills.forEach(p => {
+        p.addEventListener('click', () => {
+          els.timePills.forEach(x => x.classList.remove('active'));
+          p.classList.add('active');
+          state.timeLimit = parseInt(p.dataset.time, 10);
           soundClick();
         });
       });
 
-      // 启动游戏
       els.btnStart.addEventListener('click', () => startGame(false));
 
-      // 比大小按键点击（点击瞬间自动提交判定）
-      els.keypadCompare.querySelectorAll('.btn-comp').forEach(btn => {
+      // 比大小按钮点击
+      els.keysComp.querySelectorAll('.btn-comp').forEach(btn => {
         btn.addEventListener('click', () => {
-          const sym = btn.getAttribute('data-symbol');
+          const sym = btn.dataset.sym;
+          els.circleComp.textContent = sym;
           soundClick();
-          els.eqCompCircle.textContent = sym;
           evaluateAnswer(sym);
         });
       });
 
-      // 常规计算数字按键点击
-      els.keypadCalc.querySelectorAll('.num-btn').forEach(btn => {
+      // 常规计算按键
+      els.keysCalc.querySelectorAll('.num-key').forEach(btn => {
         btn.addEventListener('click', () => {
-          const key = btn.getAttribute('data-key');
+          const k = btn.dataset.k;
           soundClick();
-          handleCalcKey(key);
+          if (k === 'clear') {
+            state.inputValue = '';
+          } else if (k === 'back') {
+            state.inputValue = state.inputValue.slice(0, -1);
+          } else {
+            if (state.inputValue.length < 5) state.inputValue += k;
+          }
+          els.txtCalcVal.textContent = state.inputValue;
+          els.slotCalc.classList.toggle('has-val', !!state.inputValue);
         });
       });
 
-      // 确认提交计算
       els.btnSubmitCalc.addEventListener('click', () => {
         if (!state.inputValue) return;
         soundClick();
         evaluateAnswer(state.inputValue);
       });
 
-      // 实体键盘监听 (全按键智能映射)
-      window.addEventListener('keydown', (e) => {
-        if (!els.viewPlay.classList.contains('active') || state.isPaused) {
-          if (e.key === 'p' || e.key === 'P') togglePause();
+      // 实体键盘全映射
+      window.addEventListener('keydown', e => {
+        // 如果有弹窗打开，按 Esc 键关闭
+        if (e.key === 'Escape') {
+          closeAllModals();
           return;
         }
+
+        if (!els.vPlay.classList.contains('active') || state.isPaused) return;
 
         const q = state.currentQuestion;
         if (!q) return;
 
         if (q.type === 'compare') {
-          // 比大小模式键盘映射
           if (e.key === '>' || e.key === '.') {
-            e.preventDefault();
-            soundClick();
-            els.eqCompCircle.textContent = '>';
-            evaluateAnswer('>');
+            e.preventDefault(); soundClick(); els.circleComp.textContent = '>'; evaluateAnswer('>');
           } else if (e.key === '<' || e.key === ',') {
-            e.preventDefault();
-            soundClick();
-            els.eqCompCircle.textContent = '<';
-            evaluateAnswer('<');
+            e.preventDefault(); soundClick(); els.circleComp.textContent = '<'; evaluateAnswer('<');
           } else if (e.key === '=' || e.key === 'Enter') {
-            e.preventDefault();
-            soundClick();
-            els.eqCompCircle.textContent = '=';
-            evaluateAnswer('=');
+            e.preventDefault(); soundClick(); els.circleComp.textContent = '='; evaluateAnswer('=');
           }
         } else {
-          // 常规计算键盘映射
           if (/^[0-9]$/.test(e.key)) {
             soundClick();
-            handleCalcKey(e.key);
+            if (state.inputValue.length < 5) state.inputValue += e.key;
+            els.txtCalcVal.textContent = state.inputValue;
+            els.slotCalc.classList.toggle('has-val', !!state.inputValue);
           } else if (e.key === 'Backspace') {
             soundClick();
-            handleCalcKey('back');
+            state.inputValue = state.inputValue.slice(0, -1);
+            els.txtCalcVal.textContent = state.inputValue;
+            els.slotCalc.classList.toggle('has-val', !!state.inputValue);
           } else if (e.key === 'c' || e.key === 'C' || e.key === 'Delete') {
             soundClick();
-            handleCalcKey('clear');
+            state.inputValue = '';
+            els.txtCalcVal.textContent = '';
+            els.slotCalc.classList.remove('has-val');
           } else if (e.key === 'Enter') {
             if (state.inputValue) {
               soundClick();
@@ -1642,1536 +2338,164 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             }
           }
         }
-
-        if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-          togglePause();
-        }
       });
 
-      // 暂停按钮
-      els.btnPause.addEventListener('click', togglePause);
-      els.btnResume.addEventListener('click', togglePause);
+      // 暂停与恢复
+      els.btnPause.addEventListener('click', () => {
+        state.isPaused = true;
+        showModal(els.modalPause);
+      });
+      els.btnResume.addEventListener('click', () => {
+        state.isPaused = false;
+        hideModal(els.modalPause);
+      });
       els.btnRestart.addEventListener('click', () => {
-        els.modalPause.hidden = true;
+        hideModal(els.modalPause);
         startGame(state.mode === 'drill');
       });
       els.btnQuit.addEventListener('click', () => {
         clearInterval(state.timerId);
-        els.modalPause.hidden = true;
+        hideModal(els.modalPause);
         switchView('setup');
       });
 
-      // 结算面板按钮
-      els.btnPlayAgain.addEventListener('click', () => startGame(false));
+      // 结算页交互
+      els.btnReplay.addEventListener('click', () => startGame(false));
       els.btnRedoMistakes.addEventListener('click', () => startGame(true));
-      els.btnResultHome.addEventListener('click', () => switchView('setup'));
+      els.btnGoHome.addEventListener('click', () => switchView('setup'));
 
-      // 错题本模态框
-      els.btnOpenMistakes.addEventListener('click', openMistakesModal);
-      els.btnCloseMistakes.addEventListener('click', () => { els.modalMistakes.hidden = true; });
-      els.btnDrillMistakes.addEventListener('click', () => {
-        els.modalMistakes.hidden = true;
+      // 错题弹窗
+      els.btnViewMistakes.addEventListener('click', () => {
+        const list = getMistakes();
+        els.txtMBtnCount.textContent = list.length;
+        if (list.length === 0) {
+          els.hintMEmpty.hidden = false;
+          els.listMItems.innerHTML = '';
+          els.btnDrillM.disabled = true;
+        } else {
+          els.hintMEmpty.hidden = true;
+          els.btnDrillM.disabled = false;
+          els.listMItems.innerHTML = list.map(m => `
+            <div class="mistake-row">
+              <div>
+                <strong>${m.expr}</strong>
+                <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px">${m.date || ''}</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px">
+                <span style="font-size:0.8rem">答案: <span style="color:#e11d48; text-decoration:line-through">${m.userAnswer}</span> ➔ <strong style="color:#059669">${m.correctAnswer}</strong></span>
+                <button type="button" class="btn-del-m" data-h="${m.hash}">✓ 掌握</button>
+              </div>
+            </div>
+          `).join('');
+
+          els.listMItems.querySelectorAll('.btn-del-m').forEach(btn => {
+            btn.addEventListener('click', () => {
+              removeMistake(btn.dataset.h);
+              els.btnViewMistakes.click();
+            });
+          });
+        }
+        showModal(els.modalMistakes);
+      });
+
+      els.btnCloseM.addEventListener('click', () => hideModal(els.modalMistakes));
+      els.btnClearM.addEventListener('click', () => {
+        if (confirm('确认清空所有错题记录？')) {
+          saveMistakes([]);
+          hideModal(els.modalMistakes);
+        }
+      });
+      els.btnDrillM.addEventListener('click', () => {
+        hideModal(els.modalMistakes);
         startGame(true);
       });
-      els.btnClearMistakes.addEventListener('click', () => {
-        if (confirm('确认清空所有已记录的错题？')) {
-          saveStoredMistakes([]);
-          openMistakesModal();
+
+      // 历史弹窗
+      els.btnViewHistory.addEventListener('click', () => {
+        const list = getHistory();
+        if (list.length === 0) {
+          els.hintHEmpty.hidden = false;
+          els.listHLogs.innerHTML = '';
+          els.ltTotal.textContent = '0';
+          els.ltAcc.textContent = '0%';
+          els.ltStreak.textContent = '0';
+        } else {
+          els.hintHEmpty.hidden = true;
+          let sumTotal = 0, sumCorrect = 0, maxS = 0;
+          list.forEach(item => {
+            sumTotal += (item.total || 0);
+            sumCorrect += (item.correct || 0);
+            if ((item.streak || 0) > maxS) maxS = item.streak;
+          });
+          els.ltTotal.textContent = sumTotal;
+          els.ltAcc.textContent = sumTotal > 0 ? `${Math.round((sumCorrect / sumTotal) * 100)}%` : '0%';
+          els.ltStreak.textContent = maxS;
+
+          els.listHLogs.innerHTML = list.map(l => `
+            <div class="hist-log">
+              <div>
+                <strong style="color:#b45309">${l.honor}</strong>
+                <span style="color:var(--text-muted); font-size:0.75rem; display:block">${l.date}</span>
+              </div>
+              <div style="text-align:right">
+                <span style="color:#059669; font-weight:700">${l.accuracy}% 正确率</span>
+                <span style="color:var(--text-muted); font-size:0.75rem; display:block">${l.total} 题 · 均速 ${l.speed}s</span>
+              </div>
+            </div>
+          `).join('');
         }
+        showModal(els.modalHistory);
       });
 
-      // 历史战绩模态框
-      els.btnOpenHistory.addEventListener('click', openHistoryModal);
-      els.btnCloseHistory.addEventListener('click', () => { els.modalHistory.hidden = true; });
+      els.btnCloseH.addEventListener('click', () => hideModal(els.modalHistory));
 
-      // 音效开关
-      els.btnSound.addEventListener('click', () => {
-        isMuted = !isMuted;
-        localStorage.setItem('kousuan_muted', String(isMuted));
-        els.btnSound.textContent = isMuted ? '🔇 静音' : '🔊 音效';
-        soundClick();
+      // 弹窗背景遮罩点击自动关闭
+      [els.modalPause, els.modalMistakes, els.modalHistory].forEach(overlay => {
+        overlay.addEventListener('click', e => {
+          if (e.target === overlay) hideModal(overlay);
+        });
       });
-      els.btnSound.textContent = isMuted ? '🔇 静音' : '🔊 音效';
 
       // 护眼模式切换
-      els.btnTheme.addEventListener('click', () => {
-        const isWarm = els.app.classList.toggle('eye-protection');
-        localStorage.setItem('kousuan_eye_mode', String(isWarm));
-        els.btnTheme.textContent = isWarm ? '☀️ 明亮' : '🌿 护眼';
+      els.btnToggleEye.addEventListener('click', () => {
+        const isEye = document.body.classList.toggle('eye-mode');
+        localStorage.setItem('kousuan_eye', String(isEye));
+        els.btnToggleEye.textContent = isEye ? '☀️ 明亮' : '🌿 护眼';
         soundClick();
       });
-      if (localStorage.getItem('kousuan_eye_mode') === 'true') {
-        els.app.classList.add('eye-protection');
-        els.btnTheme.textContent = '☀️ 明亮';
+      if (localStorage.getItem('kousuan_eye') === 'true') {
+        document.body.classList.add('eye-mode');
+        els.btnToggleEye.textContent = '☀️ 明亮';
       }
 
-      // 全屏模式切换
-      els.btnFullscreen.addEventListener('click', toggleFullscreen);
+      // 音效开关
+      els.btnToggleSound.addEventListener('click', () => {
+        isMuted = !isMuted;
+        localStorage.setItem('kousuan_muted', String(isMuted));
+        els.btnToggleSound.textContent = isMuted ? '🔇 静音' : '🔊 音效';
+        soundClick();
+      });
+      els.btnToggleSound.textContent = isMuted ? '🔇 静音' : '🔊 音效';
 
-      // 导出单文件离线版
-      els.btnDownloadStandalone.addEventListener('click', downloadStandaloneHtml);
-    }
-
-    function handleCalcKey(key) {
-      if (key === 'clear') {
-        state.inputValue = '';
-      } else if (key === 'back') {
-        state.inputValue = state.inputValue.slice(0, -1);
-      } else {
-        if (state.inputValue.length < 6) {
-          state.inputValue += key;
+      // 全屏切换
+      els.btnToggleFs.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+          els.btnToggleFs.textContent = '🗗 还原';
+        } else {
+          document.exitFullscreen?.();
+          els.btnToggleFs.textContent = '⛶ 全屏';
         }
-      }
-      els.eqSlotVal.textContent = state.inputValue;
-      if (state.inputValue) {
-        els.eqSlotVal.parentElement.classList.add('has-val');
-      } else {
-        els.eqSlotVal.parentElement.classList.remove('has-val');
-      }
-    }
-
-    function togglePause() {
-      state.isPaused = !state.isPaused;
-      els.modalPause.hidden = !state.isPaused;
-      soundClick();
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        els.app.requestFullscreen?.() || document.documentElement.requestFullscreen?.();
-        els.btnFullscreen.textContent = '🗗 还原';
-      } else {
-        document.exitFullscreen?.();
-        els.btnFullscreen.textContent = '⛶ 全屏';
-      }
-    }
-
-    // 打开错题本模态框
-    function openMistakesModal() {
-      const list = getStoredMistakes();
-      els.drillCountSpan.textContent = list.length;
-      if (list.length === 0) {
-        els.mistakesEmpty.hidden = false;
-        els.mistakesList.innerHTML = '';
-        els.btnDrillMistakes.disabled = true;
-      } else {
-        els.mistakesEmpty.hidden = true;
-        els.btnDrillMistakes.disabled = false;
-        els.mistakesList.innerHTML = list.map(m => `
-          <div class="mistake-item">
-            <div class="m-left">
-              <span class="m-expr">${m.expr}</span>
-              <span class="m-time">${m.time || ''}</span>
-            </div>
-            <div class="m-right">
-              <span class="m-your">你的作答: <strong class="wrong">${m.userAnswer}</strong></span>
-              <span class="m-ans">正确答案: <strong class="correct">${m.correctAnswer}</strong></span>
-              <button type="button" class="btn-del-mistake" data-hash="${m.hash}" title="标记为已掌握并移除">✓ 已掌握</button>
-            </div>
-          </div>
-        `).join('');
-
-        els.mistakesList.querySelectorAll('.btn-del-mistake').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const hash = btn.getAttribute('data-hash');
-            removeMistakeByHash(hash);
-            openMistakesModal();
-          });
-        });
-      }
-      els.modalMistakes.hidden = false;
-      soundClick();
-    }
-
-    // 打开历史战绩模态框
-    function openHistoryModal() {
-      const logs = getStoredHistory();
-      if (logs.length === 0) {
-        els.historyEmpty.hidden = false;
-        els.historyLogList.innerHTML = '<p class="history-empty">暂无练习历史，完成一轮练习后将在这里沉淀脚印！</p>';
-        els.ltTotalCount.textContent = '0';
-        els.ltAvgAcc.textContent = '0%';
-        els.ltBestStreak.textContent = '0';
-      } else {
-        els.historyEmpty.hidden = true;
-        let sumTotal = 0;
-        let sumCorrect = 0;
-        let maxS = 0;
-
-        logs.forEach(l => {
-          sumTotal += (l.total || 0);
-          sumCorrect += (l.correct || 0);
-          if ((l.maxStreak || 0) > maxS) maxS = l.maxStreak;
-        });
-
-        els.ltTotalCount.textContent = sumTotal;
-        els.ltAvgAcc.textContent = sumTotal > 0 ? Math.round((sumCorrect / sumTotal) * 100) + '%' : '0%';
-        els.ltBestStreak.textContent = maxS;
-
-        els.historyLogList.innerHTML = logs.map(l => `
-          <div class="history-row">
-            <span class="h-date">${l.date}</span>
-            <span class="h-honor">${l.honor || '速算小能手'}</span>
-            <span class="h-stat">答题: ${l.total} 题</span>
-            <span class="h-stat">正确率: <strong>${l.accuracy}%</strong></span>
-            <span class="h-stat">速度: ${l.avgSpeed}s/题</span>
-            <span class="h-stat">连对: 🔥${l.maxStreak}</span>
-          </div>
-        `).join('');
-      }
-      els.modalHistory.hidden = false;
-      soundClick();
-    }
-
-    // 单文件离线导出逻辑
-    function downloadStandaloneHtml() {
-      soundClick();
-      window.open('/games/math/standalone.html', '_blank');
-    }
-
-    // -------------------------------------------------------------
-    // 8. 启动挂载
-    // -------------------------------------------------------------
-    initFxCanvas();
-    initScratchpad();
-    setupInteractions();
-    updateMistakeBadge();
-  })();
-</script>
-
-<style>
-  /* 基础容器与童趣大字号护眼调色 */
-  .math-app-container {
-    --bg-primary: #f8fafc;
-    --surface-card: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --brand-color: #2563eb;
-    --brand-hover: #1d4ed8;
-    --accent-gold: #f59e0b;
-    --accent-emerald: #10b981;
-    --accent-rose: #f43f5e;
-    --border-color: #e2e8f0;
-    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-    --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
-    position: relative;
-    width: 100%;
-    min-height: 85vh;
-    background: var(--bg-primary);
-    color: var(--text-main);
-    border-radius: 1.25rem;
-    padding: 1.25rem;
-    box-sizing: border-box;
-    overflow: hidden;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
-    user-select: none;
-    transition: background 0.3s, color 0.3s;
-  }
-
-  /* 护眼暖色模式 */
-  .math-app-container.eye-protection {
-    --bg-primary: #fbf7ee;
-    --surface-card: #fffefb;
-    --border-color: #ede3ce;
-    --text-main: #2d261e;
-    --text-muted: #796b58;
-  }
-
-  /* 粒子 Canvas */
-  .fx-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    z-index: 999;
-  }
-
-  /* 顶部导航 */
-  .math-top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  .top-bar-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .top-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    padding: 0.4rem 0.75rem;
-    border-radius: 0.5rem;
-    background: rgba(0,0,0,0.03);
-    transition: all 0.15s;
-  }
-
-  .top-nav-btn:hover {
-    color: var(--brand-color);
-    background: rgba(37,99,235,0.08);
-  }
-
-  .math-title {
-    margin: 0;
-    font-size: 1.45rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--text-main);
-  }
-
-  .top-bar-right {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .tool-btn {
-    border: 1px solid var(--border-color);
-    background: var(--surface-card);
-    color: var(--text-main);
-    padding: 0.45rem 0.85rem;
-    border-radius: 0.5rem;
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .tool-btn:hover {
-    border-color: var(--brand-color);
-    color: var(--brand-color);
-  }
-
-  .tool-btn.highlight {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: #1d4ed8;
-  }
-
-  .tool-btn.active {
-    background: var(--brand-color);
-    color: #ffffff;
-    border-color: var(--brand-color);
-  }
-
-  /* 面板路由切换 */
-  .view-panel {
-    display: none;
-    animation: fadeIn 0.25s ease-out;
-  }
-
-  .view-panel.active {
-    display: block;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* 1. 设置面板样式 */
-  .setup-hero {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-
-  .hero-badge {
-    display: inline-block;
-    background: #ecfdf5;
-    color: #065f46;
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 0.3rem 0.85rem;
-    border-radius: 9999px;
-    margin-bottom: 0.75rem;
-  }
-
-  .setup-hero h2 {
-    font-size: 2.1rem;
-    font-weight: 800;
-    margin: 0 0 0.5rem 0;
-    letter-spacing: -0.02em;
-  }
-
-  .hero-desc {
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    max-width: 620px;
-    margin: 0 auto;
-    line-height: 1.6;
-  }
-
-  .setup-card {
-    max-width: 820px;
-    margin: 0 auto;
-    background: var(--surface-card);
-    border: 1px solid var(--border-color);
-    border-radius: 1.25rem;
-    padding: 2rem;
-    box-shadow: var(--shadow-soft);
-  }
-
-  .setting-group {
-    margin-bottom: 1.75rem;
-  }
-
-  .setting-row {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-  }
-
-  .setting-group.half {
-    flex: 1;
-    min-width: 280px;
-  }
-
-  .group-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: var(--text-main);
-  }
-
-  .tier-tip {
-    font-size: 0.82rem;
-    font-weight: 400;
-    color: var(--text-muted);
-  }
-
-  /* 模式切换 Tabs */
-  .mode-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .mode-tab {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    background: var(--bg-primary);
-    border: 2px solid transparent;
-    padding: 1.15rem;
-    border-radius: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .mode-tab:hover {
-    background: #f1f5f9;
-  }
-
-  .mode-tab.active {
-    background: #eff6ff;
-    border-color: var(--brand-color);
-  }
-
-  .tab-title {
-    font-weight: 700;
-    font-size: 1.05rem;
-    color: var(--text-main);
-    margin-bottom: 0.35rem;
-  }
-
-  .tab-desc {
-    font-size: 0.84rem;
-    color: var(--text-muted);
-    line-height: 1.45;
-  }
-
-  /* 11 梯级网格 */
-  .tier-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
-    gap: 0.6rem;
-  }
-
-  .tier-chip {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    padding: 0.65rem 0.5rem;
-    border-radius: 0.65rem;
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--text-main);
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.15s;
-  }
-
-  .tier-chip:hover {
-    border-color: var(--brand-color);
-    background: #f8fafc;
-  }
-
-  .tier-chip.active {
-    background: var(--brand-color);
-    color: #ffffff;
-    border-color: var(--brand-color);
-    box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-  }
-
-  .tier-chip.special {
-    grid-column: span 2;
-    background: #fffbeb;
-    border-color: #fde68a;
-    color: #b45309;
-  }
-
-  .tier-chip.special.active {
-    background: #d97706;
-    color: #ffffff;
-    border-color: #d97706;
-  }
-
-  /* Pill 按钮 */
-  .option-pills {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .pill-btn {
-    flex: 1;
-    min-width: 70px;
-    padding: 0.65rem 0.5rem;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 0.65rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-main);
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-  }
-
-  .pill-btn:hover {
-    border-color: var(--brand-color);
-  }
-
-  .pill-btn.active {
-    background: var(--brand-color);
-    color: #ffffff;
-    border-color: var(--brand-color);
-  }
-
-  /* 按钮与辅助 */
-  .setup-actions {
-    margin-top: 2.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
-  }
-
-  .btn-cta {
-    width: 100%;
-    max-width: 440px;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    color: #ffffff;
-    border: none;
-    padding: 1.1rem 2rem;
-    font-size: 1.25rem;
-    font-weight: 800;
-    border-radius: 0.95rem;
-    cursor: pointer;
-    box-shadow: 0 8px 20px rgba(37,99,235,0.3);
-    transition: all 0.2s;
-  }
-
-  .btn-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 25px rgba(37,99,235,0.38);
-  }
-
-  .secondary-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .sub-btn {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 0.6rem 1.1rem;
-    border-radius: 0.65rem;
-    font-size: 0.92rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .sub-btn:hover {
-    border-color: var(--brand-color);
-    color: var(--brand-color);
-  }
-
-  .sub-btn.warn {
-    background: #fff1f2;
-    border-color: #fecdd3;
-    color: #e11d48;
-  }
-
-  .sub-btn.danger {
-    background: #fef2f2;
-    border-color: #fee2e2;
-    color: #dc2626;
-  }
-
-  /* 2. 核心答题竞技面板样式 */
-  .play-hud {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface-card);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    padding: 0.85rem 1.25rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow-soft);
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .hud-item {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .hud-label {
-    font-size: 0.76rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .hud-value {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: var(--text-main);
-  }
-
-  .hud-progress {
-    flex: 2;
-    min-width: 180px;
-  }
-
-  .progress-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.86rem;
-    font-weight: 600;
-    margin-bottom: 0.35rem;
-  }
-
-  .progress-track {
-    width: 100%;
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 999px;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #10b981);
-    transition: width 0.3s ease;
-  }
-
-  .time-val.urgent {
-    color: var(--accent-rose);
-    animation: pulse 1s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.05); }
-  }
-
-  .hud-combo {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.35rem;
-    background: #fffbeb;
-    padding: 0.4rem 0.85rem;
-    border-radius: 0.75rem;
-    border: 1px solid #fef3c7;
-  }
-
-  .combo-flame {
-    font-size: 1.35rem;
-    transition: transform 0.2s;
-  }
-
-  .combo-flame.fire-active {
-    animation: flameShake 0.4s infinite alternate;
-  }
-
-  @keyframes flameShake {
-    0% { transform: scale(1) rotate(-5deg); filter: drop-shadow(0 0 4px #f59e0b); }
-    100% { transform: scale(1.3) rotate(5deg); filter: drop-shadow(0 0 10px #ef4444); }
-  }
-
-  .combo-num {
-    font-size: 1.25rem;
-    font-weight: 900;
-    color: #b45309;
-  }
-
-  .combo-unit {
-    font-size: 0.82rem;
-    color: #92400e;
-    font-weight: 600;
-  }
-
-  .hud-btn {
-    border: 1px solid var(--border-color);
-    background: var(--bg-primary);
-    padding: 0.45rem 0.85rem;
-    border-radius: 0.6rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
-
-  /* 核心算式舞台 */
-  .card-stage {
-    position: relative;
-    max-width: 780px;
-    margin: 0 auto;
-    background: var(--surface-card);
-    border: 2px solid var(--border-color);
-    border-radius: 1.5rem;
-    padding: 2.5rem 1.5rem 2rem 1.5rem;
-    box-shadow: var(--shadow-elevated);
-    min-height: 480px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    overflow: hidden;
-  }
-
-  /* 升级弹窗横幅 */
-  .levelup-banner {
-    position: absolute;
-    top: 15%;
-    left: 5%;
-    right: 5%;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    color: #78350f;
-    padding: 1.5rem;
-    border-radius: 1.25rem;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(245, 158, 11, 0.4);
-    z-index: 50;
-    border: 3px solid #fef3c7;
-    animation: popBanner 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-
-  @keyframes popBanner {
-    0% { transform: scale(0.6) translateY(40px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
-  }
-
-  .banner-sparkle {
-    font-size: 2rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .banner-title {
-    font-size: 1.85rem;
-    font-weight: 900;
-    margin-bottom: 0.25rem;
-  }
-
-  .banner-sub {
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-
-  /* 动态飘字层 */
-  .float-text-layer {
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-    z-index: 40;
-  }
-
-  .float-popup {
-    font-size: 1.8rem;
-    font-weight: 900;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    animation: floatUp 1.2s forwards;
-    white-space: nowrap;
-  }
-
-  .float-popup.good {
-    color: #10b981;
-  }
-
-  .float-popup.bad {
-    color: #f43f5e;
-  }
-
-  @keyframes floatUp {
-    0% { transform: translateY(0) scale(0.8); opacity: 0; }
-    20% { transform: translateY(-15px) scale(1.15); opacity: 1; }
-    80% { transform: translateY(-45px) scale(1.05); opacity: 0.9; }
-    100% { transform: translateY(-70px) scale(0.9); opacity: 0; }
-  }
-
-  /* 算式卡片 */
-  .equation-box {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 2rem;
-    min-height: 110px;
-  }
-
-  .eq-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.25rem;
-    flex-wrap: wrap;
-  }
-
-  .eq-expr, .eq-comp-part {
-    font-size: 3.5rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.05em;
-    color: var(--text-main);
-  }
-
-  .eq-op {
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: var(--text-muted);
-  }
-
-  .eq-input-slot {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 130px;
-    height: 84px;
-    padding: 0 1rem;
-    background: var(--bg-primary);
-    border: 3px dashed #94a3b8;
-    border-radius: 1rem;
-    font-size: 3.5rem;
-    font-weight: 900;
-    color: var(--brand-color);
-    transition: all 0.2s;
-  }
-
-  .eq-input-slot.has-val {
-    border-style: solid;
-    border-color: var(--brand-color);
-    background: #eff6ff;
-  }
-
-  .eq-input-slot.slot-wrong {
-    border-color: var(--accent-rose);
-    background: #fff1f2;
-    color: var(--accent-rose);
-  }
-
-  .slot-cursor {
-    display: inline-block;
-    width: 3px;
-    height: 48px;
-    background: var(--brand-color);
-    margin-left: 4px;
-    animation: blink 1s infinite;
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
-  .eq-comp-circle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 86px;
-    height: 86px;
-    border-radius: 50%;
-    background: #f1f5f9;
-    border: 3px dashed #94a3b8;
-    font-size: 3rem;
-    font-weight: 900;
-    color: #475569;
-    transition: all 0.2s;
-  }
-
-  .eq-comp-circle.circle-wrong {
-    background: #fff1f2;
-    border-color: #f43f5e;
-    color: #f43f5e;
-  }
-
-  /* 3. 智能互斥键盘 */
-  /* A. 比大小专用大按键 */
-  .keypad-compare {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-    width: 100%;
-    max-width: 540px;
-    margin-bottom: 0.5rem;
-  }
-
-  .btn-comp {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem 0.5rem;
-    border-radius: 1.25rem;
-    border: 2px solid transparent;
-    cursor: pointer;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
-    transition: all 0.15s;
-  }
-
-  .btn-comp:active {
-    transform: scale(0.96);
-  }
-
-  .btn-comp .sym {
-    font-size: 3.5rem;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 0.4rem;
-  }
-
-  .btn-comp .sym-name {
-    font-size: 1.15rem;
-    font-weight: 700;
-  }
-
-  .btn-comp .key-hint {
-    font-size: 0.72rem;
-    opacity: 0.75;
-    margin-top: 0.25rem;
-  }
-
-  .btn-greater {
-    background: #fff1f2;
-    border-color: #fecdd3;
-    color: #e11d48;
-  }
-
-  .btn-greater:hover {
-    background: #ffe4e6;
-    border-color: #fda4af;
-  }
-
-  .btn-equal {
-    background: #fffbeb;
-    border-color: #fef3c7;
-    color: #d97706;
-  }
-
-  .btn-equal:hover {
-    background: #fef3c7;
-    border-color: #fde68a;
-  }
-
-  .btn-less {
-    background: #ecfdf5;
-    border-color: #a7f3d0;
-    color: #059669;
-  }
-
-  .btn-less:hover {
-    background: #d1fae5;
-    border-color: #6ee7b7;
-  }
-
-  /* B. 常规计算 0-9 触控键盘 */
-  .keypad-calc {
-    width: 100%;
-    max-width: 440px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-  }
-
-  .num-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.65rem;
-  }
-
-  .num-btn {
-    height: 64px;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 0.85rem;
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--text-main);
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.03);
-    transition: all 0.12s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .num-btn:active {
-    transform: scale(0.94);
-    background: #e2e8f0;
-  }
-
-  .num-btn.action-clear {
-    color: #e11d48;
-    background: #fff1f2;
-    border-color: #ffe4e6;
-  }
-
-  .num-btn.action-back {
-    color: #0284c7;
-    background: #f0f9ff;
-    border-color: #e0f2fe;
-    font-size: 1.6rem;
-  }
-
-  .btn-submit {
-    height: 56px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #ffffff;
-    border: none;
-    border-radius: 0.85rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
-    transition: all 0.15s;
-  }
-
-  .btn-submit:active {
-    transform: scale(0.97);
-  }
-
-  .play-tips {
-    text-align: center;
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  /* 4. 结算面板样式 */
-  .result-card {
-    max-width: 680px;
-    margin: 1.5rem auto;
-    background: var(--surface-card);
-    border: 1px solid var(--border-color);
-    border-radius: 1.5rem;
-    padding: 2.5rem 2rem;
-    text-align: center;
-    box-shadow: var(--shadow-elevated);
-  }
-
-  .result-trophy {
-    font-size: 4.5rem;
-    margin-bottom: 0.5rem;
-    animation: bounce 1s infinite alternate;
-  }
-
-  @keyframes bounce {
-    from { transform: translateY(0); }
-    to { transform: translateY(-10px); }
-  }
-
-  .result-title {
-    font-size: 2rem;
-    font-weight: 800;
-    margin: 0 0 0.5rem 0;
-  }
-
-  .honor-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #ffffff;
-    font-size: 1.2rem;
-    font-weight: 800;
-    padding: 0.4rem 1.4rem;
-    border-radius: 9999px;
-    margin-bottom: 1.75rem;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
-  }
-
-  .result-metrics {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.75rem;
-  }
-
-  .metric-box {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    padding: 1.1rem 0.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .metric-box.highlight {
-    background: #ecfdf5;
-    border-color: #a7f3d0;
-  }
-
-  .metric-box.highlight .metric-val {
-    color: #059669;
-  }
-
-  .metric-val {
-    font-size: 1.85rem;
-    font-weight: 900;
-    color: var(--text-main);
-  }
-
-  .metric-lbl {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    margin-top: 0.25rem;
-  }
-
-  .result-summary {
-    font-size: 1.05rem;
-    line-height: 1.6;
-    color: var(--text-muted);
-    background: #f8fafc;
-    border-radius: 0.75rem;
-    padding: 1rem;
-    margin-bottom: 1.75rem;
-  }
-
-  /* 本轮错题列表 */
-  .round-mistakes-box {
-    text-align: left;
-    margin-bottom: 1.75rem;
-    background: #fff1f2;
-    border: 1px solid #fecdd3;
-    border-radius: 1rem;
-    padding: 1rem;
-  }
-
-  .round-mistakes-head {
-    font-size: 0.92rem;
-    font-weight: 700;
-    color: #9f1239;
-    margin-bottom: 0.65rem;
-  }
-
-  .round-mistakes-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.5rem;
-  }
-
-  .m-card {
-    background: #ffffff;
-    border: 1px solid #ffe4e6;
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.88rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .m-card .wrong { color: #e11d48; text-decoration: line-through; margin-right: 4px; }
-  .m-card .correct { color: #059669; font-weight: 700; }
-
-  .result-actions {
-    display: flex;
-    gap: 0.85rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* 5. 模态框通用结构 */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 1rem;
-    box-sizing: border-box;
-  }
-
-  .modal-box {
-    background: var(--surface-card);
-    border-radius: 1.25rem;
-    padding: 2rem;
-    width: 100%;
-    max-width: 440px;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-    text-align: center;
-    animation: popIn 0.2s ease-out;
-  }
-
-  .modal-box.wide {
-    max-width: 680px;
-    text-align: left;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  @keyframes popIn {
-    from { opacity: 0; transform: scale(0.92); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  .modal-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .modal-head h3 {
-    margin: 0;
-    font-size: 1.35rem;
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-muted);
-  }
-
-  .modal-desc {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    line-height: 1.5;
-  }
-
-  .modal-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-  }
-
-  /* 错题本容器 */
-  .mistakes-container {
-    flex: 1;
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    max-height: 380px;
-    border: 1px solid var(--border-color);
-    border-radius: 0.85rem;
-    padding: 0.75rem;
-  }
-
-  .mistakes-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .mistake-item {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .m-expr {
-    font-size: 1.15rem;
-    font-weight: 800;
-  }
-
-  .m-time {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-left: 0.5rem;
-  }
-
-  .btn-del-mistake {
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    color: #065f46;
-    padding: 0.3rem 0.65rem;
-    border-radius: 0.45rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .btn-del-mistake:hover {
-    background: #d1fae5;
-  }
-
-  .modal-foot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
-    border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
-  }
-
-  /* 历史脚印记录 */
-  .lifetime-summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .lifetime-item {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-    padding: 0.85rem;
-    text-align: center;
-  }
-
-  .lifetime-item .val {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--brand-color);
-    display: block;
-  }
-
-  .lifetime-item .lbl {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-  }
-
-  .history-list {
-    flex: 1;
-    overflow-y: auto;
-    max-height: 320px;
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-    padding: 0.5rem;
-  }
-
-  .history-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.86rem;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .history-row:last-child {
-    border-bottom: none;
-  }
-
-  .h-date { color: var(--text-muted); font-size: 0.8rem; }
-  .h-honor { font-weight: 700; color: #b45309; }
-
-  /* 6. 草稿纸手写画板浮层 */
-  .scratchpad-drawer {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 480px;
-    max-width: 100vw;
-    height: 380px;
-    background: #ffffff;
-    border-top-left-radius: 1.25rem;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.18);
-    border: 2px solid var(--border-color);
-    border-bottom: none;
-    z-index: 900;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .pad-header {
-    height: 48px;
-    background: #f1f5f9;
-    border-bottom: 1px solid #cbd5e1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 0.85rem;
-  }
-
-  .pad-title {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: #334155;
-  }
-
-  .pad-tools {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .color-picker {
-    display: flex;
-    gap: 0.35rem;
-  }
-
-  .color-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid #ffffff;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
-
-  .color-dot.active {
-    outline: 2px solid var(--brand-color);
-    outline-offset: 1px;
-  }
-
-  .pad-tool-btn {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    padding: 0.25rem 0.55rem;
-    border-radius: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .pad-tool-btn.active {
-    background: #e2e8f0;
-    border-color: #94a3b8;
-  }
-
-  .pad-tool-btn.primary {
-    background: #fee2e2;
-    color: #991b1b;
-    border-color: #fecaca;
-  }
-
-  .pad-canvas-wrapper {
-    flex: 1;
-    position: relative;
-    /* 数学草稿本方格网底纹 */
-    background-color: #ffffff;
-    background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
-    background-size: 24px 24px;
-    cursor: crosshair;
-    touch-action: none;
-  }
-
-  .scratch-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  /* 响应式适配 (手机 / 平板 / 电脑) */
-  @media (max-width: 640px) {
-    .math-app-container {
-      padding: 0.75rem;
-    }
-
-    .setup-hero h2 {
-      font-size: 1.6rem;
-    }
-
-    .mode-tabs {
-      grid-template-columns: 1fr;
-    }
-
-    .setting-card {
-      padding: 1.25rem;
-    }
-
-    .eq-expr, .eq-comp-part {
-      font-size: 2.3rem;
-    }
-
-    .eq-op {
-      font-size: 2.3rem;
-    }
-
-    .eq-input-slot {
-      min-width: 95px;
-      height: 64px;
-      font-size: 2.3rem;
-    }
-
-    .eq-comp-circle {
-      width: 64px;
-      height: 64px;
-      font-size: 2.1rem;
-    }
-
-    .num-btn {
-      height: 52px;
-      font-size: 1.5rem;
-    }
-
-    .btn-comp .sym {
-      font-size: 2.5rem;
-    }
-
-    .result-metrics {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .scratchpad-drawer {
-      width: 100vw;
-      height: 320px;
-    }
-  }
-</style>
+      });
+
+      // 下载离线单文件
+      els.btnGetStandalone.addEventListener('click', () => {
+        soundClick();
+        window.open(`${base}/games/math/standalone.html`, '_blank');
+      });
+
+      updateMistakeBadge();
+    })();
+  </script>
+</body>
+</html>
