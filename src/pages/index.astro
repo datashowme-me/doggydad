@@ -25,13 +25,14 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
 ---
 
 <BaseLayout
-  title="WordsMaster — 读书、技术与计算机科学先驱"
-  description="WordsMaster (wordsmaster.app)：把复杂的技术与思想，写成可以反复读的笔记。包含深度博客长文、FruitWave 体感切水果、ArtCatcher 3D 爪机与 WordKey 单词键盘挑战。"
+  title="WordsMaster | 深度技术架构、价值投资与认知哲学 · 独立数字花园"
+  description="WordsMaster (wordsmaster.app)：把复杂的技术演进、商业逻辑与认知模型，写成可以反复阅读的长期笔记。由工程师 DoggyDad 主笔，涵盖 AI Agent 工程架构、价值投资复利体系、图灵奖先驱全史，以及自研体感与图形学实验室。"
+  keywords={['WordsMaster', 'DoggyDad', '技术博客', 'AI Agent', '软件架构', '价值投资', '商业护城河', '图灵奖', '读书笔记', '数字花园']}
   structuredData={[{
     '@type': 'CollectionPage',
     '@id': `${new URL(withBase('/'), Astro.site).toString()}#collection`,
-    name: 'WordsMaster 首页',
-    description: '读书笔记、技术学习、计算机科学先驱人物、FruitWave 切水果、3D 抓娃娃与单词打字挑战。',
+    name: 'WordsMaster · 独立技术与深度思考知识库',
+    description: '深入探讨 AI Agent 与现代软件架构、价值投资与复利哲学、图灵奖先驱计算机科学史、精选读书笔记及 Web 交互实验室。',
     mainEntity: { '@type': 'ItemList', itemListElement: homeItems }
   }]}
 >

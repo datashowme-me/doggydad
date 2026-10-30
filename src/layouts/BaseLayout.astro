@@ -20,7 +20,7 @@ import { withBase } from '../lib/blog';
 
 const {
   title,
-  description = '记录技术、阅读与个人思考的长期博客',
+  description = 'WordsMaster (wordsmaster.app)：把复杂的技术演进、商业逻辑与认知模型，写成可以反复阅读的长期笔记。由工程师 DoggyDad 主笔。',
   keywords,
   noindex = false,
   breadcrumbs = [],
@@ -32,7 +32,7 @@ const {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const siteUrl = new URL(import.meta.env.BASE_URL, Astro.site).toString().replace(/\/$/, '');
-const defaultKeywords = ['博客', '技术', '读书笔记', '计算机科学'];
+const defaultKeywords = ['WordsMaster', 'DoggyDad', '技术博客', 'AI Agent', '软件架构', '价值投资', '商业护城河', '图灵奖', '读书笔记', '数字花园'];
 const pageKeywords = keywords || article?.tags || defaultKeywords;
 const pathname = Astro.url.pathname;
 
@@ -49,6 +49,7 @@ const personId = `${siteUrl}/#person`;
 const pageId = `${canonicalURL.toString()}#webpage`;
 const articleId = `${canonicalURL.toString()}#article`;
 const breadcrumbId = `${canonicalURL.toString()}#breadcrumb`;
+const navigationId = `${siteUrl}/#sitelinks-navigation`;
 
 const breadcrumbSchema = breadcrumbs.length > 0 ? {
   '@type': 'BreadcrumbList',
@@ -61,14 +62,53 @@ const breadcrumbSchema = breadcrumbs.length > 0 ? {
   }))
 } : undefined;
 
+const siteNavigationElements = [
+  {
+    '@type': 'SiteNavigationElement',
+    position: 1,
+    name: '读书笔记 (Reading Notes)',
+    description: '精读经典著作与思维模型，提炼可复用的认知框架与实践体系',
+    url: `${siteUrl}/category/reading-notes/`
+  },
+  {
+    '@type': 'SiteNavigationElement',
+    position: 2,
+    name: '技术演进 (Tech & Engineering)',
+    description: '探讨 AI Agent 架构、推荐系统与现代软件工程新范式',
+    url: `${siteUrl}/category/tech-learning/`
+  },
+  {
+    '@type': 'SiteNavigationElement',
+    position: 3,
+    name: '价值投资 (Investment & Moats)',
+    description: '立足企业基本面、商业护城河与安全边际，探索长期复利',
+    url: `${siteUrl}/category/investment/`
+  },
+  {
+    '@type': 'SiteNavigationElement',
+    position: 4,
+    name: '图灵奖史 (Turing Laureates)',
+    description: '系统梳理 1966 至今计算机科学奠基人与划时代技术发明全景',
+    url: `${siteUrl}/category/turing-award/`
+  },
+  {
+    '@type': 'SiteNavigationElement',
+    position: 5,
+    name: '体感互动实验室 (Interactive Lab)',
+    description: '基于 WebAssembly 与 Three.js 的零依赖手势切水果与 3D 实验',
+    url: `${siteUrl}/games/`
+  }
+];
+
 const jsonLdGraph = [
   {
     '@type': 'WebSite',
     '@id': websiteId,
     name: 'WordsMaster',
+    alternateName: ['WordsMaster Digital Garden', 'WordsMaster 思想实验室'],
     url: siteUrl,
-    description: '把复杂的技术与思想，写成可以反复读的中文长期笔记。',
-    inLanguage: 'zh-CN',
+    description: '把复杂的技术演进、商业逻辑与认知模型，写成可以反复阅读的长期笔记。',
+    inLanguage: ['zh-CN', 'en'],
     publisher: { '@id': personId },
     potentialAction: {
       '@type': 'SearchAction',
@@ -79,10 +119,29 @@ const jsonLdGraph = [
   {
     '@type': 'Person',
     '@id': personId,
-    name: 'WordsMaster',
+    name: 'DoggyDad',
+    alternateName: ['WordsMaster', 'Peng Zhao', 'P. Zhao'],
+    jobTitle: 'Staff Software Engineer & Quantitative Researcher',
     url: `${siteUrl}/about/`,
-    sameAs: ['https://x.com/zhaodatagrowth', 'https://github.com/pzhao16me', 'https://linkedin.com/in/peng-zhao-mei'],
-    knowsAbout: ['软件工程', 'AI 工具', '读书笔记', '计算机科学史', '图灵奖']
+    sameAs: [
+      'https://github.com/datashowme-me',
+      'https://github.com/pzhao16me',
+      'https://x.com/zhaodatagrowth',
+      'https://linkedin.com/in/peng-zhao-mei'
+    ],
+    knowsAbout: [
+      'AI Agent 与智能体工程',
+      '推荐系统与分布式软件架构',
+      '商业护城河与价值投资',
+      '计算机科学史与图灵奖',
+      'WebAssembly 与前端体感交互'
+    ]
+  },
+  {
+    '@type': 'ItemList',
+    '@id': navigationId,
+    name: 'WordsMaster 核心专栏导航',
+    itemListElement: siteNavigationElements
   },
   {
     '@type': 'WebPage',

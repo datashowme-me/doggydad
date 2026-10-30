@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { categories, getPostDate, withBase } from '../lib/blog';
 
-const SITE_NAME = 'DoggyDad';
-const SITE_DESCRIPTION = 'DoggyDad 是一个中文长期笔记博客，主题包括读书笔记、技术学习、计算机科学人物与图灵奖系列文章。';
+const SITE_NAME = 'WordsMaster (by DoggyDad)';
+const SITE_DESCRIPTION = 'WordsMaster (wordsmaster.app) 是由工程师 DoggyDad 主笔的深度技术演进、商业护城河与长期认知思考的独立数字花园与互动实验室。核心主题包括 AI Agent 工程范式、价值投资复利、经典读书笔记、计算机科学先驱与图灵奖全景，以及自研 WebAssembly/Three.js 体感互动实验。';
 
 const escapeText = (value = '') => value.replace(/\s+/g, ' ').trim();
 
