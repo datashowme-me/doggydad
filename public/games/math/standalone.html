@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>口算大冲关 · 100以内速算小能手（单文件离线版）</title>
+  <!-- 引入 Tailwind CSS 保证单文件即开即用 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --surface-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --brand-color: #2563eb;
+      --accent-rose: #f43f5e;
+      --border-color: #e2e8f0;
+    }
+    body.eye-mode {
+      --bg-primary: #fbf7ee;
+      --surface-card: #fffefb;
+      --text-main: #2d261e;
+      --text-muted: #796b58;
+      --border-color: #ede3ce;
+    }
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+    .slot-cursor {
+      display: inline-block;
+      width: 3px;
+      height: 44px;
+      background: var(--brand-color);
+      margin-left: 4px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .float-popup {
+      position: absolute;
+      font-size: 1.8rem;
+      font-weight: 900;
+      animation: floatUp 1.2s forwards;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 0; }
+      20% { transform: translateY(-15px) scale(1.15); opacity: 1; }
+      80% { transform: translateY(-45px) scale(1.05); opacity: 0.9; }
+      100% { transform: translateY(-70px) scale(0.9); opacity: 0; }
+    }
+    .pad-grid {
+      background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .fire-active {
+      animation: flameShake 0.4s infinite alternate;
+    }
+    @keyframes flameShake {
+      0% { transform: scale(1) rotate(-5deg); filter: drop-shadow(0 0 4px #f59e0b); }
+      100% { transform: scale(1.3) rotate(5deg); filter: drop-shadow(0 0 10px #ef4444); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col transition-colors duration-300">
+  <!-- 粒子特效 Canvas -->
+  <canvas id="fx-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- 顶部状态栏 -->
+  <header class="w-full max-w-4xl mx-auto px-4 py-3 flex items-center justify-between border-b border-slate-200">
+    <div class="flex items-center gap-2">
+      <span class="text-2xl">🧮</span>
+      <h1 class="text-xl font-bold tracking-tight">口算大冲关 · 100以内速算</h1>
+      <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">离线运行版</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btn-theme" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">🌿 护眼色</button>
+      <button id="btn-sound" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">🔊 音效</button>
+      <button id="btn-pad" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100">📝 草稿纸</button>
+      <button id="btn-fs" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">⛶ 全屏</button>
+    </div>
+  </header>
+
+  <!-- 页面主体 -->
+  <main class="flex-1 w-full max-w-3xl mx-auto px-4 py-6">
+    <!-- 1. 设置与开始界面 -->
+    <section id="view-setup" class="view-panel active">
+      <div class="text-center mb-6">
+        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-bold mb-2">小学生（1–3年级）专属训练营</span>
+        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">每天 5 分钟 · 算力大进阶</h2>
+        <p class="text-slate-500 text-sm mt-1">11大数段梯级自选、平滑晋级、智能键位切换与错题闭环，单文件纯前端零外挂运行！</p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+        <!-- 模式选择 -->
+        <div>
+          <label class="block text-sm font-bold text-slate-800 mb-2">🎮 训练模式</label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button type="button" class="mode-tab active border-2 border-blue-600 bg-blue-50 p-4 rounded-xl text-left" data-mode="progressive">
+              <div class="font-bold text-slate-900">🚀 逐级递增闯关（主打推荐）</div>
+              <div class="text-xs text-slate-500 mt-1">从 10 以内起步，每连对 3 题平滑晋级下一个数段，直冲百内满十与乘除</div>
+            </button>
+            <button type="button" class="mode-tab border-2 border-transparent bg-slate-50 p-4 rounded-xl text-left hover:bg-slate-100" data-mode="custom">
+              <div class="font-bold text-slate-900">🎯 自选梯级专项</div>
+              <div class="text-xs text-slate-500 mt-1">自由挑选特定数段（如 20以内退位、100以内或乘除法）进行专项突击</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 11级数段选择 -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-bold text-slate-800">📈 目标数段（共 11 个独立梯度）</label>
+            <span id="tier-hint" class="text-xs text-slate-400">闯关模式将从 10 以内开始动态晋升</span>
+          </div>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" id="tier-grid">
+            <button type="button" class="tier-btn active py-2 text-xs font-bold rounded-lg bg-blue-600 text-white" data-tier="0">10 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="1">20 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="2">30 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="3">40 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="4">50 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="5">60 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="6">70 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="7">80 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="8">90 以内</button>
+            <button type="button" class="tier-btn py-2 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-tier="9">100 以内</button>
+            <button type="button" class="tier-btn col-span-2 py-2 text-xs font-bold rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200" data-tier="10">表内乘除综合</button>
+          </div>
+        </div>
+
+        <!-- 题量与时间 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-800 mb-2">🎯 目标题量</label>
+            <div class="grid grid-cols-4 gap-1.5" id="count-picker">
+              <button type="button" class="count-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-count="30">30 题</button>
+              <button type="button" class="count-pill active py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white" data-count="50">50 题</button>
+              <button type="button" class="count-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-count="100">100 题</button>
+              <button type="button" class="count-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-count="0">极速刷题</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-800 mb-2">⏱️ 限时挑战</label>
+            <div class="grid grid-cols-4 gap-1.5" id="time-picker">
+              <button type="button" class="time-pill active py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white" data-time="300">5 分钟</button>
+              <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="180">3 分钟</button>
+              <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="600">10 分钟</button>
+              <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="0">不限时</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 开始按钮 -->
+        <div class="pt-4 flex flex-col items-center gap-3">
+          <button type="button" id="btn-start" class="w-full py-4 text-xl font-extrabold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-0.5">
+            ⚡ 立即开始口算冲关
+          </button>
+          <div class="flex gap-2">
+            <button type="button" id="btn-open-mistake-modal" class="px-4 py-2 text-xs font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">
+              📕 错题本 (<span id="badge-mistakes">0</span>)
+            </button>
+            <button type="button" id="btn-open-hist-modal" class="px-4 py-2 text-xs font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">
+              🏆 历史战绩
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 核心答题竞技面板 -->
+    <section id="view-play" class="view-panel">
+      <!-- 实时状态 HUD -->
+      <div class="bg-white rounded-xl border border-slate-200 p-3 mb-4 shadow-sm flex items-center justify-between gap-4 text-sm">
+        <div>
+          <span class="text-xs text-slate-400 font-bold block">当前梯段</span>
+          <span id="hud-tier" class="font-extrabold text-slate-900">10 以内</span>
+        </div>
+        <div class="flex-1 max-w-xs">
+          <div class="flex justify-between text-xs font-bold mb-1">
+            <span>第 <strong id="hud-idx" class="text-blue-600">1</strong> / <span id="hud-total">50</span> 题</span>
+            <span>正确率 <strong id="hud-acc" class="text-emerald-600">100%</strong></span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div id="hud-bar" class="bg-blue-600 h-full transition-all duration-300" style="width: 2%"></div>
+          </div>
+        </div>
+        <div id="hud-timer-box" class="text-right">
+          <span class="text-xs text-slate-400 font-bold block">剩余时间</span>
+          <span id="hud-timer" class="font-mono font-extrabold text-slate-900 text-lg">05:00</span>
+        </div>
+        <div class="flex items-center gap-1 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+          <span id="combo-fire" class="text-lg">🔥</span>
+          <span id="hud-combo" class="font-extrabold text-amber-700 text-base">0</span>
+          <span class="text-xs text-amber-800 font-semibold">连对</span>
+        </div>
+        <button id="btn-pause" class="px-2.5 py-1 text-xs font-bold border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100">⏸️ 暂停</button>
+      </div>
+
+      <!-- 题目卡片 -->
+      <div class="relative bg-white rounded-2xl border-2 border-slate-200 p-8 shadow-md flex flex-col items-center justify-between min-h-[460px]">
+        <!-- 升级金色横幅 -->
+        <div id="banner-levelup" class="hidden absolute top-12 inset-x-8 bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 p-6 rounded-2xl shadow-xl text-center border-2 border-amber-200 z-30 transition transform">
+          <div class="text-3xl mb-1">🎉 ⭐ ⚡</div>
+          <div id="levelup-title" class="text-2xl font-black">恭喜晋级！进入 20 以内数段！</div>
+          <div id="levelup-sub" class="text-sm font-bold mt-1 text-amber-900">破十法与凑十法关键突破，继续冲刺！</div>
+        </div>
+
+        <!-- 浮动飘字 -->
+        <div id="float-container" class="absolute top-1/3 inset-x-0 flex justify-center pointer-events-none z-20"></div>
+
+        <!-- 算式核心区 -->
+        <div class="w-full my-auto flex justify-center items-center py-6">
+          <!-- 常规计算题 -->
+          <div id="row-calc" class="flex items-center gap-4 text-5xl sm:text-6xl font-black tabular-nums tracking-wide">
+            <span id="calc-expr" class="text-slate-900">12 + 15</span>
+            <span class="text-slate-400">=</span>
+            <div id="calc-slot" class="min-w-[130px] h-20 px-4 flex items-center justify-center border-4 border-dashed border-slate-300 rounded-2xl bg-slate-50 text-blue-600">
+              <span id="calc-val"></span>
+              <span class="slot-cursor"></span>
+            </div>
+          </div>
+
+          <!-- 比大小题 -->
+          <div id="row-comp" class="hidden flex items-center gap-4 text-5xl sm:text-6xl font-black tabular-nums tracking-wide">
+            <span id="comp-left" class="text-slate-900">38 + 24</span>
+            <div id="comp-circle" class="w-20 h-20 rounded-full border-4 border-dashed border-slate-400 bg-slate-100 flex items-center justify-center text-slate-600 text-5xl">○</div>
+            <span id="comp-right" class="text-slate-900">60</span>
+          </div>
+        </div>
+
+        <!-- 智能互斥按键区 -->
+        <!-- 比大小 3 键 -->
+        <div id="keys-comp" class="hidden w-full max-w-md grid grid-cols-3 gap-3">
+          <button type="button" class="btn-sym flex flex-col items-center justify-center py-5 bg-rose-50 border-2 border-rose-200 text-rose-600 rounded-2xl hover:bg-rose-100 active:scale-95 shadow-sm" data-sym=">">
+            <span class="text-5xl font-black">&gt;</span>
+            <span class="text-sm font-bold mt-1">大于</span>
+            <span class="text-[10px] text-rose-400">键盘 &gt; 或 .</span>
+          </button>
+          <button type="button" class="btn-sym flex flex-col items-center justify-center py-5 bg-amber-50 border-2 border-amber-200 text-amber-600 rounded-2xl hover:bg-amber-100 active:scale-95 shadow-sm" data-sym="=">
+            <span class="text-5xl font-black">=</span>
+            <span class="text-sm font-bold mt-1">等于</span>
+            <span class="text-[10px] text-amber-400">键盘 = 或回车</span>
+          </button>
+          <button type="button" class="btn-sym flex flex-col items-center justify-center py-5 bg-emerald-50 border-2 border-emerald-200 text-emerald-600 rounded-2xl hover:bg-emerald-100 active:scale-95 shadow-sm" data-sym="<">
+            <span class="text-5xl font-black">&lt;</span>
+            <span class="text-sm font-bold mt-1">小于</span>
+            <span class="text-[10px] text-emerald-400">键盘 &lt; 或 ,</span>
+          </button>
+        </div>
+
+        <!-- 常规计算 0-9 触控小键盘 -->
+        <div id="keys-calc" class="w-full max-w-sm space-y-2">
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="1">1</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="2">2</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="3">3</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="4">4</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="5">5</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="6">6</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="7">7</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="8">8</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="9">9</button>
+            <button type="button" class="key-num py-3.5 bg-rose-50 text-rose-600 text-2xl font-black rounded-xl hover:bg-rose-100" data-k="c">C</button>
+            <button type="button" class="key-num py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-3xl font-extrabold rounded-xl shadow-sm" data-k="0">0</button>
+            <button type="button" class="key-num py-3.5 bg-blue-50 text-blue-600 text-2xl font-black rounded-xl hover:bg-blue-100" data-k="b">⌫</button>
+          </div>
+          <button type="button" id="btn-submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-lg rounded-xl shadow-md transition">
+            ✓ 确认提交 (Enter)
+          </button>
+        </div>
+      </div>
+      <p class="text-center text-xs text-slate-400 mt-3">提示：支持键盘直接键入数字与回车提交 · 随时按 Esc 键暂停</p>
+    </section>
+
+    <!-- 3. 大结算报告面板 -->
+    <section id="view-result" class="view-panel">
+      <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-md max-w-lg mx-auto text-center space-y-6">
+        <div class="text-6xl animate-bounce">🏆</div>
+        <div>
+          <h2 class="text-3xl font-black text-slate-900">恭喜完成练习！</h2>
+          <div id="res-honor" class="inline-block mt-2 bg-gradient-to-r from-amber-400 to-amber-600 text-white font-extrabold px-6 py-1.5 rounded-full text-base shadow">
+            速算小能手
+          </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <span id="res-total" class="block text-2xl font-black text-slate-900">0</span>
+            <span class="text-xs text-slate-400 font-semibold">总答题数</span>
+          </div>
+          <div>
+            <span id="res-acc" class="block text-2xl font-black text-emerald-600">0%</span>
+            <span class="text-xs text-slate-400 font-semibold">正确率</span>
+          </div>
+          <div>
+            <span id="res-speed" class="block text-2xl font-black text-blue-600">0.0s</span>
+            <span class="text-xs text-slate-400 font-semibold">平均每题</span>
+          </div>
+          <div>
+            <span id="res-streak" class="block text-2xl font-black text-amber-600">0</span>
+            <span class="text-xs text-slate-400 font-semibold">最高连对</span>
+          </div>
+        </div>
+
+        <p id="res-msg" class="text-sm text-slate-600 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+          表现优异！进退位技巧掌握纯熟，持之以恒，运算速度将更上一层楼！
+        </p>
+
+        <!-- 本轮错题列表 -->
+        <div id="box-round-mistakes" class="hidden text-left bg-rose-50 border border-rose-200 p-4 rounded-xl">
+          <div class="text-xs font-bold text-rose-800 mb-2">⚠️ 本轮发现 <span id="res-mistake-count">0</span> 道错题，已自动沉淀到错题本：</div>
+          <div id="list-round-mistakes" class="space-y-1.5 max-h-36 overflow-y-auto pr-1 text-xs"></div>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-2">
+          <button type="button" id="btn-replay" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl shadow-md">
+            🔁 再来一轮
+          </button>
+          <button type="button" id="btn-redo-round" class="hidden w-full py-3 bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold rounded-xl">
+            🎯 立即重做本轮错题
+          </button>
+          <button type="button" id="btn-home" class="w-full py-2.5 text-slate-600 hover:text-slate-900 font-bold text-sm">
+            🏠 返回主菜单
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 草稿纸抽屉 -->
+  <div id="drawer-pad" class="hidden fixed bottom-0 right-0 w-full sm:w-[460px] h-[360px] bg-white border-t sm:border-l-2 border-slate-300 shadow-2xl z-40 flex flex-col rounded-t-2xl overflow-hidden">
+    <div class="h-12 bg-slate-100 border-b border-slate-200 px-3 flex items-center justify-between">
+      <span class="text-xs font-bold text-slate-700">📝 手写草稿纸（随数列竖式）</span>
+      <div class="flex items-center gap-2">
+        <div class="flex gap-1">
+          <button class="pad-c-btn w-5 h-5 rounded-full border-2 border-white ring-2 ring-blue-600 bg-slate-900" data-c="#0f172a"></button>
+          <button class="pad-c-btn w-5 h-5 rounded-full border-2 border-white bg-blue-600" data-c="#2563eb"></button>
+          <button class="pad-c-btn w-5 h-5 rounded-full border-2 border-white bg-rose-600" data-c="#e11d48"></button>
+        </div>
+        <button id="pad-eraser" class="px-2 py-1 text-xs font-semibold bg-white border border-slate-300 rounded">🧹 橡皮</button>
+        <button id="pad-clear" class="px-2 py-1 text-xs font-semibold bg-white border border-slate-300 rounded">🗑️ 清空</button>
+        <button id="pad-close" class="px-2 py-1 text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 rounded">✖️ 收起</button>
+      </div>
+    </div>
+    <div class="flex-1 relative pad-grid cursor-crosshair">
+      <canvas id="canvas-pad" class="w-full h-full block"></canvas>
+    </div>
+  </div>
+
+  <!-- 错题本模态框 -->
+  <div id="modal-mistake" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-black text-slate-900">📕 错题专训闭环</h3>
+        <button id="close-mistake" class="text-slate-400 hover:text-slate-700 text-xl font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3">答对一道即自动移除一道，直到彻底掌握！</p>
+      <div id="box-mistake-items" class="flex-1 overflow-y-auto border border-slate-200 rounded-xl p-3 space-y-2 mb-4">
+        <div id="empty-mistake-hint" class="text-center text-slate-400 py-8 text-sm">🎉 太棒了，当前没有任何错题记录！</div>
+      </div>
+      <div class="flex gap-2">
+        <button id="btn-drill" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm">
+          🎯 一键重做错题
+        </button>
+        <button id="btn-clear-all-mistakes" class="px-4 py-3 bg-rose-50 text-rose-700 font-bold rounded-xl text-sm hover:bg-rose-100">
+          清空
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 历史战绩模态框 -->
+  <div id="modal-hist" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-black text-slate-900">🏆 历史成长脚印</h3>
+        <button id="close-hist" class="text-slate-400 hover:text-slate-700 text-xl font-bold">✕</button>
+      </div>
+      <div id="hist-list" class="flex-1 overflow-y-auto space-y-2 mb-2 text-xs">
+        <div class="text-center text-slate-400 py-8">暂无战绩，快去完成一局吧！</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 纯原生全功能单文件 JS
+    (function(){
+      // Web Audio
+      let audioCtx = null;
+      let muted = localStorage.getItem('kousuan_muted') === 'true';
+
+      function playTone(freq, dur, type='sine', gainVal=0.2, delay=0) {
+        if (muted) return;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if (!audioCtx) return;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const t = audioCtx.currentTime + delay;
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(gainVal, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + dur);
+      }
+
+      function soundOk() {
+        playTone(523.25, 0.15, 'triangle', 0.25, 0);
+        playTone(659.25, 0.15, 'triangle', 0.25, 0.08);
+        playTone(783.99, 0.25, 'triangle', 0.3, 0.16);
+      }
+      function soundErr() {
+        playTone(220, 0.18, 'sine', 0.2, 0);
+        playTone(180, 0.22, 'sine', 0.2, 0.12);
+      }
+      function soundUp() {
+        [261.63, 329.63, 392.00, 523.25, 659.25].forEach((f, i) => playTone(f, 0.2, 'sawtooth', 0.15, i*0.08));
+      }
+      function soundWin() {
+        [392.00, 523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, 0.35, 'triangle', 0.2, i*0.1));
+      }
+
+      // 阶梯
+      const TIERS = [
+        { id: 0, name: '10 以内', max: 10, title: '10 以内加减法' },
+        { id: 1, name: '20 以内', max: 20, title: '20 以内进位加与退位减' },
+        { id: 2, name: '30 以内', max: 30, title: '30 以内加减与连加' },
+        { id: 3, name: '40 以内', max: 40, title: '40 以内加减混合' },
+        { id: 4, name: '50 以内', max: 50, title: '50 以内速算' },
+        { id: 5, name: '60 以内', max: 60, title: '60 以内口算' },
+        { id: 6, name: '70 以内', max: 70, title: '70 以内混合' },
+        { id: 7, name: '80 以内', max: 80, title: '80 以内综合' },
+        { id: 8, name: '90 以内', max: 90, title: '90 以内大数' },
+        { id: 9, name: '100 以内', max: 100, title: '100 以内满十进退位' },
+        { id: 10, name: '表内乘除综合', max: 100, title: '九九乘法与表内整除' }
+      ];
+
+      function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+      function buildQuestion(tierIdx) {
+        if (tierIdx === 10) {
+          if (Math.random() < 0.25) {
+            const a = rand(2, 9), b = rand(2, 9), prod = a * b;
+            const target = prod + [0, -rand(1, 4), rand(1, 4)][rand(0, 2)];
+            let sym = '='; if (prod > target) sym = '>'; if (prod < target) sym = '<';
+            return { type: 'compare', left: `${a} × ${b}`, right: String(target), ans: sym, hash: `c_${a}x${b}_${target}` };
+          }
+          if (Math.random() < 0.5) {
+            const a = rand(2, 9), b = rand(2, 9);
+            return { type: 'calc', expr: `${a} × ${b}`, ans: String(a * b), hash: `m_${a}x${b}` };
+          } else {
+            const d = rand(2, 9), q = rand(1, 9);
+            return { type: 'calc', expr: `${d * q} ÷ ${d}`, ans: String(q), hash: `d_${d*q}/${d}` };
+          }
+        }
+
+        const max = TIERS[tierIdx].max;
+        if (Math.random() < 0.28) {
+          // 比大小
+          const a = rand(1, max - 2), b = rand(1, max - a), leftVal = a + b;
+          const mode = rand(0, 2);
+          let rightVal = leftVal, sym = '=';
+          if (mode === 1) { rightVal = leftVal - rand(1, 8); sym = '>'; }
+          else if (mode === 2) { rightVal = leftVal + rand(1, 8); sym = '<'; }
+          return { type: 'compare', left: `${a} + ${b}`, right: String(rightVal), ans: sym, hash: `cmp_${a}+${b}_${rightVal}` };
+        } else {
+          // 常规计算
+          if (Math.random() < 0.5) {
+            const a = rand(1, max - 1), b = rand(1, max - a);
+            return { type: 'calc', expr: `${a} + ${b}`, ans: String(a + b), hash: `a_${a}+${b}` };
+          } else {
+            const a = rand(2, max), b = rand(1, a);
+            return { type: 'calc', expr: `${a} - ${b}`, ans: String(a - b), hash: `s_${a}-${b}` };
+          }
+        }
+      }
+
+      // 状态
+      const state = {
+        mode: 'progressive',
+        tier: 0,
+        customTier: 0,
+        count: 50,
+        timeLimit: 300,
+        timeLeft: 300,
+        timer: null,
+        idx: 0,
+        answered: 0,
+        correct: 0,
+        streak: 0,
+        maxStreak: 0,
+        tierStreak: 0,
+        currQ: null,
+        val: '',
+        qStart: 0,
+        totalTime: 0,
+        roundMistakes: [],
+        drillQueue: []
+      };
+
+      // 元素
+      const $ = id => document.getElementById(id);
+      const vSetup = $('view-setup'), vPlay = $('view-play'), vRes = $('view-result');
+
+      function switchView(v) {
+        [vSetup, vPlay, vRes].forEach(el => el.classList.remove('active'));
+        if (v === 'setup') vSetup.classList.add('active');
+        if (v === 'play') vPlay.classList.add('active');
+        if (v === 'result') vRes.classList.add('active');
+      }
+
+      function start(isDrill = false) {
+        state.idx = 0; state.answered = 0; state.correct = 0; state.streak = 0;
+        state.maxStreak = 0; state.tierStreak = 0; state.val = ''; state.totalTime = 0;
+        state.roundMistakes = [];
+
+        if (isDrill) {
+          state.mode = 'drill';
+          state.drillQueue = JSON.parse(localStorage.getItem('kousuan_m_store') || '[]');
+          state.count = state.drillQueue.length;
+          state.timeLimit = 0;
+        } else {
+          state.tier = state.mode === 'progressive' ? 0 : state.customTier;
+        }
+
+        state.timeLeft = state.timeLimit;
+        switchView('play');
+        updateHUD();
+        nextQ();
+        startTimer();
+      }
+
+      function startTimer() {
+        clearInterval(state.timer);
+        if (state.timeLimit <= 0) { $('hud-timer-box').hidden = true; return; }
+        $('hud-timer-box').hidden = false;
+        state.timer = setInterval(() => {
+          state.timeLeft--;
+          const m = String(Math.floor(state.timeLeft / 60)).padStart(2, '0');
+          const s = String(state.timeLeft % 60).padStart(2, '0');
+          $('hud-timer').textContent = `${m}:${s}`;
+          if (state.timeLeft <= 0) finish();
+        }, 1000);
+      }
+
+      function nextQ() {
+        if (state.count > 0 && state.idx >= state.count) { finish(); return; }
+        state.idx++;
+        state.val = '';
+        state.qStart = Date.now();
+
+        if (state.mode === 'drill') {
+          const item = state.drillQueue[state.idx - 1];
+          if (!item) { finish(); return; }
+          state.currQ = item;
+        } else {
+          state.currQ = buildQuestion(state.tier);
+        }
+
+        renderQ();
+        updateHUD();
+      }
+
+      function renderQ() {
+        const q = state.currQ;
+        if (q.type === 'compare') {
+          $('row-calc').classList.add('hidden');
+          $('row-comp').classList.remove('hidden');
+          $('comp-left').textContent = q.left;
+          $('comp-right').textContent = q.right;
+          $('comp-circle').textContent = '○';
+          $('comp-circle').className = 'w-20 h-20 rounded-full border-4 border-dashed border-slate-400 bg-slate-100 flex items-center justify-center text-slate-600 text-5xl';
+          $('keys-calc').classList.add('hidden');
+          $('keys-comp').classList.remove('hidden');
+        } else {
+          $('row-comp').classList.add('hidden');
+          $('row-calc').classList.remove('hidden');
+          $('calc-expr').textContent = q.expr;
+          $('calc-val').textContent = '';
+          $('calc-slot').className = 'min-w-[130px] h-20 px-4 flex items-center justify-center border-4 border-dashed border-slate-300 rounded-2xl bg-slate-50 text-blue-600';
+          $('keys-comp').classList.add('hidden');
+          $('keys-calc').classList.remove('hidden');
+        }
+      }
+
+      function updateHUD() {
+        $('hud-tier').textContent = state.mode === 'drill' ? '错题专练' : TIERS[state.tier].name;
+        $('hud-idx').textContent = state.idx;
+        $('hud-total').textContent = state.count > 0 ? state.count : '∞';
+        const acc = state.answered > 0 ? Math.round((state.correct / state.answered) * 100) : 100;
+        $('hud-acc').textContent = `${acc}%`;
+        $('hud-bar').style.width = state.count > 0 ? `${(state.idx / state.count) * 100}%` : '100%';
+        $('hud-combo').textContent = state.streak;
+        if (state.streak >= 5) $('combo-fire').classList.add('fire-active');
+        else $('combo-fire').classList.remove('fire-active');
+      }
+
+      function submitAnswer(userAns) {
+        if (!state.currQ) return;
+        const q = state.currQ;
+        const ok = String(userAns).trim() === String(q.ans).trim();
+        const cost = Math.max(0.5, (Date.now() - state.qStart) / 1000);
+        state.totalTime += cost;
+        state.answered++;
+
+        if (ok) {
+          state.correct++;
+          state.streak++;
+          state.tierStreak++;
+          if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+          soundOk();
+          spawnBurst(window.innerWidth / 2, window.innerHeight * 0.4);
+
+          if (state.mode === 'drill') {
+            removeMistake(q.hash);
+          }
+
+          if (state.mode === 'progressive' && state.tierStreak >= 3 && state.tier < TIERS.length - 1) {
+            state.tierStreak = 0;
+            state.tier++;
+            soundUp();
+            $('levelup-title').textContent = `恭喜晋级！进入【${TIERS[state.tier].name}】！`;
+            $('banner-levelup').classList.remove('hidden');
+            setTimeout(() => {
+              $('banner-levelup').classList.add('hidden');
+              nextQ();
+            }, 1400);
+          } else {
+            setTimeout(nextQ, 260);
+          }
+        } else {
+          state.streak = 0;
+          state.tierStreak = 0;
+          soundErr();
+          const mItem = {
+            hash: q.hash,
+            type: q.type,
+            expr: q.type === 'calc' ? q.expr : `${q.left} ○ ${q.right}`,
+            ans: q.ans,
+            userAns: userAns || '(未填)'
+          };
+          state.roundMistakes.push(mItem);
+          saveMistake(mItem);
+
+          if (q.type === 'compare') {
+            $('comp-circle').textContent = q.ans;
+            $('comp-circle').className = 'w-20 h-20 rounded-full border-4 border-rose-500 bg-rose-50 flex items-center justify-center text-rose-600 text-5xl';
+          } else {
+            $('calc-val').textContent = q.ans;
+            $('calc-slot').className = 'min-w-[130px] h-20 px-4 flex items-center justify-center border-4 border-rose-500 rounded-2xl bg-rose-50 text-rose-600';
+          }
+          setTimeout(nextQ, 1000);
+        }
+      }
+
+      function finish() {
+        clearInterval(state.timer);
+        soundWin();
+        const acc = state.answered > 0 ? Math.round((state.correct / state.answered) * 100) : 0;
+        const spd = state.answered > 0 ? (state.totalTime / state.answered).toFixed(1) : '0.0';
+
+        $('res-total').textContent = state.answered;
+        $('res-acc').textContent = `${acc}%`;
+        $('res-speed').textContent = `${spd}s`;
+        $('res-streak').textContent = state.maxStreak;
+
+        let honor = '✨ 速算小能手';
+        if (acc >= 98 && parseFloat(spd) < 3) honor = '⚡ 无敌神算子';
+        else if (acc >= 95) honor = '🏆 数学小天才';
+        else if (acc >= 90) honor = '🌟 心算大师';
+        $('res-honor').textContent = honor;
+
+        if (state.roundMistakes.length > 0) {
+          $('box-round-mistakes').classList.remove('hidden');
+          $('btn-redo-round').classList.remove('hidden');
+          $('res-mistake-count').textContent = state.roundMistakes.length;
+          $('list-round-mistakes').innerHTML = state.roundMistakes.map(m => `
+            <div class="flex justify-between bg-white p-2 rounded border border-rose-100">
+              <span class="font-bold">${m.expr}</span>
+              <span>你的作答: <span class="line-through text-rose-600">${m.userAns}</span> ➔ 正确: <strong class="text-emerald-600">${m.ans}</strong></span>
+            </div>
+          `).join('');
+        } else {
+          $('box-round-mistakes').classList.add('hidden');
+          $('btn-redo-round').classList.add('hidden');
+        }
+
+        saveHistory({ date: new Date().toLocaleDateString('zh-CN'), total: state.answered, acc, spd, honor });
+        updateMistakeCount();
+        switchView('result');
+      }
+
+      // 错题持久化
+      function saveMistake(item) {
+        let list = JSON.parse(localStorage.getItem('kousuan_m_store') || '[]');
+        if (!list.some(x => x.hash === item.hash)) {
+          list.push(item);
+          localStorage.setItem('kousuan_m_store', JSON.stringify(list));
+        }
+        updateMistakeCount();
+      }
+      function removeMistake(hash) {
+        let list = JSON.parse(localStorage.getItem('kousuan_m_store') || '[]');
+        list = list.filter(x => x.hash !== hash);
+        localStorage.setItem('kousuan_m_store', JSON.stringify(list));
+        updateMistakeCount();
+      }
+      function updateMistakeCount() {
+        const list = JSON.parse(localStorage.getItem('kousuan_m_store') || '[]');
+        $('badge-mistakes').textContent = list.length;
+      }
+      function saveHistory(rec) {
+        let list = JSON.parse(localStorage.getItem('kousuan_h_store') || '[]');
+        list.unshift(rec);
+        if (list.length > 30) list.pop();
+        localStorage.setItem('kousuan_h_store', JSON.stringify(list));
+      }
+
+      // 粒子
+      const fxCanvas = $('fx-canvas');
+      const fxCtx = fxCanvas.getContext('2d');
+      let particles = [];
+      function resizeFx() { fxCanvas.width = window.innerWidth; fxCanvas.height = window.innerHeight; }
+      window.addEventListener('resize', resizeFx);
+      resizeFx();
+
+      function spawnBurst(x, y) {
+        const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899'];
+        for (let i = 0; i < 30; i++) {
+          const a = Math.random() * Math.PI * 2, sp = Math.random() * 8 + 3;
+          particles.push({
+            x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 2,
+            size: Math.random() * 6 + 3, color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 1, decay: 0.02
+          });
+        }
+        if (!window.fxLoop) animFx();
+      }
+      function animFx() {
+        fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.alpha -= p.decay;
+          if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+          fxCtx.globalAlpha = p.alpha;
+          fxCtx.fillStyle = p.color;
+          fxCtx.beginPath();
+          fxCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          fxCtx.fill();
+        }
+        if (particles.length > 0) window.fxLoop = requestAnimationFrame(animFx);
+        else window.fxLoop = null;
+      }
+
+      // 草稿纸
+      const padC = $('canvas-pad'), padCtx = padC.getContext('2d');
+      let drawing = false, pCol = '#0f172a', isEraser = false, lx = 0, ly = 0;
+      function resizePad() {
+        const box = $('drawer-pad').getBoundingClientRect();
+        padC.width = box.width;
+        padC.height = box.height - 48;
+      }
+      padC.addEventListener('pointerdown', e => {
+        drawing = true;
+        const rect = padC.getBoundingClientRect();
+        lx = e.clientX - rect.left; ly = e.clientY - rect.top;
+      });
+      padC.addEventListener('pointermove', e => {
+        if (!drawing) return;
+        const rect = padC.getBoundingClientRect();
+        const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+        padCtx.beginPath();
+        padCtx.moveTo(lx, ly); padCtx.lineTo(cx, cy);
+        padCtx.lineCap = 'round';
+        padCtx.strokeStyle = isEraser ? '#ffffff' : pCol;
+        padCtx.lineWidth = isEraser ? 24 : 3;
+        padCtx.stroke();
+        lx = cx; ly = cy;
+      });
+      padC.addEventListener('pointerup', () => drawing = false);
+      $('pad-eraser').onclick = () => isEraser = !isEraser;
+      $('pad-clear').onclick = () => padCtx.clearRect(0, 0, padC.width, padC.height);
+      $('pad-close').onclick = () => $('drawer-pad').classList.add('hidden');
+      $('btn-pad').onclick = () => {
+        $('drawer-pad').classList.toggle('hidden');
+        if (!$('drawer-pad').classList.contains('hidden')) resizePad();
+      };
+      document.querySelectorAll('.pad-c-btn').forEach(btn => {
+        btn.onclick = () => { isEraser = false; pCol = btn.dataset.c; };
+      });
+
+      // 交互绑定
+      document.querySelectorAll('.mode-tab').forEach(b => {
+        b.onclick = () => {
+          document.querySelectorAll('.mode-tab').forEach(x => {
+            x.classList.remove('active', 'border-blue-600', 'bg-blue-50');
+            x.classList.add('border-transparent', 'bg-slate-50');
+          });
+          b.classList.add('active', 'border-blue-600', 'bg-blue-50');
+          b.classList.remove('border-transparent', 'bg-slate-50');
+          state.mode = b.dataset.mode;
+        };
+      });
+
+      document.querySelectorAll('.tier-btn').forEach(b => {
+        b.onclick = () => {
+          document.querySelectorAll('.tier-btn').forEach(x => {
+            x.classList.remove('active', 'bg-blue-600', 'text-white');
+            x.classList.add('bg-slate-100', 'text-slate-700');
+          });
+          b.classList.add('active', 'bg-blue-600', 'text-white');
+          b.classList.remove('bg-slate-100', 'text-slate-700');
+          state.customTier = parseInt(b.dataset.tier);
+          state.mode = 'custom';
+        };
+      });
+
+      document.querySelectorAll('.count-pill').forEach(b => {
+        b.onclick = () => {
+          document.querySelectorAll('.count-pill').forEach(x => {
+            x.classList.remove('active', 'bg-blue-600', 'text-white');
+            x.classList.add('bg-slate-100', 'text-slate-700');
+          });
+          b.classList.add('active', 'bg-blue-600', 'text-white');
+          state.count = parseInt(b.dataset.count);
+        };
+      });
+
+      document.querySelectorAll('.time-pill').forEach(b => {
+        b.onclick = () => {
+          document.querySelectorAll('.time-pill').forEach(x => {
+            x.classList.remove('active', 'bg-blue-600', 'text-white');
+            x.classList.add('bg-slate-100', 'text-slate-700');
+          });
+          b.classList.add('active', 'bg-blue-600', 'text-white');
+          state.timeLimit = parseInt(b.dataset.time);
+        };
+      });
+
+      $('btn-start').onclick = () => start(false);
+      $('btn-replay').onclick = () => start(false);
+      $('btn-redo-round').onclick = () => start(true);
+      $('btn-home').onclick = () => switchView('setup');
+
+      // 按键
+      document.querySelectorAll('.btn-sym').forEach(b => {
+        b.onclick = () => {
+          $('comp-circle').textContent = b.dataset.sym;
+          submitAnswer(b.dataset.sym);
+        };
+      });
+
+      document.querySelectorAll('.key-num').forEach(b => {
+        b.onclick = () => {
+          const k = b.dataset.k;
+          if (k === 'c') state.val = '';
+          else if (k === 'b') state.val = state.val.slice(0, -1);
+          else if (state.val.length < 5) state.val += k;
+          $('calc-val').textContent = state.val;
+        };
+      });
+
+      $('btn-submit').onclick = () => {
+        if (state.val) submitAnswer(state.val);
+      };
+
+      // 键盘
+      window.addEventListener('keydown', e => {
+        if (!vPlay.classList.contains('active')) return;
+        if (state.currQ && state.currQ.type === 'compare') {
+          if (e.key === '>' || e.key === '.') submitAnswer('>');
+          if (e.key === '<' || e.key === ',') submitAnswer('<');
+          if (e.key === '=' || e.key === 'Enter') submitAnswer('=');
+        } else {
+          if (/^[0-9]$/.test(e.key)) {
+            if (state.val.length < 5) state.val += e.key;
+            $('calc-val').textContent = state.val;
+          } else if (e.key === 'Backspace') {
+            state.val = state.val.slice(0, -1);
+            $('calc-val').textContent = state.val;
+          } else if (e.key === 'Enter') {
+            if (state.val) submitAnswer(state.val);
+          }
+        }
+      });
+
+      // 护眼与音效
+      $('btn-theme').onclick = () => {
+        const isWarm = document.body.classList.toggle('eye-mode');
+        $('btn-theme').textContent = isWarm ? '☀️ 明亮色' : '🌿 护眼色';
+      };
+      $('btn-sound').onclick = () => {
+        muted = !muted;
+        localStorage.setItem('kousuan_muted', String(muted));
+        $('btn-sound').textContent = muted ? '🔇 静音' : '🔊 音效';
+      };
+      $('btn-fs').onclick = () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      };
+
+      // 错题弹窗
+      $('btn-open-mistake-modal').onclick = () => {
+        const list = JSON.parse(localStorage.getItem('kousuan_m_store') || '[]');
+        if (list.length === 0) {
+          $('empty-mistake-hint').hidden = false;
+          $('box-mistake-items').innerHTML = '<div class="text-center text-slate-400 py-8 text-sm">🎉 太棒了，当前没有任何错题记录！</div>';
+        } else {
+          $('empty-mistake-hint').hidden = true;
+          $('box-mistake-items').innerHTML = list.map(m => `
+            <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <span class="font-extrabold text-sm text-slate-900">${m.expr}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs">你的答案: <span class="line-through text-rose-600">${m.userAns}</span> ➔ 正确: <strong class="text-emerald-600">${m.ans}</strong></span>
+                <button class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-bold hover:bg-emerald-100" onclick="window.delMistake('${m.hash}')">✓ 掌握</button>
+              </div>
+            </div>
+          `).join('');
+        }
+        $('modal-mistake').classList.remove('hidden');
+      };
+      $('close-mistake').onclick = () => $('modal-mistake').classList.add('hidden');
+      $('btn-clear-all-mistakes').onclick = () => {
+        if (confirm('确认清空所有错题记录？')) {
+          localStorage.removeItem('kousuan_m_store');
+          updateMistakeCount();
+          $('modal-mistake').classList.add('hidden');
+        }
+      };
+      $('btn-drill').onclick = () => {
+        $('modal-mistake').classList.add('hidden');
+        start(true);
+      };
+      window.delMistake = function(hash) {
+        removeMistake(hash);
+        $('btn-open-mistake-modal').click();
+      };
+
+      // 历史弹窗
+      $('btn-open-hist-modal').onclick = () => {
+        const list = JSON.parse(localStorage.getItem('kousuan_h_store') || '[]');
+        if (list.length === 0) {
+          $('hist-list').innerHTML = '<div class="text-center text-slate-400 py-8">暂无战绩，快去完成一局吧！</div>';
+        } else {
+          $('hist-list').innerHTML = list.map(h => `
+            <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <div>
+                <span class="font-bold text-slate-800">${h.honor}</span>
+                <span class="text-slate-400 text-[10px] block">${h.date}</span>
+              </div>
+              <div class="text-right">
+                <span class="font-bold text-emerald-600">${h.acc}% 正确率</span>
+                <span class="text-slate-500 text-[10px] block">${h.total} 题 · 均速 ${h.spd}s</span>
+              </div>
+            </div>
+          `).join('');
+        }
+        $('modal-hist').classList.remove('hidden');
+      };
+      $('close-hist').onclick = () => $('modal-hist').classList.add('hidden');
+
+      updateMistakeCount();
+    })();
+  </script>
+</body>
+</html>

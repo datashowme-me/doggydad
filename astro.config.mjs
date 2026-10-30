@@ -38,7 +38,9 @@ export default defineConfig({
   ],
   redirects: {
     '/games/artcatcher': '/games/artcatcher/index.html',
-    '/games/artcatcher/': '/games/artcatcher/index.html'
+    '/games/artcatcher/': '/games/artcatcher/index.html',
+    '/games/kousuan': '/games/math/',
+    '/games/kousuan/': '/games/math/'
   },
   markdown: {
     remarkPlugins: [remarkDemoteFirstHeading],
