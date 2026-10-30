@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <filter id="shadow2" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <rect width="960" height="480" fill="url(#bgGrad2)" />
+
+  <!-- Title -->
+  <text x="480" y="44" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="22" font-weight="800" fill="#f8fafc" text-anchor="middle">
+    区分三种工作：Activity（活动）➔ Output（产出）➔ Outcome（价值结果）
+  </text>
+  <text x="480" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="13" fill="#94a3b8" text-anchor="middle">
+    高绩效者的核心思维转换：不把“忙碌”当成就，不把“交付”当终点，只以“解决问题与实际改变”论英雄
+  </text>
+
+  <!-- 3 Columns Container -->
+  <!-- Column 1: Activity -->
+  <g transform="translate(40, 100)" filter="url(#shadow2)">
+    <rect width="260" height="270" rx="14" fill="#1e293b" stroke="#475569" stroke-width="1.5" />
+    <path d="M 0 14 Q 0 0 14 0 L 246 0 Q 260 0 260 14 L 260 52 L 0 52 Z" fill="#334155" />
+    <text x="130" y="32" font-family="sans-serif" font-size="16" font-weight="800" fill="#cbd5e1" text-anchor="middle">1. Activity（活动）</text>
+    <text x="130" y="46" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">“我做了什么？”（忙碌感）</text>
+
+    <text x="20" y="80" font-family="sans-serif" font-size="13" font-weight="700" fill="#e2e8f0">典型表现：</text>
+    <text x="20" y="104" font-family="sans-serif" font-size="12" fill="#94a3b8">• 参加了 5 个跨部门对齐会议</text>
+    <text x="20" y="128" font-family="sans-serif" font-size="12" fill="#94a3b8">• 调参 20 次模型，跑了大量试验</text>
+    <text x="20" y="152" font-family="sans-serif" font-size="12" fill="#94a3b8">• 看了 10 篇前沿 AI 框架论文</text>
+    <text x="20" y="176" font-family="sans-serif" font-size="12" fill="#94a3b8">• 每天工作 12 小时全力以赴</text>
+
+    <rect x="18" y="206" width="224" height="48" rx="8" fill="#0f172a" stroke="#64748b" stroke-width="0.8" />
+    <text x="130" y="226" font-family="sans-serif" font-size="11" font-weight="700" fill="#ef4444" text-anchor="middle">⚠️ 常见陷阱</text>
+    <text x="130" y="244" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">把精力投入当成成果，陷入自我感动</text>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <g transform="translate(312, 220)">
+    <circle cx="16" cy="0" r="16" fill="#334155" />
+    <path d="M 10 -6 L 22 0 L 10 6" fill="none" stroke="#f8fafc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+
+  <!-- Column 2: Output -->
+  <g transform="translate(350, 100)" filter="url(#shadow2)">
+    <rect width="260" height="270" rx="14" fill="#1e293b" stroke="#d97706" stroke-width="1.5" />
+    <path d="M 0 14 Q 0 0 14 0 L 246 0 Q 260 0 260 14 L 260 52 L 0 52 Z" fill="#78350f" fill-opacity="0.8" />
+    <text x="130" y="32" font-family="sans-serif" font-size="16" font-weight="800" fill="#fde68a" text-anchor="middle">2. Output（产出）</text>
+    <text x="130" y="46" font-family="sans-serif" font-size="11" fill="#fcd34d" text-anchor="middle">“我交付了什么？”（功能物）</text>
+
+    <text x="20" y="80" font-family="sans-serif" font-size="13" font-weight="700" fill="#e2e8f0">典型表现：</text>
+    <text x="20" y="104" font-family="sans-serif" font-size="12" fill="#94a3b8">• 交付了一个新推荐算法模型</text>
+    <text x="20" y="128" font-family="sans-serif" font-size="12" fill="#94a3b8">• 编写完成 60 页功能 PRD 规格</text>
+    <text x="20" y="152" font-family="sans-serif" font-size="12" fill="#94a3b8">• 跑通了一个 AI Agent 原型 Demo</text>
+    <text x="20" y="176" font-family="sans-serif" font-size="12" fill="#94a3b8">• 写了十篇技术解析与学习笔记</text>
+
+    <rect x="18" y="206" width="224" height="48" rx="8" fill="#0f172a" stroke="#d97706" stroke-width="0.8" />
+    <text x="130" y="226" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b" text-anchor="middle">⚠️ 思考盲区</text>
+    <text x="130" y="244" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">交付物不等于被实际采用并起效</text>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <g transform="translate(622, 220)">
+    <circle cx="16" cy="0" r="16" fill="#065f46" />
+    <path d="M 10 -6 L 22 0 L 10 6" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+
+  <!-- Column 3: Outcome -->
+  <g transform="translate(660, 100)" filter="url(#shadow2)">
+    <rect width="260" height="270" rx="14" fill="#064e3b" fill-opacity="0.3" stroke="#10b981" stroke-width="2" />
+    <path d="M 0 14 Q 0 0 14 0 L 246 0 Q 260 0 260 14 L 260 52 L 0 52 Z" fill="#065f46" />
+    <text x="130" y="32" font-family="sans-serif" font-size="16" font-weight="800" fill="#a7f3d0" text-anchor="middle">3. Outcome（结果价值）</text>
+    <text x="130" y="46" font-family="sans-serif" font-size="11" fill="#6ee7b7" text-anchor="middle">“到底改变了什么？”（终极影响）</text>
+
+    <text x="20" y="80" font-family="sans-serif" font-size="13" font-weight="700" fill="#ecfdf5">高绩效衡量基准：</text>
+    <text x="20" y="104" font-family="sans-serif" font-size="12" fill="#a7f3d0">• 推荐曝光点击与商业收益提升 18%</text>
+    <text x="20" y="128" font-family="sans-serif" font-size="12" fill="#a7f3d0">• 真实用户持续付费并留下高留存</text>
+    <text x="20" y="152" font-family="sans-serif" font-size="12" fill="#a7f3d0">• 核心流程自动化，耗时节省 70%</text>
+    <text x="20" y="176" font-family="sans-serif" font-size="12" fill="#a7f3d0">• 投资逻辑规避重大回撤，捕获阿尔法</text>
+
+    <rect x="18" y="206" width="224" height="48" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1" />
+    <text x="130" y="226" font-family="sans-serif" font-size="11" font-weight="700" fill="#34d399" text-anchor="middle">🎯 核心跃迁</text>
+    <text x="130" y="244" font-family="sans-serif" font-size="11" fill="#ecfdf5" text-anchor="middle">真正的价值：只有 Outcome 才是真金白银</text>
+  </g>
+
+  <!-- Bottom Summary Callout -->
+  <g transform="translate(40, 396)">
+    <rect width="880" height="62" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2" />
+    <text x="440" y="26" font-family="sans-serif" font-size="13" font-weight="800" fill="#38bdf8" text-anchor="middle">
+      工作思考范式逆转：从「方案 ➔ 实现 ➔ 交付」倒转为「痛点 ➔ 价值目标 ➔ 关键瓶颈 ➔ 方案验证」
+    </text>
+    <text x="440" y="47" font-family="sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">
+      “一个优秀的专业人员不仅需要知道如何实现方案，更需要准确判断这个方案是否值得被实现。”
+    </text>
+  </g>
+</svg>

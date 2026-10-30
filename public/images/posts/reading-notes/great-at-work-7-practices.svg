@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="cardGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#312e81" stop-opacity="0.4" />
+    </linearGradient>
+    <linearGradient id="cardGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#065f46" stop-opacity="0.4" />
+    </linearGradient>
+    <linearGradient id="cardGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#92400e" stop-opacity="0.4" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="540" fill="url(#bgGrad)" />
+
+  <!-- Grid decoration lines -->
+  <g stroke="#334155" stroke-width="1" stroke-dasharray="4,8" opacity="0.3">
+    <line x1="40" y1="90" x2="920" y2="90" />
+    <line x1="40" y1="460" x2="920" y2="460" />
+    <line x1="480" y1="90" x2="480" y2="460" />
+  </g>
+
+  <!-- Header -->
+  <text x="480" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="24" font-weight="800" fill="#f8fafc" text-anchor="middle" letter-spacing="1">
+    《Great at Work》高绩效七项工作实践系统全景图
+  </text>
+  <text x="480" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="13" font-weight="400" fill="#94a3b8" text-anchor="middle">
+    Morten Hansen · 5,000 人实证研究：少做、做到极致，把投入转化为真实商业与个人价值
+  </text>
+
+  <!-- LEFT GROUP: 个人效能与内核 (4 cards) -->
+  <rect x="40" y="102" width="425" height="340" rx="16" fill="#1e293b" fill-opacity="0.5" stroke="#475569" stroke-width="1.2" filter="url(#cardShadow)" />
+  <rect x="56" y="118" width="130" height="26" rx="13" fill="#3b82f6" fill-opacity="0.2" stroke="#60a5fa" stroke-width="1" />
+  <text x="121" y="136" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="12" font-weight="700" fill="#93c5fd" text-anchor="middle">
+    一、个人效能与内核
+  </text>
+
+  <!-- Item 1: Do Less Then Obsess -->
+  <g transform="translate(56, 156)">
+    <rect width="393" height="60" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="1" />
+    <circle cx="28" cy="30" r="14" fill="#0284c7" />
+    <text x="28" y="35" font-family="sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+    <text x="52" y="26" font-family="sans-serif" font-size="14" font-weight="700" fill="#f1f5f9">Do Less, Then Obsess（少做，做到极致）</text>
+    <text x="52" y="46" font-family="sans-serif" font-size="12" fill="#94a3b8">选择极少数真正重要的战略问题，以压倒性注意力形成壁垒</text>
+  </g>
+
+  <!-- Item 2: Redesign Your Work -->
+  <g transform="translate(56, 226)">
+    <rect width="393" height="60" rx="10" fill="#0f172a" stroke="#34d399" stroke-width="1" />
+    <circle cx="28" cy="30" r="14" fill="#059669" />
+    <text x="28" y="35" font-family="sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+    <text x="52" y="26" font-family="sans-serif" font-size="14" font-weight="700" fill="#f1f5f9">Redesign Your Work（重构工作，创造价值）</text>
+    <text x="52" y="46" font-family="sans-serif" font-size="12" fill="#94a3b8">不追求把原工作变快，而是从 Activity 转向最终 Outcome</text>
+  </g>
+
+  <!-- Item 3: Don't Just Learn, Loop -->
+  <g transform="translate(56, 296)">
+    <rect width="393" height="60" rx="10" fill="#0f172a" stroke="#fbbf24" stroke-width="1" />
+    <circle cx="28" cy="30" r="14" fill="#d97706" />
+    <text x="28" y="35" font-family="sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+    <text x="52" y="26" font-family="sans-serif" font-size="14" font-weight="700" fill="#f1f5f9">Don't Just Learn, Loop（建立反馈循环）</text>
+    <text x="52" y="46" font-family="sans-serif" font-size="12" fill="#94a3b8">明确技能 → 刻意练习 → 测量反馈 → 纠偏验证，促成能力改变</text>
+  </g>
+
+  <!-- Item 4: P-Squared -->
+  <g transform="translate(56, 366)">
+    <rect width="393" height="60" rx="10" fill="#0f172a" stroke="#f472b6" stroke-width="1" />
+    <circle cx="28" cy="30" r="14" fill="#db2777" />
+    <text x="28" y="35" font-family="sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+    <text x="52" y="26" font-family="sans-serif" font-size="14" font-weight="700" fill="#f1f5f9">P-Squared（热情 Passion × 意义 Purpose）</text>
+    <text x="52" y="46" font-family="sans-serif" font-size="12" fill="#94a3b8">个人长期愿景与社会/组织真实价值结合，提供不竭动力源</text>
+  </g>
+
+  <!-- RIGHT GROUP: 组织协同与影响力 (3 cards) -->
+  <rect x="495" y="102" width="425" height="340" rx="16" fill="#1e293b" fill-opacity="0.5" stroke="#475569" stroke-width="1.2" filter="url(#cardShadow)" />
+  <rect x="511" y="118" width="146" height="26" rx="13" fill="#a855f7" fill-opacity="0.2" stroke="#c084fc" stroke-width="1" />
+  <text x="584" y="136" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="12" font-weight="700" fill="#d8b4fe" text-anchor="middle">
+    二、组织协同与影响力
+  </text>
+
+  <!-- Item 5: Forceful Champions -->
+  <g transform="translate(511, 160)">
+    <rect width="393" height="74" rx="10" fill="#0f172a" stroke="#818cf8" stroke-width="1" />
+    <circle cx="28" cy="37" r="14" fill="#4f46e5" />
+    <text x="28" y="42" font-family="sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">5</text>
+    <text x="52" y="30" font-family="sans-serif" font-size="14" font-weight="700" fill="#f1f5f9">Forceful Champions（有效推动与争取支持）</text>
+    <text x="52" y="52" font-family="sans-serif" font-size="12" fill="#94a3b8">好想法不会自动落地。用商业语言、严密证据与同理心</text>
+    <text x="52" y="68" font-family="sans-serif" font-size="12" fill="#94a3b8">让方案跨越部门藩篱真正落地</text>
+  </g>
+
+  <!-- Item 6: Fight and Unite -->
+  <g transform="translate(511, 248)">
+    <rect width="393" height="74" rx="10" fill="#0f172a" stroke="#fb7185" stroke-width="1" />
+    <circle cx="28" cy="37" r="14" fill="#e11d48" />
+    <text x="28" y="42" font-family="sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">6</text>
+    <text x="52" y="30" font-family="sans-serif" font-size="14" font-weight="700" fill="#f1f5f9">Fight and Unite（充分争论，统一行动）</text>
+    <text x="52" y="52" font-family="sans-serif" font-size="12" fill="#94a3b8">决策前鼓励建设性冲突、挑战假设；</text>
+    <text x="52" y="68" font-family="sans-serif" font-size="12" fill="#94a3b8">决议一旦形成，全力协作执行并保留证据修正通道</text>
+  </g>
+
+  <!-- Item 7: Disciplined Collaboration -->
+  <g transform="translate(511, 336)">
+    <rect width="393" height="74" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="1" />
+    <circle cx="28" cy="37" r="14" fill="#0284c7" />
+    <text x="28" y="42" font-family="sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">7</text>
+    <text x="52" y="30" font-family="sans-serif" font-size="14" font-weight="700" fill="#f1f5f9">Disciplined Collaboration（有纪律的协作）</text>
+    <text x="52" y="52" font-family="sans-serif" font-size="12" fill="#94a3b8">合作不是越多越好！只有收益明显大于沟通成本时协作；</text>
+    <text x="52" y="68" font-family="sans-serif" font-size="12" fill="#94a3b8">严控边界、职责与接口契约</text>
+  </g>
+
+  <!-- Bottom Banner -->
+  <g transform="translate(40, 462)">
+    <rect width="880" height="56" rx="12" fill="#0f172a" stroke="#334155" stroke-width="1.2" />
+    <text x="440" y="27" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="13" font-weight="700" fill="#fbbf24" text-anchor="middle">
+      核心系统逻辑：选择 (Do Less) ➔ 价值 (Redesign) ➔ 成长 (Loop) ➔ 动力 (P²) ➔ 推动 (Champion) ➔ 决策 (Unite) ➔ 边界 (Collaborate)
+    </text>
+    <text x="440" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">
+      在有限的时间、精力与资源下，持续提高个人能力与创造实际商业价值
+    </text>
+  </g>
+</svg>
