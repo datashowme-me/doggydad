@@ -28,6 +28,7 @@ User-agent: ClaudeBot
 Allow: /
 
 Sitemap: ${sitemap}
+Sitemap: ${new URL(`${import.meta.env.BASE_URL}sitemap.xml`, site || 'https://wordsmaster.app')}
 # LLMs: ${llms}
 # Training-crawler policy is intentionally not finalized in robots.txt yet. See /seo_to_do.md in the repository.
 `;
