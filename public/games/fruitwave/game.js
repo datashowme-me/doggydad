@@ -73,11 +73,6 @@ const HAND_BUNDLE = new URL('vendor/vision_bundle.mjs', SCRIPT_BASE).href;
 const HAND_WASM = new URL('vendor/wasm', SCRIPT_BASE).href.replace(/\/$/, '');
 const HAND_MODEL = new URL('vendor/models/hand_landmarker.task', SCRIPT_BASE).href;
 
-// 备用公共 CDN（在本地文件缺失或被 CSP 限制时作为第二层保障）
-const CDN_BUNDLE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
-const CDN_WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
-const CDN_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-
 const CAMERA_TIMEOUT_MS = 10000;
 const MODEL_STEP_TIMEOUT_MS = 8000;
 
@@ -1455,40 +1450,23 @@ async function loadLandmarker() {
 
   let mod = null;
   let fileset = null;
-  let usingCdn = false;
 
-  // 阶段 1：加载 JS 模块与 WASM 引擎（优先本地，超时 8 秒自动无缝切换备用 CDN）
+  // 阶段 1：加载 JS 模块与 WASM 引擎（100% 离线本地加速）
   setStatus('正在初始化手势识别组件…', '正在加载计算核心 (WASM)');
-  try {
-    mod = await withTimeout(import(HAND_BUNDLE), MODEL_STEP_TIMEOUT_MS, 'local bundle timeout');
-    if (epoch !== camEpoch) throw abortError();
+  mod = await withTimeout(import(HAND_BUNDLE), MODEL_STEP_TIMEOUT_MS, 'local bundle timeout');
+  if (epoch !== camEpoch) throw abortError();
 
-    fileset = await withTimeout(
-      mod.FilesetResolver.forVisionTasks(HAND_WASM),
-      MODEL_STEP_TIMEOUT_MS,
-      'local wasm timeout'
-    );
-  } catch (errLocal) {
-    if (errLocal && errLocal.name === 'AbortError') throw errLocal;
-    console.warn('[FruitWave] 本地手势核心加载受阻，正在启用备用 CDN 通道：', errLocal);
-    usingCdn = true;
-    setStatus('正在切换备用通道加载手势模型…', '正在连接 CDN 加速网络');
-
-    mod = await withTimeout(import(CDN_BUNDLE), MODEL_STEP_TIMEOUT_MS, 'cdn bundle timeout');
-    if (epoch !== camEpoch) throw abortError();
-
-    fileset = await withTimeout(
-      mod.FilesetResolver.forVisionTasks(CDN_WASM),
-      MODEL_STEP_TIMEOUT_MS,
-      'cdn wasm timeout'
-    );
-  }
+  fileset = await withTimeout(
+    mod.FilesetResolver.forVisionTasks(HAND_WASM),
+    MODEL_STEP_TIMEOUT_MS,
+    'local wasm timeout'
+  );
 
   if (epoch !== camEpoch) throw abortError();
 
   // 阶段 2：加载手部姿态识别模型权重
   setStatus('正在载入手势识别模型（约 8MB）…', '首次载入耗时数秒，已启用本地持久缓存');
-  const modelPath = usingCdn ? CDN_MODEL : HAND_MODEL;
+  const modelPath = HAND_MODEL;
 
   const baseOpts = {
     baseOptions: { modelAssetPath: modelPath, delegate: 'GPU' },

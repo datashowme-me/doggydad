@@ -1262,6 +1262,7 @@ const canonicalUrl = `${siteUrl}/games/math/`;
       <div class="header-tools">
         <button id="btn-toggle-eye" class="tool-btn" title="切换护眼模式">🌿 护眼</button>
         <button id="btn-toggle-sound" class="tool-btn" title="开关音效">🔊 音效</button>
+        <button id="btn-toggle-fx" class="tool-btn highlight" title="PixelFX 像素动效开关（基于 patch-gg/pixelfx 驱动）">✨ PixelFX: 开</button>
         <button id="btn-toggle-pad" class="tool-btn highlight" title="随手手写列竖式">📝 草稿纸</button>
         <button id="btn-toggle-fs" class="tool-btn" title="全屏练习">⛶ 全屏</button>
       </div>
@@ -1364,8 +1365,8 @@ const canonicalUrl = `${siteUrl}/games/math/`;
             ⚡ 立即开始口算冲关
           </button>
           <div class="sub-actions">
-            <button type="button" id="btn-test-sound" class="btn-sub" title="试听答对与升级提示音">
-              🔊 试听音效
+            <button type="button" id="btn-test-sound" class="btn-sub highlight" title="试听答对与 PixelFX 像素动效联动">
+              ✨ 试听音效 & 动效
             </button>
             <button type="button" id="btn-view-mistakes" class="btn-sub">
               📕 错题本 (<span id="txt-mistake-count">0</span>)
@@ -2051,6 +2052,7 @@ const canonicalUrl = `${siteUrl}/games/math/`;
 
         btnToggleEye: $('btn-toggle-eye'),
         btnToggleSound: $('btn-toggle-sound'),
+        btnToggleFx: $('btn-toggle-fx'),
         btnTogglePad: $('btn-toggle-pad'),
         btnToggleFs: $('btn-toggle-fs'),
         btnGetStandalone: $('btn-get-standalone'),
@@ -2469,12 +2471,19 @@ const canonicalUrl = `${siteUrl}/games/math/`;
           if (state.currentStreak > state.maxStreak) state.maxStreak = state.currentStreak;
 
           soundCorrect(state.currentStreak);
-          const rect = els.cardStage.getBoundingClientRect();
-          spawnBurst(rect.left + rect.width / 2, rect.top + rect.height * 0.35, 25);
+          const activeSlot = q.type === 'compare' ? els.circleComp : els.slotCalc;
+          const isFast = cost < 1.8;
+
+          if (window.pixelFx) {
+            window.pixelFx.triggerCorrect(activeSlot, state.currentStreak, isFast);
+          } else {
+            const rect = els.cardStage.getBoundingClientRect();
+            spawnBurst(rect.left + rect.width / 2, rect.top + rect.height * 0.35, 25);
+          }
 
           let fTxt = '+10 ⭐';
           if (state.currentStreak >= 3) fTxt = `+${10 + state.currentStreak * 2} 🔥 ${state.currentStreak}连对!`;
-          if (cost < 1.8) fTxt += ' ⚡极速!';
+          if (isFast) fTxt += ' ⚡极速!';
           spawnFloatText(fTxt, true);
 
           if (state.mode === 'drill') removeMistake(q.hash);
@@ -2484,7 +2493,11 @@ const canonicalUrl = `${siteUrl}/games/math/`;
             state.tierStreak = 0;
             state.currentTier++;
             soundLevelUp();
-            spawnFireworks();
+            if (window.pixelFx) {
+              window.pixelFx.triggerLevelUp(`进入【${TIERS[state.currentTier].name}】!`);
+            } else {
+              spawnFireworks();
+            }
             els.txtLevelupTitle.textContent = `🎉 恭喜晋级！进入【${TIERS[state.currentTier].name}】！`;
             els.txtLevelupSub.textContent = TIERS[state.currentTier].title;
             els.bannerLevelup.hidden = false;
@@ -2500,6 +2513,11 @@ const canonicalUrl = `${siteUrl}/games/math/`;
           state.tierStreak = 0;
           soundWrong();
           spawnFloatText('继续加油 ❌', false);
+
+          const activeSlot = q.type === 'compare' ? els.circleComp : els.slotCalc;
+          if (window.pixelFx) {
+            window.pixelFx.triggerWrong(activeSlot, els.cardStage);
+          }
 
           const m = {
             hash: q.hash,
@@ -2552,7 +2570,11 @@ const canonicalUrl = `${siteUrl}/games/math/`;
       function finishGame(reason) {
         clearInterval(state.timerId);
         soundVictory();
-        spawnFireworks();
+        if (window.pixelFx) {
+          window.pixelFx.triggerConfetti();
+        } else {
+          spawnFireworks();
+        }
 
         const acc = state.totalAnswered > 0 ? Math.round((state.correctCount / state.totalAnswered) * 100) : 0;
         const spd = state.totalAnswered > 0 ? (state.totalQTime / state.totalAnswered).toFixed(1) : '0.0';
@@ -2906,6 +2928,19 @@ const canonicalUrl = `${siteUrl}/games/math/`;
       });
       els.btnToggleSound.textContent = isMuted ? '🔇 静音' : '🔊 音效';
 
+      // PixelFX 动效开关
+      if (els.btnToggleFx) {
+        els.btnToggleFx.addEventListener('click', () => {
+          const current = window.pixelFx ? window.pixelFx.getEnabled() : true;
+          const next = !current;
+          if (window.pixelFx) window.pixelFx.setEnabled(next);
+          els.btnToggleFx.textContent = next ? '✨ PixelFX: 开' : '💤 PixelFX: 关';
+          els.btnToggleFx.classList.toggle('highlight', next);
+          soundClick();
+          spawnFloatText(next ? '✨ PixelFX 像素动效已开启' : '💤 像素动效已关闭', next);
+        });
+      }
+
       if (els.btnTestSound) {
         els.btnTestSound.addEventListener('click', () => {
           isMuted = false;
@@ -2913,7 +2948,10 @@ const canonicalUrl = `${siteUrl}/games/math/`;
           els.btnToggleSound.textContent = '🔊 音效';
           unlockAudioPipeline();
           soundCorrect(3);
-          spawnFloatText('🔊 音效试听播放中 ♫', true);
+          if (window.pixelFx) {
+            window.pixelFx.triggerCorrect(els.btnTestSound, 5, true);
+          }
+          spawnFloatText('✨ PixelFX 动效与音效联动中 ♫', true);
         });
       }
 
@@ -2936,6 +2974,16 @@ const canonicalUrl = `${siteUrl}/games/math/`;
 
       updateMistakeBadge();
     })();
+  </script>
+
+  <!-- PixelFX 像素动效引擎 (基于 patch-gg/pixelfx 驱动) -->
+  <script>
+    import { pixelFx } from '../../scripts/pixelFxEngine';
+    (window as any).pixelFx = pixelFx;
+    const canvas = document.getElementById('fx-canvas') as HTMLCanvasElement;
+    if (canvas) {
+      pixelFx.init(canvas);
+    }
   </script>
 </body>
 </html>
