@@ -138,7 +138,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-bold text-slate-800 mb-2">🎯 目标题量</label>
-            <div class="grid grid-cols-4 gap-1.5" id="count-picker">
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5" id="count-picker">
+              <button type="button" class="count-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-count="10">10 题</button>
+              <button type="button" class="count-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-count="20">20 题</button>
               <button type="button" class="count-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-count="30">30 题</button>
               <button type="button" class="count-pill active py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white" data-count="50">50 题</button>
               <button type="button" class="count-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-count="100">100 题</button>
@@ -147,9 +149,11 @@
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-800 mb-2">⏱️ 限时挑战</label>
-            <div class="grid grid-cols-4 gap-1.5" id="time-picker">
-              <button type="button" class="time-pill active py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white" data-time="300">5 分钟</button>
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5" id="time-picker">
+              <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="60">1 分钟</button>
+              <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="120">2 分钟</button>
               <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="180">3 分钟</button>
+              <button type="button" class="time-pill active py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white" data-time="300">5 分钟</button>
               <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="600">10 分钟</button>
               <button type="button" class="time-pill py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-700" data-time="0">不限时</button>
             </div>
@@ -162,6 +166,9 @@
             ⚡ 立即开始口算冲关
           </button>
           <div class="flex gap-2">
+            <button type="button" id="btn-test-sound" class="px-4 py-2 text-xs font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">
+              🔊 试听音效
+            </button>
             <button type="button" id="btn-open-mistake-modal" class="px-4 py-2 text-xs font-bold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">
               📕 错题本 (<span id="badge-mistakes">0</span>)
             </button>
@@ -391,46 +398,100 @@
   <script>
     // 纯原生全功能单文件 JS
     (function(){
-      // Web Audio
+      // Web Audio 高保真防静音合成器
       let audioCtx = null;
       let muted = localStorage.getItem('kousuan_muted') === 'true';
 
-      function playTone(freq, dur, type='sine', gainVal=0.2, delay=0) {
-        if (muted) return;
+      function getAudioContext() {
         if (!audioCtx) {
           const AC = window.AudioContext || window.webkitAudioContext;
           if (AC) audioCtx = new AC();
         }
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        if (!audioCtx) return;
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        const t = audioCtx.currentTime + delay;
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, t);
-        gain.gain.setValueAtTime(gainVal, t);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(t);
-        osc.stop(t + dur);
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+        return audioCtx;
       }
 
-      function soundOk() {
-        playTone(523.25, 0.15, 'triangle', 0.25, 0);
-        playTone(659.25, 0.15, 'triangle', 0.25, 0.08);
-        playTone(783.99, 0.25, 'triangle', 0.3, 0.16);
+      function unlockAudio() {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+        try {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0.0001, ctx.currentTime);
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.015);
+        } catch(e) {}
+      }
+      ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown'].forEach(e => {
+        window.addEventListener(e, unlockAudio, { passive: true });
+      });
+
+      function playTone(freq, dur, type='sine', gainVal=0.45, delay=0) {
+        if (muted) return;
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        const runNote = () => {
+          try {
+            const now = Math.max(ctx.currentTime, 0.0001);
+            const t = now + (delay || 0);
+            const end = t + dur;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.linearRampToValueAtTime(gainVal, t + 0.02);
+            gain.gain.linearRampToValueAtTime(0.0001, end);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(t);
+            osc.stop(end + 0.05);
+          } catch(err) {
+            console.warn('Audio note error:', err);
+          }
+        };
+
+        if (ctx.state === 'suspended') {
+          ctx.resume().then(runNote).catch(runNote);
+        } else {
+          runNote();
+        }
+      }
+
+      function soundOk(streak = 1) {
+        const baseF = streak >= 5 ? 587.33 : 523.25;
+        playTone(baseF, 0.16, 'triangle', 0.45, 0);
+        playTone(baseF * 1.2599, 0.18, 'triangle', 0.45, 0.08);
+        playTone(baseF * 1.4983, 0.28, 'sine', 0.52, 0.16);
+        if (streak >= 3) {
+          playTone(baseF * 2, 0.35, 'triangle', 0.45, 0.24);
+        }
       }
       function soundErr() {
-        playTone(220, 0.18, 'sine', 0.2, 0);
-        playTone(180, 0.22, 'sine', 0.2, 0.12);
+        playTone(280, 0.16, 'sawtooth', 0.26, 0);
+        playTone(200, 0.22, 'sine', 0.36, 0.09);
       }
       function soundUp() {
-        [261.63, 329.63, 392.00, 523.25, 659.25].forEach((f, i) => playTone(f, 0.2, 'sawtooth', 0.15, i*0.08));
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, 0.3, 'triangle', 0.45, i*0.09));
       }
       function soundWin() {
-        [392.00, 523.25, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, 0.35, 'triangle', 0.2, i*0.1));
+        [523.25, 659.25, 783.99, 659.25, 783.99, 1046.50].forEach((f, i) => playTone(f, 0.32, 'triangle', 0.48, i*0.11));
+      }
+      function soundClick() {
+        playTone(550, 0.08, 'triangle', 0.35, 0);
       }
 
       // 阶梯
@@ -906,7 +967,20 @@
         muted = !muted;
         localStorage.setItem('kousuan_muted', String(muted));
         $('btn-sound').textContent = muted ? '🔇 静音' : '🔊 音效';
+        if (!muted) {
+          unlockAudio();
+          soundOk(1);
+        }
       };
+      if ($('btn-test-sound')) {
+        $('btn-test-sound').onclick = () => {
+          muted = false;
+          localStorage.setItem('kousuan_muted', 'false');
+          $('btn-sound').textContent = '🔊 音效';
+          unlockAudio();
+          soundOk(3);
+        };
+      }
       $('btn-fs').onclick = () => {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
         else document.exitFullscreen?.();

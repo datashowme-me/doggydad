@@ -5,113 +5,475 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <BaseLayout
-  title="游戏模块 | WordsMaster"
-  description="WordsMaster 游戏模块：浏览器里就能玩的小游戏，支持摄像头手势与鼠标 / 触控操作，全部本地运行。"
-  keywords={['小游戏', '切水果', '体感游戏', '手势识别', '浏览器游戏']}
+  title="游戏模块 · 口算速算与体感互动实验 | WordsMaster"
+  description="WordsMaster 游戏模块：专为小学低年级打造的 100 以内口算速算闯关、摄像头 AI 手势体感切水果与 Three.js 3D 艺术抓娃娃机，纯前端本地运行。"
+  keywords={['口算速算', '小学数学口算', '100以内口算', '切水果', '体感游戏', '手势识别', '浏览器游戏', 'WordsMaster 游戏']}
 >
   <section class="games-page">
     <div class="games-hero">
-      <h1>🎮 游戏模块</h1>
-      <p>浏览器里就能玩的小游戏。支持摄像头手势识别与鼠标 / 触控板操作，全部在本地运行，无需安装。</p>
+      <div class="hero-badge">🎮 互动实验室 · 本地轻量运行</div>
+      <h1>游戏模块</h1>
+      <p>浏览器即开即玩的交互游戏与数学训练工具。零依赖、零安装，支持触屏、键盘与摄像头体感互动。</p>
     </div>
 
-    <div class="game-grid">
-      <a class="game-card math-card" href={`${base}/games/math/`}>
-        <div class="game-cover math-cover">
-          <span class="cover-math math-1">🧮</span>
-          <span class="cover-math math-2">➕</span>
-          <span class="cover-math math-3">✖️</span>
-          <span class="cover-math math-4">⭐</span>
-        </div>
-        <div class="game-body">
-          <h2>口算大冲关 · 100以内速算</h2>
-          <p>专为 1–3 年级设计的速算闯关神器：11级数段平滑晋阶、比大小智能按键、手写草稿纸与错题闭环。</p>
-          <div class="game-tags">
-            <span>10-100梯级</span>
-            <span>比大小 & 混合</span>
-            <span>手写草稿纸</span>
-            <span>错题闭环</span>
-          </div>
-          <div class="game-cta">开始冲关 →</div>
-        </div>
-      </a>
+    <!-- 游戏模块导航 Tab 栏 -->
+    <div class="games-tabs-wrapper" role="region" aria-label="游戏模块选项卡">
+      <div class="games-tabs" role="tablist">
+        <button type="button" class="tab-item active" role="tab" id="tab-btn-all" aria-selected="true" aria-controls="panel-all" data-tab="all">
+          <span class="tab-icon">🌟</span>
+          <span class="tab-title">全部游戏</span>
+          <span class="tab-count">3</span>
+        </button>
+        <button type="button" class="tab-item" role="tab" id="tab-btn-math" aria-selected="false" aria-controls="panel-math" data-tab="math">
+          <span class="tab-icon">🧮</span>
+          <span class="tab-title">口算速算</span>
+          <span class="tab-pill">1-3年级专训</span>
+        </button>
+        <button type="button" class="tab-item" role="tab" id="tab-btn-fruitwave" aria-selected="false" aria-controls="panel-fruitwave" data-tab="fruitwave">
+          <span class="tab-icon">🍉</span>
+          <span class="tab-title">体感切水果</span>
+          <span class="tab-pill">AI 手势</span>
+        </button>
+        <button type="button" class="tab-item" role="tab" id="tab-btn-artcatcher" aria-selected="false" aria-controls="panel-artcatcher" data-tab="artcatcher">
+          <span class="tab-icon">🧸</span>
+          <span class="tab-title">3D 抓娃娃</span>
+          <span class="tab-pill">Three.js</span>
+        </button>
+      </div>
+    </div>
 
-      <a class="game-card fruitwave-card" href={`${base}/games/fruitwave/`}>
-        <div class="game-cover fruitwave-cover">
-          <div class="cover-blade-sheen"></div>
-          <span class="cover-fruit fruit-1">🍉</span>
-          <span class="cover-fruit fruit-2">🍓</span>
-          <span class="cover-fruit fruit-3">🍍</span>
-          <span class="cover-burst">✨</span>
-        </div>
-        <div class="game-body">
-          <h2>FruitWave · 切水果</h2>
-          <p>90 秒极限切水果，12 种水果等你挑战。有摄像头就伸出食指挥砍，没有摄像头用鼠标 / 触控板一样能玩。</p>
-          <div class="game-tags">
-            <span>手势识别</span>
-            <span>鼠标 / 触控</span>
-            <span>本地运行</span>
+    <!-- Tab 1: 全部游戏 -->
+    <div class="tab-panel active" id="panel-all" role="tabpanel" aria-labelledby="tab-btn-all">
+      <div class="game-grid">
+        <!-- 口算速算卡片 -->
+        <a class="game-card math-card" href={`${base}/games/math/`}>
+          <div class="card-featured-badge">🧮 推荐：小学数学速算</div>
+          <div class="game-cover math-cover">
+            <span class="cover-math math-1">🧮</span>
+            <span class="cover-math math-2">➕</span>
+            <span class="cover-math math-3">✖️</span>
+            <span class="cover-math math-4">⭐</span>
           </div>
-          <div class="game-cta">开始游戏 →</div>
-        </div>
-      </a>
+          <div class="game-body">
+            <h2>口算大冲关 · 100以内速算</h2>
+            <p>专为 1–3 年级设计的速算闯关神器：11级数段平滑晋阶、比大小智能按键、手写草稿纸竖式画板与错题闭环。</p>
+            <div class="game-tags">
+              <span>10-100梯度</span>
+              <span>比大小 & 混合</span>
+              <span>手写草稿纸</span>
+              <span>错题闭环</span>
+              <span>Web Audio 音效</span>
+            </div>
+            <div class="game-cta">进入口算冲关 →</div>
+          </div>
+        </a>
 
-      <a class="game-card" href={`${base}/games/artcatcher/`}>
-        <div class="game-cover">🧸🎁🦄</div>
-        <div class="game-body">
-          <h2>ArtCatcher · 3D 抓娃娃</h2>
-          <p>Three.js 打造的 3D 艺术抓娃娃机：投币、操控机械爪、收集艺术手办，还有成就和图鉴等着你。</p>
-          <div class="game-tags">
-            <span>3D</span>
-            <span>键盘 / 触屏摇杆</span>
-            <span>收藏图鉴</span>
+        <!-- 切水果卡片 -->
+        <a class="game-card fruitwave-card" href={`${base}/games/fruitwave/`}>
+          <div class="game-cover fruitwave-cover">
+            <div class="cover-blade-sheen"></div>
+            <span class="cover-fruit fruit-1">🍉</span>
+            <span class="cover-fruit fruit-2">🍓</span>
+            <span class="cover-fruit fruit-3">🍍</span>
+            <span class="cover-burst">✨</span>
           </div>
-          <div class="game-cta">开始游戏 →</div>
+          <div class="game-body">
+            <h2>FruitWave · 切水果</h2>
+            <p>90 秒极限切水果，12 种水果等你挑战。有摄像头就伸出食指挥砍，没有摄像头用鼠标 / 触控板一样能玩。</p>
+            <div class="game-tags">
+              <span>手势识别</span>
+              <span>鼠标 / 触控</span>
+              <span>本地运行</span>
+            </div>
+            <div class="game-cta">开始切水果 →</div>
+          </div>
+        </a>
+
+        <!-- 3D抓娃娃卡片 -->
+        <a class="game-card artcatcher-card" href={`${base}/games/artcatcher/`}>
+          <div class="game-cover artcatcher-cover">🧸🎁🦄</div>
+          <div class="game-body">
+            <h2>ArtCatcher · 3D 抓娃娃</h2>
+            <p>Three.js 打造的 3D 艺术抓娃娃机：投币、操控机械爪、收集艺术手办，还有成就和图鉴等着你。</p>
+            <div class="game-tags">
+              <span>3D 物理</span>
+              <span>键盘 / 触屏摇杆</span>
+              <span>艺术手办图鉴</span>
+            </div>
+            <div class="game-cta">启动抓娃娃机 →</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Tab 2: 口算速算单独专栏 (Dedicated Math Tab) -->
+    <div class="tab-panel" id="panel-math" role="tabpanel" aria-labelledby="tab-btn-math" hidden>
+      <div class="math-showcase">
+        <!-- 主推大卡片 -->
+        <div class="math-hero-card">
+          <div class="math-hero-badge">小学生（1–3年级）口算专项提分神器</div>
+          <div class="math-hero-content">
+            <div class="math-hero-text">
+              <h2>🧮 100 以内口算速算大冲关</h2>
+              <p class="math-hero-desc">
+                紧扣教育部人教版小学数学新课标，涵盖 <strong>10以内加减</strong>、<strong>20以内凑十破十</strong>、<strong>整十数进退位</strong> 直至 <strong>表内乘除混合</strong> 全 11 级梯度。内置比大小智能按键、竖式草稿画板、错题自动沉淀与 A4 纸质作业单打印生成。
+              </p>
+              <div class="math-hero-actions">
+                <a class="btn-primary-action" href={`${base}/games/math/`}>
+                  🎮 立即开始口算冲关
+                </a>
+                <a class="btn-secondary-action" href={`${base}/games/math/standalone.html`} target="_blank" rel="noopener">
+                  📥 打开离线单文件版
+                </a>
+              </div>
+            </div>
+            <div class="math-hero-visual">
+              <div class="math-preview-box">
+                <div class="preview-tag">题型预览</div>
+                <div class="preview-expr">38 + 24 = <span class="preview-ans">62</span></div>
+                <div class="preview-compare">7 × 8 <span class="preview-circle">&gt;</span> 54</div>
+                <div class="preview-chips">
+                  <span>✨ 连击音效</span>
+                  <span>🔥 火焰粒子</span>
+                  <span>📝 竖式草稿</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </a>
+
+        <!-- 核心特色 4 栏 -->
+        <div class="math-features-grid">
+          <div class="math-feature-item">
+            <div class="feat-icon">🪜</div>
+            <h3>11 级数段逐级平滑晋阶</h3>
+            <p>从 10 以内基础稳扎稳打，每答对 2–3 题自动跃迁至下一十位数，满级挑战表内乘除综合，升级伴随金色礼花动效。</p>
+          </div>
+          <div class="math-feature-item">
+            <div class="feat-icon">⌨️</div>
+            <h3>符号与数字按键智能互斥</h3>
+            <p>比大小题目自动隐藏 0–9 数字盘，仅展示 &gt;、&lt;、= 触控大键；计算题显示大触控数字键盘，支持键盘数字键与回车秒提。</p>
+          </div>
+          <div class="math-feature-item">
+            <div class="feat-icon">📝</div>
+            <h3>内置手写草稿纸竖式画板</h3>
+            <p>右上角一键唤出半透明手写草稿纸，随手列竖式、标注进退位与试商，支持多色彩笔、橡皮与无损步骤撤销。</p>
+          </div>
+          <div class="math-feature-item">
+            <div class="feat-icon">🖨️</div>
+            <h3>错题巩固闭环 & A4 题卡打印</h3>
+            <p>自动收集错题沉淀在错题本，支持一键错题专训；更支持随时生成 50 题标准 A4 每日打卡练习卷，直接调用打印机。</p>
+          </div>
+        </div>
+
+        <!-- 11 级梯度全景速览 -->
+        <div class="math-tiers-summary">
+          <h3>📚 11 个数段梯度一览</h3>
+          <div class="tiers-tags-list">
+            <span class="tier-chip"><strong>T1</strong> 10 以内加减基础</span>
+            <span class="tier-chip"><strong>T2</strong> 20 以内进位加 & 破十减</span>
+            <span class="tier-chip"><strong>T3</strong> 30 以内加减与连加</span>
+            <span class="tier-chip"><strong>T4</strong> 40 以内混合运算</span>
+            <span class="tier-chip"><strong>T5</strong> 50 以内速算挑战</span>
+            <span class="tier-chip"><strong>T6</strong> 60 以内满十进位</span>
+            <span class="tier-chip"><strong>T7</strong> 70 以内加减混合</span>
+            <span class="tier-chip"><strong>T8</strong> 80 以内综合进退位</span>
+            <span class="tier-chip"><strong>T9</strong> 90 以内大数速算</span>
+            <span class="tier-chip"><strong>T10</strong> 100 以内连加减满十</span>
+            <span class="tier-chip highlight"><strong>T11</strong> 表内乘除综合 (九九乘法)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: 体感切水果单独专栏 -->
+    <div class="tab-panel" id="panel-fruitwave" role="tabpanel" aria-labelledby="tab-btn-fruitwave" hidden>
+      <div class="game-detail-card">
+        <div class="detail-header">
+          <div class="detail-title-group">
+            <h2>🍉 FruitWave · 体感切水果</h2>
+            <p>基于浏览器前端摄像头与 AI 手势关键点追踪的体感割草切水果。零依赖本地处理，保护隐私。</p>
+          </div>
+          <a class="btn-primary-action" href={`${base}/games/fruitwave/`}>
+            🔪 开启切水果
+          </a>
+        </div>
+        <div class="detail-info-grid">
+          <div class="info-box">
+            <h4>🎮 两种操作模式</h4>
+            <p>既能调用前置摄像头伸出食指隔空挥砍刀光，也可随时用鼠标或手指触控划屏，流畅支持高刷新率。</p>
+          </div>
+          <div class="info-box">
+            <h4>⏱️ 90 秒极限挑战</h4>
+            <p>西瓜、草莓、菠萝、香蕉等 12 种各具特色的多汁水果随机抛掷，连击斩切触发额外爆汁加分。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: 3D 抓娃娃单独专栏 -->
+    <div class="tab-panel" id="panel-artcatcher" role="tabpanel" aria-labelledby="tab-btn-artcatcher" hidden>
+      <div class="game-detail-card">
+        <div class="detail-header">
+          <div class="detail-title-group">
+            <h2>🧸 ArtCatcher · 3D 艺术抓娃娃机</h2>
+            <p>基于 Three.js 打造的真实物理爪机模拟器：3D 环形灯光、投币物理反馈与多款珍藏级艺术手办。</p>
+          </div>
+          <a class="btn-primary-action" href={`${base}/games/artcatcher/`}>
+            🕹️ 启动抓娃娃机
+          </a>
+        </div>
+        <div class="detail-info-grid">
+          <div class="info-box">
+            <h4>🕹️ 真实抓取力学</h4>
+            <p>支持方向键 / 虚拟摇杆控制机械爪 X/Z 轴滑行，按下投币与下落抓取键，观察爪爪抓取包裹下落的物理重心碰撞。</p>
+          </div>
+          <div class="info-box">
+            <h4>🏆 艺术图鉴展柜</h4>
+            <p>成功抓取的娃娃将永久陈列于您的私人 3D 艺术品收藏架，配有专属成就勋章与掉落概率。</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
+
+  <script is:inline>
+    (function() {
+      const tabs = document.querySelectorAll('.tab-item');
+      const panels = {
+        all: document.getElementById('panel-all'),
+        math: document.getElementById('panel-math'),
+        fruitwave: document.getElementById('panel-fruitwave'),
+        artcatcher: document.getElementById('panel-artcatcher')
+      };
+
+      function switchTab(tabKey, updateHash = true) {
+        if (!panels[tabKey]) tabKey = 'all';
+
+        tabs.forEach(btn => {
+          const isSelected = btn.dataset.tab === tabKey;
+          btn.classList.toggle('active', isSelected);
+          btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+
+        Object.keys(panels).forEach(key => {
+          const panel = panels[key];
+          if (!panel) return;
+          if (key === tabKey) {
+            panel.hidden = false;
+            panel.classList.add('active');
+          } else {
+            panel.hidden = true;
+            panel.classList.remove('active');
+          }
+        });
+
+        if (updateHash) {
+          try {
+            if (tabKey === 'all') {
+              history.replaceState(null, '', window.location.pathname + window.location.search);
+            } else {
+              history.replaceState(null, '', `#${tabKey}`);
+            }
+          } catch (e) {}
+        }
+      }
+
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchTab(btn.dataset.tab, true);
+        });
+      });
+
+      // 初始化：检测 URL Hash 或 query 参数
+      function initTabFromUrl() {
+        const hash = window.location.hash.replace('#', '').toLowerCase();
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryTab = (urlParams.get('tab') || '').toLowerCase();
+
+        const target = hash || queryTab;
+        if (target && panels[target]) {
+          switchTab(target, false);
+        }
+      }
+
+      window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.replace('#', '').toLowerCase();
+        if (panels[hash]) switchTab(hash, false);
+      });
+
+      initTabFromUrl();
+    })();
+  </script>
 </BaseLayout>
 
 <style>
+  .games-page {
+    padding-bottom: 3rem;
+  }
+
   .games-hero {
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
   }
 
   .games-hero h1 {
     margin-bottom: 0.5rem;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 
   .games-hero p {
     color: var(--color-text-muted);
     max-width: 720px;
+    line-height: 1.6;
+    font-size: 1.05rem;
   }
 
+  /* 选项卡栏设计 */
+  .games-tabs-wrapper {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.25rem;
+  }
+
+  .games-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.25rem 0;
+  }
+  .games-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 0.55rem 1rem;
+    border-radius: var(--radius-lg, 12px);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+  }
+
+  .tab-item:hover {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+  }
+
+  .tab-item.active {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  }
+
+  .tab-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .tab-count {
+    background: rgba(0, 0, 0, 0.1);
+    font-size: 0.75rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+  }
+  .tab-item.active .tab-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+  }
+
+  .tab-pill {
+    font-size: 0.72rem;
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    color: var(--color-primary);
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+  .tab-item.active .tab-pill {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+  }
+
+  /* 选项卡内容区 */
+  .tab-panel {
+    display: none;
+    animation: fadeInTab 0.2s ease-out;
+  }
+  .tab-panel.active {
+    display: block;
+  }
+  @keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 网格与卡片 */
   .game-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
   }
 
   .game-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-xl, 16px);
     overflow: hidden;
     text-decoration: none;
     color: var(--color-text);
-    transition: transform 0.15s, box-shadow 0.15s;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   }
 
   a.game-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
+    border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
+  }
+
+  .card-featured-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    color: #fbbf24;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
 
   .game-cover {
-    height: 150px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -119,6 +481,27 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     font-size: 4rem;
     background: linear-gradient(135deg, #0f1c36, #16264a);
   }
+
+  .game-cover.math-cover {
+    background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.25), transparent 70%), linear-gradient(135deg, #1e1b4b 0%, #172554 50%, #042f2e 100%);
+    gap: 1.25rem;
+    font-size: 2.8rem;
+  }
+
+  .cover-math {
+    display: inline-block;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+  }
+  .cover-math.math-1 { animation: coverFruitBob1 3s infinite alternate; font-size: 3.2rem; }
+  .cover-math.math-2 { animation: coverFruitBob2 2.5s infinite alternate; color: #60a5fa; }
+  .cover-math.math-3 { animation: coverFruitBob3 3.2s infinite alternate; color: #34d399; }
+  .cover-math.math-4 { animation: coverBurstPulse 2s infinite; color: #fbbf24; }
+
+  .game-card.math-card:hover .cover-math.math-1 { transform: scale(1.25) rotate(-10deg); }
+  .game-card.math-card:hover .cover-math.math-2 { transform: scale(1.2) translateY(-6px); }
+  .game-card.math-card:hover .cover-math.math-3 { transform: scale(1.2) translateY(6px); }
+  .game-card.math-card:hover .cover-math.math-4 { transform: scale(1.3) rotate(20deg); }
 
   .game-cover.fruitwave-cover {
     position: relative;
@@ -144,15 +527,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     transition: transform 0.25s ease;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));
   }
-  .cover-fruit.fruit-1 {
-    animation: coverFruitBob1 3.2s ease-in-out infinite alternate;
-  }
-  .cover-fruit.fruit-2 {
-    animation: coverFruitBob2 2.8s ease-in-out infinite alternate;
-  }
-  .cover-fruit.fruit-3 {
-    animation: coverFruitBob3 3.6s ease-in-out infinite alternate;
-  }
+  .cover-fruit.fruit-1 { animation: coverFruitBob1 3.2s ease-in-out infinite alternate; }
+  .cover-fruit.fruit-2 { animation: coverFruitBob2 2.8s ease-in-out infinite alternate; }
+  .cover-fruit.fruit-3 { animation: coverFruitBob3 3.6s ease-in-out infinite alternate; }
   .cover-burst {
     position: absolute;
     top: 25%;
@@ -162,18 +539,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     animation: coverBurstPulse 2.5s ease-in-out infinite;
   }
 
-  .game-card.fruitwave-card:hover .cover-blade-sheen {
-    animation-duration: 1.5s;
-    box-shadow: 0 0 22px #34d399, 0 0 35px #fff;
-  }
-  .game-card.fruitwave-card:hover .cover-fruit.fruit-1 {
-    transform: translateY(-8px) scale(1.15) rotate(-15deg);
-  }
-  .game-card.fruitwave-card:hover .cover-fruit.fruit-2 {
-    transform: translateY(6px) scale(1.15) rotate(12deg);
-  }
-  .game-card.fruitwave-card:hover .cover-fruit.fruit-3 {
-    transform: translateY(-10px) scale(1.15) rotate(18deg);
+  .game-cover.artcatcher-cover {
+    background: linear-gradient(135deg, #2e1065 0%, #3b0764 50%, #172554 100%);
   }
 
   @keyframes coverSlashSweep {
@@ -199,61 +566,341 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     50% { opacity: 1; transform: scale(1.2); }
   }
 
-  .game-cover.math-cover {
-    background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.2), transparent 70%), linear-gradient(135deg, #1e1b4b 0%, #172554 50%, #042f2e 100%);
-    gap: 1rem;
-    font-size: 2.5rem;
-  }
-
-  .cover-math {
-    display: inline-block;
-    transition: transform 0.25s ease;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
-  }
-  .cover-math.math-1 { animation: coverFruitBob1 3s infinite alternate; font-size: 3rem; }
-  .cover-math.math-2 { animation: coverFruitBob2 2.5s infinite alternate; color: #60a5fa; }
-  .cover-math.math-3 { animation: coverFruitBob3 3.2s infinite alternate; color: #34d399; }
-  .cover-math.math-4 { animation: coverBurstPulse 2s infinite; color: #fbbf24; }
-
-  .game-card.math-card:hover .cover-math.math-1 { transform: scale(1.25) rotate(-10deg); }
-  .game-card.math-card:hover .cover-math.math-2 { transform: scale(1.2) translateY(-6px); }
-  .game-card.math-card:hover .cover-math.math-3 { transform: scale(1.2) translateY(6px); }
-  .game-card.math-card:hover .cover-math.math-4 { transform: scale(1.3) rotate(20deg); }
-
   .game-body {
     padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 
   .game-body h2 {
     margin-bottom: 0.5rem;
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+    font-weight: 700;
   }
 
   .game-body p {
     color: var(--color-text-muted);
     font-size: 0.92rem;
-    margin-bottom: 0.75rem;
+    line-height: 1.5;
+    margin-bottom: 0.9rem;
+    flex: 1;
   }
 
   .game-tags {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
     flex-wrap: wrap;
-    margin-bottom: 0.9rem;
+    margin-bottom: 1rem;
   }
 
   .game-tags span {
     background: var(--color-surface-alt);
     border: 1px solid var(--color-border);
-    border-radius: 999px;
-    padding: 0.15rem 0.6rem;
-    font-size: 0.75rem;
+    border-radius: 6px;
+    padding: 0.18rem 0.55rem;
+    font-size: 0.74rem;
     color: var(--color-text-muted);
   }
 
   .game-cta {
     color: var(--color-primary);
-    font-weight:600;
+    font-weight: 700;
     font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  /* ---------------- 口算速算专属 Tab 页面 ---------------- */
+  .math-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .math-hero-card {
+    background: radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.12), transparent 50%),
+                linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-alt) 100%);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+    border-radius: var(--radius-xl, 18px);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+  }
+
+  .math-hero-badge {
+    display: inline-block;
+    background: #f59e0b;
+    color: #78350f;
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 1rem;
+  }
+
+  .math-hero-content {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    .math-hero-content {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .math-hero-text h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.01em;
+  }
+
+  .math-hero-desc {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+
+  .math-hero-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-primary);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 35%, transparent);
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .btn-primary-action:hover {
+    transform: translateY(-2px);
+    opacity: 0.95;
+  }
+
+  .btn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-lg, 12px);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .btn-secondary-action:hover {
+    background: var(--color-surface-alt);
+  }
+
+  .math-preview-box {
+    background: #0f172a;
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 1.5rem;
+    color: #f8fafc;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+
+  .preview-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+
+  .preview-expr {
+    font-size: 2rem;
+    font-weight: 900;
+    font-family: monospace;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-ans {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+    padding: 0.1rem 0.5rem;
+    border-radius: 6px;
+    border-bottom: 2px solid #38bdf8;
+  }
+
+  .preview-compare {
+    font-size: 1.6rem;
+    font-weight: 800;
+    font-family: monospace;
+    color: #e2e8f0;
+    margin-bottom: 1rem;
+  }
+
+  .preview-circle {
+    display: inline-block;
+    width: 38px;
+    height: 38px;
+    line-height: 36px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #ffffff;
+    font-weight: 900;
+    margin: 0 6px;
+  }
+
+  .preview-chips {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .preview-chips span {
+    background: #1e293b;
+    color: #cbd5e1;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid #334155;
+  }
+
+  /* 特色 4 宫格 */
+  .math-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .math-feature-item {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 14px);
+    padding: 1.25rem;
+  }
+
+  .feat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .math-feature-item h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .math-feature-item p {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  /* 11 级梯度全景 */
+  .math-tiers-summary {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 14px);
+    padding: 1.5rem;
+  }
+
+  .math-tiers-summary h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.9rem;
+  }
+
+  .tiers-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tier-chip {
+    font-size: 0.82rem;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    color: var(--color-text);
+  }
+
+  .tier-chip strong {
+    color: var(--color-primary);
+    margin-right: 4px;
+  }
+
+  .tier-chip.highlight {
+    background: color-mix(in srgb, #f59e0b 15%, var(--color-surface));
+    border-color: #f59e0b;
+    font-weight: 700;
+  }
+
+  /* 通用游戏详情卡片（用于切水果与抓娃娃 Tab） */
+  .game-detail-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl, 16px);
+    padding: 2rem;
+  }
+
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+
+  .detail-title-group h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+  }
+
+  .detail-title-group p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    max-width: 600px;
+  }
+
+  .detail-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .info-box {
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.25rem;
+  }
+
+  .info-box h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .info-box p {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
   }
 </style>
