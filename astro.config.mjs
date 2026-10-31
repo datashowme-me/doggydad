@@ -8,6 +8,15 @@ export default defineConfig({
   site,
   base: '/',
   output: 'static',
+  server: {
+    host: '0.0.0.0',
+    port: 3000
+  },
+  vite: {
+    server: {
+      hmr: false
+    }
+  },
   integrations: [
     sitemap({
       customPages: [
