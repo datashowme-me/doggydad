@@ -570,6 +570,9 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
             <!-- 词库主题切换标签 -->
             <div class="deck-selector" role="radiogroup" aria-label="选择练习词库">
               <button type="button" class="deck-btn active" data-deck="kids">🐾 萌宠拼读</button>
+              <button type="button" class="deck-btn" data-deck="oxford_g12">🏫 牛津1-2年级</button>
+              <button type="button" class="deck-btn" data-deck="oxford_g34">📘 牛津3-4年级</button>
+              <button type="button" class="deck-btn" data-deck="oxford_g56">🎓 牛津5-6年级</button>
               <button type="button" class="deck-btn" data-deck="daily">🍎 生活高频</button>
               <button type="button" class="deck-btn" data-deck="school">🎒 校园文具</button>
               <button type="button" class="deck-btn" data-deck="coder">💻 计算机技术</button>
@@ -981,6 +984,60 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
       { word: 'lion', phonetic: '/ˈlaɪən/', translation: 'n. 狮子', sentence: 'The strong lion roars proudly.', emoji: '🦁' },
       { word: 'bird', phonetic: '/bɜːrd/', translation: 'n. 小鸟', sentence: 'A blue bird sings sweetly in the tree.', emoji: '🐦' },
       { word: 'fish', phonetic: '/fɪʃ/', translation: 'n. 小鱼', sentence: 'Golden fish swim gracefully in the pond.', emoji: '🐟' }
+    ],
+    oxford_g12: [
+      { word: 'rubber', phonetic: '/ˈrʌbər/', translation: 'n. 橡皮擦', sentence: 'Use a rubber to wipe the word.', emoji: '🧼' },
+      { word: 'ruler', phonetic: '/ˈruːlər/', translation: 'n. 尺子', sentence: 'Draw straight lines with a ruler.', emoji: '📏' },
+      { word: 'pencil', phonetic: '/ˈpensl/', translation: 'n. 铅笔', sentence: 'Write your name with a pencil.', emoji: '✏️' },
+      { word: 'book', phonetic: '/bʊk/', translation: 'n. 书本', sentence: 'Open your English book, please.', emoji: '📖' },
+      { word: 'bag', phonetic: '/bæɡ/', translation: 'n. 书包', sentence: 'Put your books into the school bag.', emoji: '🎒' },
+      { word: 'apple', phonetic: '/ˈæpl/', translation: 'n. 苹果', sentence: 'A sweet red apple for breakfast.', emoji: '🍎' },
+      { word: 'pear', phonetic: '/per/', translation: 'n. 梨子', sentence: 'The juicy yellow pear tastes good.', emoji: '🍐' },
+      { word: 'peach', phonetic: '/piːtʃ/', translation: 'n. 桃子', sentence: 'Look at the fresh pink peach.', emoji: '🍑' },
+      { word: 'orange', phonetic: '/ˈɔːrɪndʒ/', translation: 'n. 橙子；橙色', sentence: 'An orange is on the study desk.', emoji: '🍊' },
+      { word: 'banana', phonetic: '/bəˈnænə/', translation: 'n. 香蕉', sentence: 'A yellow sweet banana is yummy.', emoji: '🍌' },
+      { word: 'sister', phonetic: '/ˈsɪstər/', translation: 'n. 姐妹', sentence: 'My sister likes to sing and dance.', emoji: '👧' },
+      { word: 'brother', phonetic: '/ˈbrʌðər/', translation: 'n. 兄弟', sentence: 'My brother plays happily outside.', emoji: '👦' },
+      { word: 'mouth', phonetic: '/maʊθ/', translation: 'n. 嘴巴', sentence: 'Open your mouth and say Ah.', emoji: '👄' },
+      { word: 'nose', phonetic: '/noʊz/', translation: 'n. 鼻子', sentence: 'Touch your nose with your finger.', emoji: '👃' },
+      { word: 'face', phonetic: '/feɪs/', translation: 'n. 脸庞', sentence: 'Wash your face every morning.', emoji: '😊' },
+      { word: 'hand', phonetic: '/hænd/', translation: 'n. 小手', sentence: 'Clap your hands with great joy!', emoji: '👏' }
+    ],
+    oxford_g34: [
+      { word: 'bedroom', phonetic: '/ˈbedruːm/', translation: 'n. 卧室', sentence: 'My bedroom is warm and clean.', emoji: '🛏️' },
+      { word: 'kitchen', phonetic: '/ˈkɪtʃɪn/', translation: 'n. 厨房', sentence: 'Mom makes dinner in the kitchen.', emoji: '🍳' },
+      { word: 'bathroom', phonetic: '/ˈbæθruːm/', translation: 'n. 浴室', sentence: 'Wash your hands in the bathroom.', emoji: '🚿' },
+      { word: 'table', phonetic: '/ˈteɪbl/', translation: 'n. 餐桌；桌子', sentence: 'Put the warm dishes on the table.', emoji: '🍽️' },
+      { word: 'window', phonetic: '/ˈwɪndoʊ/', translation: 'n. 窗户', sentence: 'Please open the window for fresh air.', emoji: '🪟' },
+      { word: 'autumn', phonetic: '/ˈɔːtəm/', translation: 'n. 秋天', sentence: 'Golden leaves fall gently in autumn.', emoji: '🍂' },
+      { word: 'spring', phonetic: '/sprɪŋ/', translation: 'n. 春天', sentence: 'Beautiful flowers bloom in spring.', emoji: '🌱' },
+      { word: 'summer', phonetic: '/ˈsʌmər/', translation: 'n. 夏天', sentence: 'It is hot and sunny in summer.', emoji: '☀️' },
+      { word: 'winter', phonetic: '/ˈwɪntər/', translation: 'n. 冬天', sentence: 'Snow falls softly in cold winter.', emoji: '❄️' },
+      { word: 'breakfast', phonetic: '/ˈbrekfəst/', translation: 'n. 早餐', sentence: 'Have eggs and milk for breakfast.', emoji: '🥞' },
+      { word: 'dinner', phonetic: '/ˈdɪnər/', translation: 'n. 晚餐', sentence: 'The family enjoys dinner together.', emoji: '🍲' },
+      { word: 'noodle', phonetic: '/ˈnuːdl/', translation: 'n. 面条', sentence: 'I like eating warm beef noodles.', emoji: '🍜' },
+      { word: 'skirt', phonetic: '/skɜːrt/', translation: 'n. 短裙', sentence: 'She wears a pretty blue skirt.', emoji: '👗' },
+      { word: 'jacket', phonetic: '/ˈdʒækɪt/', translation: 'n. 夹克衫', sentence: 'Put on your jacket on cold days.', emoji: '🧥' },
+      { word: 'skate', phonetic: '/skeɪt/', translation: 'v. 滑冰；溜冰', sentence: 'Children skate happily on ice.', emoji: '⛸️' },
+      { word: 'football', phonetic: '/ˈfʊtbɔːl/', translation: 'n. 足球', sentence: 'Let us play football after school!', emoji: '⚽' }
+    ],
+    oxford_g56: [
+      { word: 'library', phonetic: '/ˈlaɪbrəri/', translation: 'n. 图书馆', sentence: 'We read story books in the library.', emoji: '📚' },
+      { word: 'hospital', phonetic: '/ˈhɑːspɪtl/', translation: 'n. 医院', sentence: 'The kind doctor works in hospital.', emoji: '🏥' },
+      { word: 'museum', phonetic: '/mjuˈziːəm/', translation: 'n. 博物馆', sentence: 'We visited the science museum.', emoji: '🏛️' },
+      { word: 'cinema', phonetic: '/ˈsɪnəmə/', translation: 'n. 电影院', sentence: 'Watch a fun cartoon at the cinema.', emoji: '🎬' },
+      { word: 'doctor', phonetic: '/ˈdɑːktər/', translation: 'n. 医生', sentence: 'The doctor helps sick people.', emoji: '👨‍⚕️' },
+      { word: 'nurse', phonetic: '/nɜːrs/', translation: 'n. 护士', sentence: 'The gentle nurse takes good care of us.', emoji: '👩‍⚕️' },
+      { word: 'policeman', phonetic: '/pəˈliːsmən/', translation: 'n. 警察', sentence: 'The policeman directs traffic.', emoji: '👮' },
+      { word: 'driver', phonetic: '/ˈdraɪvər/', translation: 'n. 司机', sentence: 'The bus driver drives safely.', emoji: '🚌' },
+      { word: 'vegetable', phonetic: '/ˈvedʒtəbl/', translation: 'n. 蔬菜', sentence: 'Fresh green vegetables keep us strong.', emoji: '🥦' },
+      { word: 'tomato', phonetic: '/təˈmeɪtoʊ/', translation: 'n. 西红柿', sentence: 'Juicy red tomatoes make nice soup.', emoji: '🍅' },
+      { word: 'potato', phonetic: '/pəˈteɪtoʊ/', translation: 'n. 土豆；马铃薯', sentence: 'Crispy potato slices taste delicious.', emoji: '🥔' },
+      { word: 'healthy', phonetic: '/ˈhelθi/', translation: 'adj. 健康的', sentence: 'Sports and fruit keep you healthy.', emoji: '💪' },
+      { word: 'holiday', phonetic: '/ˈhɑːlədeɪ/', translation: 'n. 假期；节日', sentence: 'We have fun during summer holiday.', emoji: '🏖️' },
+      { word: 'weekend', phonetic: '/ˌwiːkˈend/', translation: 'n. 周末', sentence: 'We have a picnic on the weekend.', emoji: '🧺' },
+      { word: 'earth', phonetic: '/ɜːrθ/', translation: 'n. 地球', sentence: 'We must protect our Earth.', emoji: '🌍' },
+      { word: 'protect', phonetic: '/prəˈtekt/', translation: 'v. 保护', sentence: 'Plant green trees to protect nature.', emoji: '🌳' }
     ],
     daily: [
       { word: 'apple', phonetic: '/ˈæpl/', translation: 'n. 苹果', sentence: 'An apple a day keeps the doctor away.', emoji: '🍎' },
