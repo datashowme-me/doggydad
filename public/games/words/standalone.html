@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>单词大冒险 · 离线趣味少儿英语拼词 (Standalone)</title>
+  <meta name="description" content="专为少儿与学生打造的单文件离线版单词大冒险：气泡拼词、听音选词、连连看与1/2/3分钟限时冲关，零依赖本地极速运行。" />
+  <style>
+    :root {
+      --bg-page: #f0f7ff;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --brand: #2563eb;
+      --brand-hover: #1d4ed8;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --border: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 8px 24px -4px rgba(37,99,235,0.08);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+    }
+    body.eye-mode {
+      --bg-page: #fbf7ee;
+      --card-bg: #fffefb;
+      --text-main: #2d261e;
+      --text-muted: #796b58;
+      --border: #ede3ce;
+    }
+    [hidden] { display: none !important; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%; min-height: 100%;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .app-header {
+      width: 100%; background: var(--card-bg); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-inner {
+      max-width: 1040px; margin: 0 auto; padding: 0.65rem 1rem;
+      display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+    }
+    .brand-wrap h1 { font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 0.35rem; }
+    .app-badge {
+      font-size: 0.7rem; font-weight: 700; background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: #fff; padding: 0.1rem 0.45rem; border-radius: var(--radius-full);
+    }
+    .header-tools { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .tool-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem; background: var(--card-bg);
+      border: 1px solid var(--border); color: var(--text-main); padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .tool-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .main-wrap { max-width: 1040px; margin: 0 auto; padding: 1.25rem 1rem 3.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+    .control-console {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 0.85rem;
+    }
+    .console-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .row-title { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; }
+    .mode-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .mode-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg-page);
+      border: 1px solid var(--border); color: var(--text-main); padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-md); font-size: 0.86rem; font-weight: 700; cursor: pointer;
+    }
+    .mode-pill.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .deck-strip { display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 0.2rem; }
+    .deck-chip {
+      display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-page);
+      border: 1px solid var(--border); color: var(--text-muted); padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .deck-chip.active { background: color-mix(in srgb, var(--brand) 12%, transparent); color: var(--brand); border-color: var(--brand); font-weight: 700; }
+    .time-options { display: flex; align-items: center; gap: 0.35rem; }
+    .time-chip {
+      background: var(--bg-page); border: 1px solid var(--border); color: var(--text-muted);
+      font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); cursor: pointer;
+    }
+    .time-chip.active { background: var(--accent); color: #78350f; border-color: var(--accent); }
+    .game-arena {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.75rem 1.5rem; box-shadow: var(--shadow-md); position: relative; min-height: 420px;
+      display: flex; flex-direction: column;
+    }
+    .hud-bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; padding-bottom: 0.85rem; border-bottom: 1px solid var(--border); }
+    .hud-stat-group { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+    .hud-item { display: flex; align-items: center; gap: 0.4rem; }
+    .hud-label { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); }
+    .hud-val { font-size: 1.15rem; font-weight: 900; font-family: monospace; color: var(--text-main); }
+    .hud-val.combo-val { color: #ea580c; }
+    .hud-progress-wrap { flex: 1; max-width: 240px; min-width: 140px; display: flex; flex-direction: column; gap: 0.25rem; }
+    .hud-progress-info { display: flex; justify-content: space-between; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); }
+    .progress-track { height: 8px; background: var(--bg-page); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand), #38bdf8); width: 0%; transition: width 0.3s; }
+    .spelling-board { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 1.5rem; }
+    .word-prompt-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+    .word-image-emoji { font-size: 4rem; }
+    .word-translation { font-size: 1.5rem; font-weight: 800; }
+    .phonetic-audio-box { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--bg-page); padding: 0.3rem 0.75rem; border-radius: var(--radius-full); border: 1px solid var(--border); }
+    .phonetic-txt { font-size: 0.95rem; font-weight: 600; color: var(--brand); }
+    .word-sentence { font-size: 0.92rem; color: var(--text-muted); font-style: italic; }
+    .letter-slots-row { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+    .letter-slot {
+      width: 52px; height: 60px; border-radius: var(--radius-md); border: 2px dashed color-mix(in srgb, var(--brand) 40%, var(--border));
+      background: var(--bg-page); display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 900; font-family: monospace; color: var(--brand); text-transform: uppercase;
+    }
+    .letter-slot.filled { border: 2px solid var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--card-bg)); }
+    .letter-slot.active-cursor { border-color: var(--accent); }
+    .letter-slot.error-slot { border-color: var(--danger); color: var(--danger); }
+    .letter-bubble-pool { display: flex; gap: 0.65rem; flex-wrap: wrap; justify-content: center; max-width: 620px; }
+    .letter-bubble-btn {
+      width: 54px; height: 54px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--border);
+      color: var(--text-main); font-size: 1.6rem; font-weight: 900; font-family: monospace; text-transform: uppercase;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+    }
+    .letter-bubble-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .spelling-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .spelling-tool-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg-page);
+      border: 1px solid var(--border); color: var(--text-muted); padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-md); font-size: 0.84rem; font-weight: 700; cursor: pointer;
+    }
+    .listening-board { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 2rem; }
+    .big-sound-disc {
+      width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #38bdf8, #2563eb);
+      color: #fff; display: flex; align-items: center; justify-content: center; font-size: 3rem;
+      border: 4px solid #fff; box-shadow: 0 10px 25px rgba(37,99,235,0.35); cursor: pointer;
+    }
+    .listening-options-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 1rem; width: 100%; max-width: 640px; }
+    .listen-opt-card {
+      background: var(--bg-page); border: 2px solid var(--border); border-radius: var(--radius-md);
+      padding: 1.1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; cursor: pointer;
+    }
+    .listen-opt-card.correct { border-color: var(--success); background: #d1fae5; }
+    .listen-opt-card.wrong { border-color: var(--danger); background: #fee2e2; }
+    .match-board { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 1.25rem; width: 100%; }
+    .match-cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; width: 100%; max-width: 680px; }
+    .match-card {
+      aspect-ratio: 1.4 / 1; background: var(--card-bg); border: 2px solid var(--border); border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center; padding: 0.5rem; cursor: pointer; text-align: center;
+      font-size: 1.05rem; font-weight: 800;
+    }
+    .match-card.selected { border-color: var(--accent); background: #fef3c7; }
+    .match-card.matched { opacity: 0.25; border-color: var(--success); pointer-events: none; }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65);
+      display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 1000;
+    }
+    .modal-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.75rem; max-width: 580px; width: 100%; max-height: 85vh; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+    .modal-actions { display: flex; gap: 0.75rem; justify-content: center; }
+    .btn-modal-primary { background: var(--brand); color: #fff; border: none; font-weight: 800; padding: 0.75rem 1.5rem; border-radius: var(--radius-md); cursor: pointer; }
+    .btn-modal-secondary { background: var(--bg-page); border: 1px solid var(--border); color: var(--text-main); font-weight: 700; padding: 0.75rem 1.25rem; border-radius: var(--radius-md); cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <h1>
+          <span>🔤 单词大冒险</span>
+          <span class="app-badge">离线单文件版</span>
+        </h1>
+      </div>
+      <div class="header-tools">
+        <button type="button" class="tool-btn" id="btn-slow-audio">🐢 <span id="txt-slow-audio">正常语速</span></button>
+        <button type="button" class="tool-btn" id="btn-toggle-sound">🔊 <span id="txt-sound-state">音效 开</span></button>
+        <button type="button" class="tool-btn" id="btn-toggle-eye">👓 护眼</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+    <section class="control-console">
+      <div class="console-row">
+        <div class="row-title">🎮 玩法模式</div>
+        <div class="mode-pills">
+          <button type="button" class="mode-pill active" data-mode="spelling">🔤 字母气泡拼词</button>
+          <button type="button" class="mode-pill" data-mode="listening">🎧 听音辨词侦探</button>
+          <button type="button" class="mode-pill" data-mode="match">🧩 单词连连看</button>
+        </div>
+        <div class="time-options">
+          <span class="row-title" style="font-size:0.75rem;">⏱️ 限时:</span>
+          <button type="button" class="time-chip" data-time="60">1分钟</button>
+          <button type="button" class="time-chip active" data-time="120">2分钟</button>
+          <button type="button" class="time-chip" data-time="180">3分钟</button>
+          <button type="button" class="time-chip" data-time="0">无限制</button>
+        </div>
+      </div>
+      <div class="console-row">
+        <div class="row-title">📚 关卡词库</div>
+        <div class="deck-strip">
+          <button type="button" class="deck-chip active" data-deck="animals">🐾 萌宠动物</button>
+          <button type="button" class="deck-chip" data-deck="foods">🍎 美味果蔬</button>
+          <button type="button" class="deck-chip" data-deck="colors_nums">🎨 颜色数字</button>
+          <button type="button" class="deck-chip" data-deck="school">🎒 校园文具</button>
+          <button type="button" class="deck-chip" data-deck="actions">🏃 趣味动作</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-arena">
+      <div class="hud-bar">
+        <div class="hud-stat-group">
+          <div class="hud-item"><span class="hud-label">得分</span><span class="hud-val" id="hud-score">0</span></div>
+          <div class="hud-item"><span class="hud-label">连击</span><span class="hud-val combo-val" id="hud-combo">🔥 0</span></div>
+          <div class="hud-item"><span class="hud-label">用时</span><span class="hud-val" id="hud-timer">00:00</span></div>
+          <div class="hud-item"><span class="hud-label">准确率</span><span class="hud-val" id="hud-accuracy">100%</span></div>
+        </div>
+        <div class="hud-progress-wrap">
+          <div class="hud-progress-info"><span>本轮进度</span><span id="hud-progress-txt">1 / 10</span></div>
+          <div class="progress-track"><div class="progress-fill" id="hud-progress-bar"></div></div>
+        </div>
+      </div>
+
+      <div class="spelling-board" id="mode-spelling-view">
+        <div class="word-prompt-card">
+          <div class="word-image-emoji" id="spell-emoji">🐶</div>
+          <div class="word-translation" id="spell-meaning">小狗</div>
+          <div class="phonetic-audio-box">
+            <span class="phonetic-txt" id="spell-phonetic">/dɔːɡ/</span>
+            <button type="button" style="background:none;border:none;cursor:pointer;font-size:1.1rem;" id="btn-spell-speak">🔊</button>
+          </div>
+          <p class="word-sentence" id="spell-sentence">"A friendly pet dog."</p>
+        </div>
+        <div class="letter-slots-row" id="spell-slots"></div>
+        <div class="letter-bubble-pool" id="spell-bubbles"></div>
+        <div class="spelling-actions">
+          <button type="button" class="spelling-tool-btn" id="btn-spell-backspace">⌫ 退格</button>
+          <button type="button" class="spelling-tool-btn" id="btn-spell-hint">💡 提示字母</button>
+          <button type="button" class="spelling-tool-btn" id="btn-spell-skip">⏭️ 跳过</button>
+        </div>
+      </div>
+
+      <div class="listening-board" id="mode-listening-view" hidden>
+        <button type="button" class="big-sound-disc" id="btn-big-speaker">🔊</button>
+        <div class="listening-options-grid" id="listening-options"></div>
+      </div>
+
+      <div class="match-board" id="mode-match-view" hidden>
+        <div class="match-cards-grid" id="match-cards-container"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="modal-victory" hidden>
+    <div class="modal-card" style="text-align:center;">
+      <div style="font-size:3.5rem;">🏆</div>
+      <h2 style="font-size:1.6rem;font-weight:900;" id="vic-heading">闯关大获全胜！</h2>
+      <div style="font-size:1.8rem;" id="vic-stars">⭐⭐⭐</div>
+      <div style="display:flex; justify-content:space-around; margin:1rem 0;">
+        <div><div style="font-size:1.3rem;font-weight:900;color:var(--brand);" id="vic-score">280</div><div style="font-size:0.75rem;color:var(--text-muted);">总得分</div></div>
+        <div><div style="font-size:1.3rem;font-weight:900;color:#ea580c;" id="vic-max-combo">🔥 10</div><div style="font-size:0.75rem;color:var(--text-muted);">最大连击</div></div>
+        <div><div style="font-size:1.3rem;font-weight:900;color:var(--brand);" id="vic-accuracy">100%</div><div style="font-size:0.75rem;color:var(--text-muted);">正确率</div></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-primary" id="btn-vic-restart">🔄 再战一轮</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const VOCAB_DECKS = {
+      animals: {
+        name: '萌宠动物',
+        words: [
+          { word: 'cat', phonetic: '/kæt/', meaning: '小猫', sentence: 'The cute cat is sleeping.', emoji: '🐱' },
+          { word: 'dog', phonetic: '/dɔːɡ/', meaning: '小狗', sentence: 'A friendly dog barks happily.', emoji: '🐶' },
+          { word: 'bird', phonetic: '/bɜːrd/', meaning: '小鸟', sentence: 'The blue bird sings sweetly.', emoji: '🐦' },
+          { word: 'fish', phonetic: '/fɪʃ/', meaning: '鱼', sentence: 'Little fish swim in the water.', emoji: '🐟' },
+          { word: 'duck', phonetic: '/dʌk/', meaning: '鸭子', sentence: 'Yellow ducks waddle by the pond.', emoji: '🦆' },
+          { word: 'frog', phonetic: '/frɔːɡ/', meaning: '青蛙', sentence: 'The green frog jumps high.', emoji: '🐸' },
+          { word: 'rabbit', phonetic: '/ˈræbɪt/', meaning: '兔子', sentence: 'The rabbit has long ears.', emoji: '🐰' },
+          { word: 'panda', phonetic: '/ˈpændə/', meaning: '大熊猫', sentence: 'The panda eats bamboo.', emoji: '🐼' }
+        ]
+      },
+      foods: {
+        name: '美味果蔬',
+        words: [
+          { word: 'apple', phonetic: '/ˈæpl/', meaning: '苹果', sentence: 'Fresh sweet red apples.', emoji: '🍎' },
+          { word: 'banana', phonetic: '/bəˈnænə/', meaning: '香蕉', sentence: 'Monkeys love sweet bananas.', emoji: '🍌' },
+          { word: 'milk', phonetic: '/mɪlk/', meaning: '牛奶', sentence: 'Drink warm milk daily.', emoji: '🥛' },
+          { word: 'cake', phonetic: '/keɪk/', meaning: '蛋糕', sentence: 'A sweet birthday cake.', emoji: '🎂' },
+          { word: 'egg', phonetic: '/eɡ/', meaning: '鸡蛋', sentence: 'Healthy morning eggs.', emoji: '🥚' },
+          { word: 'bread', phonetic: '/bred/', meaning: '面包', sentence: 'Warm toasted bread.', emoji: '🍞' }
+        ]
+      },
+      colors_nums: {
+        name: '颜色数字',
+        words: [
+          { word: 'red', phonetic: '/red/', meaning: '红色', sentence: 'Red strawberry fruit.', emoji: '🔴' },
+          { word: 'blue', phonetic: '/bluː/', meaning: '蓝色', sentence: 'Blue sky and sea.', emoji: '🔵' },
+          { word: 'green', phonetic: '/ɡriːn/', meaning: '绿色', sentence: 'Green grass grows.', emoji: '🟢' },
+          { word: 'one', phonetic: '/wʌn/', meaning: '一', sentence: 'One shining star.', emoji: '1️⃣' },
+          { word: 'two', phonetic: '/tuː/', meaning: '二', sentence: 'Two happy hands.', emoji: '2️⃣' },
+          { word: 'three', phonetic: '/θriː/', meaning: '三', sentence: 'Three little birds.', emoji: '3️⃣' }
+        ]
+      },
+      school: {
+        name: '校园文具',
+        words: [
+          { word: 'book', phonetic: '/bʊk/', meaning: '书本', sentence: 'Read an interesting book.', emoji: '📖' },
+          { word: 'pen', phonetic: '/pen/', meaning: '钢笔', sentence: 'Write notes with a pen.', emoji: '🖊️' },
+          { word: 'ruler', phonetic: '/ˈruːlər/', meaning: '尺子', sentence: 'Measure with a ruler.', emoji: '📏' },
+          { word: 'bag', phonetic: '/bæɡ/', meaning: '书包', sentence: 'Pack books in your bag.', emoji: '🎒' }
+        ]
+      },
+      actions: {
+        name: '趣味动作',
+        words: [
+          { word: 'run', phonetic: '/rʌn/', meaning: '奔跑', sentence: 'Run fast outside.', emoji: '🏃' },
+          { word: 'jump', phonetic: '/dʒʌmp/', meaning: '跳跃', sentence: 'Jump over puddles.', emoji: '🦘' },
+          { word: 'swim', phonetic: '/swɪm/', meaning: '游泳', sentence: 'Swim in cool water.', emoji: '🏊' },
+          { word: 'sing', phonetic: '/sɪŋ/', meaning: '唱歌', sentence: 'Sing a cheerful song.', emoji: '🎤' }
+        ]
+      }
+    };
+
+    let soundEnabled = true;
+    let isSlow = false;
+    let audioCtx = null;
+
+    function playTone(freq, type = 'sine', dur = 0.08) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.start();
+        osc.stop(audioCtx.currentTime + dur);
+      } catch(e){}
+    }
+
+    function speak(txt) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(txt);
+        u.lang = 'en-US';
+        u.rate = isSlow ? 0.75 : 1.0;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    const state = {
+      mode: 'spelling',
+      deck: 'animals',
+      wordList: [...VOCAB_DECKS.animals.words],
+      idx: 0,
+      score: 0,
+      streak: 0,
+      maxStreak: 0,
+      correct: 0,
+      attempts: 0,
+      timeLimit: 120,
+      elapsed: 0,
+      timer: null,
+      typed: [],
+      bubbles: [],
+      cards: [],
+      selectedCards: []
+    };
+
+    function shuffle(a) {
+      const arr = [...a];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function updateHud() {
+      document.getElementById('hud-score').textContent = state.score;
+      document.getElementById('hud-combo').textContent = '🔥 ' + state.streak;
+      const total = state.wordList.length;
+      const cur = Math.min(state.idx + 1, total);
+      document.getElementById('hud-progress-txt').textContent = `${cur} / ${total}`;
+      document.getElementById('hud-progress-bar').style.width = Math.round((cur / total) * 100) + '%';
+      const acc = state.attempts > 0 ? Math.round((state.correct / state.attempts) * 100) : 100;
+      document.getElementById('hud-accuracy').textContent = acc + '%';
+    }
+
+    function renderSpelling() {
+      const item = state.wordList[state.idx];
+      if (!item) { showVictory(); return; }
+      state.typed = [];
+      document.getElementById('spell-emoji').textContent = item.emoji;
+      document.getElementById('spell-meaning').textContent = item.meaning;
+      document.getElementById('spell-phonetic').textContent = item.phonetic;
+      document.getElementById('spell-sentence').textContent = `"${item.sentence}"`;
+      speak(item.word);
+
+      const slots = document.getElementById('spell-slots');
+      slots.innerHTML = '';
+      item.word.split('').forEach((_, i) => {
+        const s = document.createElement('div');
+        s.className = 'letter-slot' + (i === 0 ? ' active-cursor' : '');
+        slots.appendChild(s);
+      });
+
+      const letters = item.word.toLowerCase().split('');
+      while (letters.length < Math.max(item.word.length + 1, 6)) {
+        letters.push('abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]);
+      }
+      state.bubbles = shuffle(letters).map((c, i) => ({ id: i, char: c, used: false }));
+      renderBubbles();
+      updateHud();
+    }
+
+    function renderBubbles() {
+      const bWrap = document.getElementById('spell-bubbles');
+      bWrap.innerHTML = '';
+      state.bubbles.forEach(b => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'letter-bubble-btn';
+        btn.textContent = b.char;
+        btn.disabled = b.used;
+        btn.onclick = () => handleChar(b.char, b.id);
+        bWrap.appendChild(btn);
+      });
+    }
+
+    function handleChar(c, id) {
+      const cur = state.wordList[state.idx];
+      if (!cur) return;
+      const target = cur.word.toLowerCase();
+      const pos = state.typed.length;
+      if (pos >= target.length) return;
+
+      state.attempts++;
+      if (c.toLowerCase() === target[pos]) {
+        state.typed.push(c);
+        playTone(600);
+        if (id !== undefined) {
+          const b = state.bubbles.find(x => x.id === id);
+          if (b) b.used = true;
+          renderBubbles();
+        }
+        const slot = document.getElementById('spell-slots').children[pos];
+        if (slot) {
+          slot.textContent = c;
+          slot.classList.add('filled');
+        }
+        if (state.typed.length === target.length) {
+          state.correct++;
+          state.streak++;
+          if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+          state.score += 10 + state.streak * 2;
+          playTone(880, 'sine', 0.2);
+          speak(cur.word);
+          setTimeout(() => {
+            state.idx++;
+            renderSpelling();
+          }, 500);
+        }
+      } else {
+        state.streak = 0;
+        playTone(180, 'sawtooth', 0.2);
+      }
+      updateHud();
+    }
+
+    function showVictory() {
+      document.getElementById('modal-victory').hidden = false;
+      document.getElementById('vic-score').textContent = state.score;
+      document.getElementById('vic-max-combo').textContent = '🔥 ' + state.maxStreak;
+      const acc = state.attempts > 0 ? Math.round((state.correct / state.attempts) * 100) : 100;
+      document.getElementById('vic-accuracy').textContent = acc + '%';
+    }
+
+    document.getElementById('btn-spell-speak').onclick = () => {
+      const cur = state.wordList[state.idx];
+      if (cur) speak(cur.word);
+    };
+    document.getElementById('btn-spell-backspace').onclick = () => {
+      if (state.typed.length === 0) return;
+      const removed = state.typed.pop();
+      const b = state.bubbles.find(x => x.char === removed && x.used);
+      if (b) b.used = false;
+      renderBubbles();
+      const s = document.getElementById('spell-slots').children[state.typed.length];
+      if (s) { s.textContent = ''; s.classList.remove('filled'); }
+    };
+    document.getElementById('btn-spell-hint').onclick = () => {
+      const cur = state.wordList[state.idx];
+      if (cur && state.typed.length < cur.word.length) {
+        handleChar(cur.word[state.typed.length]);
+      }
+    };
+    document.getElementById('btn-spell-skip').onclick = () => {
+      state.streak = 0;
+      state.idx++;
+      renderSpelling();
+    };
+
+    document.querySelectorAll('.deck-chip').forEach(b => {
+      b.onclick = () => {
+        document.querySelectorAll('.deck-chip').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const d = b.dataset.deck;
+        if (VOCAB_DECKS[d]) {
+          state.deck = d;
+          state.wordList = shuffle(VOCAB_DECKS[d].words);
+          state.idx = 0;
+          renderSpelling();
+        }
+      };
+    });
+
+    document.getElementById('btn-toggle-sound').onclick = () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById('txt-sound-state').textContent = soundEnabled ? '音效 开' : '音效 关';
+    };
+    document.getElementById('btn-slow-audio').onclick = () => {
+      isSlow = !isSlow;
+      document.getElementById('txt-slow-audio').textContent = isSlow ? '慢速 0.75x' : '正常语速';
+    };
+    document.getElementById('btn-toggle-eye').onclick = () => {
+      document.body.classList.toggle('eye-mode');
+    };
+    document.getElementById('btn-vic-restart').onclick = () => {
+      document.getElementById('modal-victory').hidden = true;
+      state.idx = 0;
+      state.score = 0;
+      state.streak = 0;
+      renderSpelling();
+    };
+
+    window.addEventListener('keydown', e => {
+      if (/^[a-zA-Z]$/.test(e.key)) {
+        handleChar(e.key.toLowerCase());
+      }
+    });
+
+    renderSpelling();
+  </script>
+</body>
+</html>

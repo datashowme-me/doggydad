@@ -22,12 +22,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         <button type="button" class="tab-item active" role="tab" id="tab-btn-all" aria-selected="true" aria-controls="panel-all" data-tab="all">
           <span class="tab-icon">🌟</span>
           <span class="tab-title">全部游戏</span>
-          <span class="tab-count">3</span>
+          <span class="tab-count">4</span>
         </button>
         <button type="button" class="tab-item" role="tab" id="tab-btn-math" aria-selected="false" aria-controls="panel-math" data-tab="math">
           <span class="tab-icon">🧮</span>
           <span class="tab-title">口算速算</span>
           <span class="tab-pill">1-3年级专训</span>
+        </button>
+        <button type="button" class="tab-item" role="tab" id="tab-btn-words" aria-selected="false" aria-controls="panel-words" data-tab="words">
+          <span class="tab-icon">🔤</span>
+          <span class="tab-title">单词大冒险</span>
+          <span class="tab-pill">少儿拼读·PixelFX</span>
         </button>
         <button type="button" class="tab-item" role="tab" id="tab-btn-fruitwave" aria-selected="false" aria-controls="panel-fruitwave" data-tab="fruitwave">
           <span class="tab-icon">🍉</span>
@@ -66,6 +71,30 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
               <span>PixelFX 像素特效</span>
             </div>
             <div class="game-cta">进入口算冲关 →</div>
+          </div>
+        </a>
+
+        <!-- 单词大冒险卡片 -->
+        <a class="game-card words-card" href={`${base}/games/words/`}>
+          <div class="card-featured-badge" style="color:#38bdf8; border-color:rgba(56,189,248,0.4);">🔤 热门：少儿拼词与听力</div>
+          <div class="game-cover words-cover">
+            <span class="cover-word word-1">🐶</span>
+            <span class="cover-word word-2">🍎</span>
+            <span class="cover-word word-3">🔤</span>
+            <span class="cover-word word-4">⭐</span>
+          </div>
+          <div class="game-body">
+            <h2>单词大冒险 · 少儿趣味拼读</h2>
+            <p>专为少儿与学生打造的沉浸式背单词闯关：字母气泡拼词、听音辨词侦探、连连看消消乐与 1/2/3 分钟限时狂飙，搭载 PixelFX 动效与纯正发音。</p>
+            <div class="game-tags">
+              <span>自然拼读</span>
+              <span>萌宠果蔬文具</span>
+              <span>听音辨词</span>
+              <span>1/2/3min限时</span>
+              <span>真人纯正发音</span>
+              <span>PixelFX 动效</span>
+            </div>
+            <div class="game-cta">开启单词冒险 →</div>
           </div>
         </a>
 
@@ -187,6 +216,84 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       </div>
     </div>
 
+    <!-- Tab: 单词大冒险单独专栏 (Dedicated Words Tab) -->
+    <div class="tab-panel" id="panel-words" role="tabpanel" aria-labelledby="tab-btn-words" hidden>
+      <div class="math-showcase">
+        <!-- 主推大卡片 -->
+        <div class="math-hero-card" style="background:radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.15), transparent 50%), linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-alt) 100%); border-color:color-mix(in srgb, #38bdf8 35%, var(--color-border));">
+          <div class="math-hero-badge" style="background:#0284c7; color:#f0f9ff;">少儿与学生趣味背词 · 字母拼读与听力专训</div>
+          <div class="math-hero-content">
+            <div class="math-hero-text">
+              <h2>🔤 单词大冒险 · 趣味拼读与速记</h2>
+              <p class="math-hero-desc">
+                专为少儿、学生与英语爱好者打造的沉浸式单词游戏。融合 <strong>字母气泡拼词</strong>、<strong>听音辨词小侦探</strong>、<strong>限时冲关狂飙 (1/2/3分钟)</strong> 与 <strong>单词连连看消消乐</strong> 4 大玩法。涵盖萌宠动物、果蔬美食、日常文具等 8 大精选词库，支持慢速发音跟读与 PixelFX 像素打击特效。
+              </p>
+              <div class="math-hero-actions">
+                <a class="btn-primary-action" style="background:#0284c7;" href={`${base}/games/words/`}>
+                  🎮 立即开始单词冒险
+                </a>
+                <a class="btn-secondary-action" href={`${base}/games/words/standalone.html`} target="_blank" rel="noopener">
+                  📥 打开离线单文件版
+                </a>
+              </div>
+            </div>
+            <div class="math-hero-visual">
+              <div class="math-preview-box" style="border-color:#0284c7;">
+                <div class="preview-tag">题型预览</div>
+                <div style="font-size:3.2rem; margin-bottom:0.25rem;">🐶</div>
+                <div class="preview-expr">d o g <span class="preview-ans">小狗</span></div>
+                <div class="preview-compare" style="font-size:1.1rem; color:#94a3b8;">/dɔːɡ/ · 萌宠自然拼读</div>
+                <div class="preview-chips">
+                  <span>🔊 真人发音</span>
+                  <span>🐢 0.75x慢速跟读</span>
+                  <span>✨ PixelFX 动效</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 核心特色 4 栏 -->
+        <div class="math-features-grid">
+          <div class="math-feature-item">
+            <div class="feat-icon">🔤</div>
+            <h3>字母气泡拼读挑战</h3>
+            <p>屏幕打乱字母气泡，既可手指触屏轻点拼词，也能键盘盲打直接键入，支持字母提示与随时退格撤销。</p>
+          </div>
+          <div class="math-feature-item">
+            <div class="feat-icon">🎧</div>
+            <h3>听音辨词侦探模式</h3>
+            <p>调用 Web Speech TTS 纯正英文原声，自动辨听发音在 4 个图文卡片中选出正确词汇，锤炼少儿敏锐听力。</p>
+          </div>
+          <div class="math-feature-item">
+            <div class="feat-icon">⏱️</div>
+            <h3>1/2/3分钟限时冲刺狂飙</h3>
+            <p>支持 1 分钟快速热身、2 分钟标准演练与 3 分钟极限刷词，连续答对触发 PixelFX 火箭连击与暴击加分！</p>
+          </div>
+          <div class="math-feature-item">
+            <div class="feat-icon">🧩</div>
+            <h3>单词连连看消消乐</h3>
+            <p>英文单词与中文释义卡片网格随机分布，快速匹配翻转消除，锻炼记忆广度与瞬时注意力。</p>
+          </div>
+        </div>
+
+        <!-- 8 大词库全景速览 -->
+        <div class="math-tiers-summary">
+          <h3>📚 8 大精选词库一览</h3>
+          <div class="tiers-tags-list">
+            <span class="tier-chip highlight"><strong>01</strong> 🐾 萌宠动物 (自然拼读入门)</span>
+            <span class="tier-chip"><strong>02</strong> 🍎 美味果蔬 (小学高频日常)</span>
+            <span class="tier-chip"><strong>03</strong> 🎨 颜色数字 (低年级基础认知)</span>
+            <span class="tier-chip"><strong>04</strong> 👀 身体家庭 (生活情景表达)</span>
+            <span class="tier-chip"><strong>05</strong> 🎒 校园文具 (PEP教材核心)</span>
+            <span class="tier-chip"><strong>06</strong> 🏃 趣味动作 (常用动词速记)</span>
+            <span class="tier-chip"><strong>07</strong> ⛅ 天气四季 (进阶扩展词汇)</span>
+            <span class="tier-chip"><strong>08</strong> 💻 程序员极客 (Tech 常用技术词)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tab 3: 体感切水果单独专栏 -->
     <div class="tab-panel" id="panel-fruitwave" role="tabpanel" aria-labelledby="tab-btn-fruitwave" hidden>
       <div class="game-detail-card">
@@ -244,6 +351,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       const panels = {
         all: document.getElementById('panel-all'),
         math: document.getElementById('panel-math'),
+        words: document.getElementById('panel-words'),
         fruitwave: document.getElementById('panel-fruitwave'),
         artcatcher: document.getElementById('panel-artcatcher')
       };
@@ -503,6 +611,26 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   .game-card.math-card:hover .cover-math.math-2 { transform: scale(1.2) translateY(-6px); }
   .game-card.math-card:hover .cover-math.math-3 { transform: scale(1.2) translateY(6px); }
   .game-card.math-card:hover .cover-math.math-4 { transform: scale(1.3) rotate(20deg); }
+
+  .game-cover.words-cover {
+    background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.25), transparent 70%), linear-gradient(135deg, #0c4a6e 0%, #1e1b4b 60%, #172554 100%);
+    gap: 1.25rem;
+    font-size: 2.8rem;
+  }
+  .cover-word {
+    display: inline-block;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+  }
+  .cover-word.word-1 { animation: coverFruitBob1 2.8s infinite alternate; font-size: 3.2rem; }
+  .cover-word.word-2 { animation: coverFruitBob2 2.6s infinite alternate; font-size: 3rem; }
+  .cover-word.word-3 { animation: coverFruitBob3 3.4s infinite alternate; font-size: 3.2rem; }
+  .cover-word.word-4 { animation: coverBurstPulse 2.2s infinite; color: #fbbf24; }
+
+  .game-card.words-card:hover .cover-word.word-1 { transform: scale(1.25) rotate(-10deg); }
+  .game-card.words-card:hover .cover-word.word-2 { transform: scale(1.2) translateY(-6px); }
+  .game-card.words-card:hover .cover-word.word-3 { transform: scale(1.2) translateY(6px); }
+  .game-card.words-card:hover .cover-word.word-4 { transform: scale(1.3) rotate(20deg); }
 
   .game-cover.fruitwave-cover {
     position: relative;

@@ -504,6 +504,10 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
             <p class="pro-box-desc">
               收录 CET-4/6、考研英语、雅思托福与计算机专业真题语境短文，带艾宾浩斯复习曲线与生词本。
             </p>
+            <a href={withBase('/games/words/')} class="pro-link-btn" style="background:#0284c7; color:#fff; border-color:#0284c7; margin-bottom:0.75rem;">
+              <span>🎮 开启『单词大冒险』闯关游戏</span>
+              <span aria-hidden="true">→</span>
+            </a>
             <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer" class="pro-link-btn">
               <span>进入 WordKey 学习平台</span>
               <span aria-hidden="true">↗</span>
@@ -539,6 +543,8 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
 
             <!-- 词库主题切换标签 -->
             <div class="deck-selector" role="radiogroup" aria-label="选择练习词库">
+              <button type="button" class="deck-btn" data-deck="kids">🐾 萌宠自然拼读</button>
+              <button type="button" class="deck-btn" data-deck="daily">🍎 生活高频常用</button>
               <button type="button" class="deck-btn active" data-deck="coder">💻 计算机技术</button>
               <button type="button" class="deck-btn" data-deck="cognitive">🧠 认知模型</button>
               <button type="button" class="deck-btn" data-deck="academic">🎓 雅思学术</button>
@@ -883,6 +889,70 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
   }
 
   const DECKS: Record<string, WordEntry[]> = {
+    kids: [
+      {
+        word: 'cat',
+        phonetic: '/kæt/',
+        translation: 'n. 小猫',
+        sentence: 'The cute white cat is sleeping on the warm mat.'
+      },
+      {
+        word: 'dog',
+        phonetic: '/dɔːɡ/',
+        translation: 'n. 小狗',
+        sentence: 'A friendly dog barks happily in the park.'
+      },
+      {
+        word: 'rabbit',
+        phonetic: '/ˈræbɪt/',
+        translation: 'n. 兔子',
+        sentence: 'The sweet rabbit loves eating crunchy orange carrots.'
+      },
+      {
+        word: 'panda',
+        phonetic: '/ˈpændə/',
+        translation: 'n. 大熊猫',
+        sentence: 'The baby panda eats fresh green bamboo.'
+      },
+      {
+        word: 'tiger',
+        phonetic: '/ˈtaɪɡər/',
+        translation: 'n. 老虎',
+        sentence: 'The brave tiger runs fast across the forest.'
+      }
+    ],
+    daily: [
+      {
+        word: 'apple',
+        phonetic: '/ˈæpl/',
+        translation: 'n. 苹果',
+        sentence: 'An apple a day keeps the doctor away.'
+      },
+      {
+        word: 'banana',
+        phonetic: '/bəˈnænə/',
+        translation: 'n. 香蕉',
+        sentence: 'Monkeys love eating sweet yellow bananas.'
+      },
+      {
+        word: 'school',
+        phonetic: '/skuːl/',
+        translation: 'n. 学校',
+        sentence: 'Children enjoy learning many new things at school.'
+      },
+      {
+        word: 'friend',
+        phonetic: '/frend/',
+        translation: 'n. 朋友',
+        sentence: 'A good friend shares toys and cheerful smiles.'
+      },
+      {
+        word: 'family',
+        phonetic: '/ˈfæməli/',
+        translation: 'n. 家庭/家人',
+        sentence: 'Family gives us warm hugs and sweet love.'
+      }
+    ],
     coder: [
       {
         word: 'paradigm',
