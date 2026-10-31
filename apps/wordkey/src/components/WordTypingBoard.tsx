@@ -14,6 +14,7 @@ import {
 import { WordItem, UserSettings } from '../types';
 import { soundManager } from '../utils/soundEffects';
 import { isWordFavorited, toggleWordFavorite } from '../utils/notebookStorage';
+import { wordkeyPixelFx } from '../utils/pixelFxEngine';
 
 interface WordTypingBoardProps {
   currentWord: WordItem | null;
@@ -29,6 +30,8 @@ interface WordTypingBoardProps {
   onNavigatePrev: () => void;
   onNavigateNext: () => void;
   onToggleAccent: () => void;
+  onSelectPrimaryDeck?: (deckId: string) => void;
+  activeDeckId?: string;
 }
 
 export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
@@ -45,6 +48,8 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
   onNavigatePrev,
   onNavigateNext,
   onToggleAccent,
+  onSelectPrimaryDeck,
+  activeDeckId,
 }) => {
   const [typedLetters, setTypedLetters] = useState<string>('');
   const [isError, setIsError] = useState<boolean>(false);
@@ -94,6 +99,71 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
       setToastFeedback(null);
     }, 1500);
   }, [currentWord]);
+
+  const handleBackspace = useCallback(() => {
+    if (typedLetters.length > 0) {
+      setTypedLetters((prev) => prev.slice(0, -1));
+      setIsError(false);
+      wordkeyPixelFx.triggerHaptic('tap');
+    }
+  }, [typedLetters]);
+
+  const handleInputChar = useCallback(
+    (pressedKey: string) => {
+      if (!currentWord || isPaused) return;
+
+      const targetWord = currentWord.word.trim().toLowerCase();
+      const expectedIndex = typedLetters.length;
+      const expectedLetter = targetWord[expectedIndex];
+      const keyLower = pressedKey.toLowerCase();
+
+      const boardRect = containerRef.current?.getBoundingClientRect();
+      const cx = boardRect ? boardRect.left + boardRect.width / 2 : window.innerWidth / 2;
+      const cy = boardRect ? boardRect.top + boardRect.height * 0.42 : window.innerHeight * 0.42;
+
+      if (keyLower === expectedLetter) {
+        const nextTyped = typedLetters + keyLower;
+        setTypedLetters(nextTyped);
+        setIsError(false);
+        onRecordKeystroke(true);
+        wordkeyPixelFx.triggerHaptic('tap');
+        wordkeyPixelFx.triggerHitSpark(cx, cy);
+
+        if (settings.keySound) {
+          soundManager.playKeyClick();
+        }
+
+        if (nextTyped.length === targetWord.length) {
+          if (settings.keySound) {
+            soundManager.playSuccessSound();
+          }
+          wordkeyPixelFx.triggerHaptic('success');
+          wordkeyPixelFx.triggerCollectBurst(cx, cy);
+          wordkeyPixelFx.triggerCritNumber(cx, cy - 35, '+10 PERFECT');
+          if (streak + 1 >= 5 && (streak + 1) % 5 === 0) {
+            wordkeyPixelFx.triggerCombo(cx, cy - 65, streak + 1);
+            wordkeyPixelFx.triggerHaptic('combo');
+          }
+          onWordComplete(currentWord, mistakeCountRef.current);
+        }
+      } else {
+        setIsError(true);
+        mistakeCountRef.current += 1;
+        onRecordKeystroke(false);
+        wordkeyPixelFx.triggerHaptic('error');
+        wordkeyPixelFx.triggerShieldBlock(cx, cy);
+
+        if (settings.keySound) {
+          soundManager.playErrorSound();
+        }
+
+        setTimeout(() => {
+          setIsError(false);
+        }, 300);
+      }
+    },
+    [currentWord, isPaused, typedLetters, onRecordKeystroke, onWordComplete, settings.keySound, streak]
+  );
 
   // When current word changes: reset typing state & auto-play if enabled
   useEffect(() => {
@@ -148,10 +218,7 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
       // Backspace: delete last typed letter
       if (e.key === 'Backspace') {
         e.preventDefault();
-        if (typedLetters.length > 0) {
-          setTypedLetters((prev) => prev.slice(0, -1));
-          setIsError(false);
-        }
+        handleBackspace();
         return;
       }
 
@@ -172,12 +239,6 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
         return;
       }
 
-      // Space key handling:
-      // If the word has a space (like "account for") and the next expected character is ' ',
-      // Space MUST be typed as a character!
-      // If the expected character is NOT a space:
-      // - Single words (no spaces in targetWord): Space acts as shortcut to replay audio.
-      // - Multi-word phrases: pressing Space at wrong position is a typing error (proceed to typing check).
       const isSpaceKey = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar';
 
       if (isSpaceKey) {
@@ -191,41 +252,7 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
       // Character typing: handles letters, spaces, hyphens, and apostrophes
       if (isSpaceKey || e.key.length === 1) {
         e.preventDefault();
-        const pressedKey = isSpaceKey ? ' ' : e.key.toLowerCase();
-
-        if (pressedKey === expectedLetter) {
-          // Correct key!
-          const nextTyped = typedLetters + pressedKey;
-          setTypedLetters(nextTyped);
-          setIsError(false);
-          onRecordKeystroke(true);
-
-          if (settings.keySound) {
-            soundManager.playKeyClick();
-          }
-
-          // Check if word/phrase is now completed!
-          if (nextTyped.length === targetWord.length) {
-            if (settings.keySound) {
-              soundManager.playSuccessSound();
-            }
-            onWordComplete(currentWord, mistakeCountRef.current);
-          }
-        } else {
-          // Incorrect key!
-          setIsError(true);
-          mistakeCountRef.current += 1;
-          onRecordKeystroke(false);
-
-          if (settings.keySound) {
-            soundManager.playErrorSound();
-          }
-
-          // Trigger brief shake effect
-          setTimeout(() => {
-            setIsError(false);
-          }, 300);
-        }
+        handleInputChar(isSpaceKey ? ' ' : e.key);
       }
     };
 
@@ -235,12 +262,12 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
     currentWord,
     typedLetters,
     isPaused,
-    settings.keySound,
-    onRecordKeystroke,
-    onWordComplete,
+    handleInputChar,
+    handleBackspace,
     onNavigateNext,
     onNavigatePrev,
     playCurrentWordAudio,
+    handleToggleFavorite,
   ]);
 
   if (!currentWord) {
@@ -261,6 +288,16 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
 
   // Calculate progress within current word
   const wordProgressPct = Math.round((typedLetters.length / targetWord.length) * 100);
+
+  const candidateLetters = useMemo(() => {
+    if (!currentWord) return [];
+    const wordChars = Array.from(new Set(currentWord.word.toLowerCase().split('')));
+    const common = ['a', 'e', 'i', 'o', 'u', 's', 't', 'r', 'n', 'l', 'd', 'c'].filter(
+      (c) => !wordChars.includes(c)
+    );
+    const pool = [...wordChars, ...common.slice(0, Math.max(0, 10 - wordChars.length))].sort();
+    return pool;
+  }, [currentWord?.word]);
 
   // Render article sentence with the current word highlighted
   const renderContextSentence = () => {
@@ -298,6 +335,37 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
       ref={containerRef}
       className="flex-1 w-full max-w-6xl mx-auto flex flex-col items-center justify-center px-4 relative select-none"
     >
+      {/* Quick primary curriculum deck pills */}
+      {!isZenMode && onSelectPrimaryDeck && (
+        <div className="w-full max-w-4xl mx-auto mb-2 flex items-center justify-center gap-1.5 flex-wrap px-2">
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1 mr-1">
+            🎒 小学教材一键切换:
+          </span>
+          {[
+            { id: 'oxford-primary-g12', label: '牛津1-2年级' },
+            { id: 'oxford-primary-g34', label: '牛津3-4年级' },
+            { id: 'oxford-primary-g56', label: '牛津5-6年级' },
+            { id: 'pep-primary-g3', label: 'PEP三年级' },
+            { id: 'pep-primary-g4', label: 'PEP四年级' },
+            { id: 'pep-primary-g5', label: 'PEP五年级' },
+            { id: 'pep-primary-g6', label: 'PEP六年级' },
+          ].map((deck) => (
+            <button
+              key={deck.id}
+              type="button"
+              onClick={() => onSelectPrimaryDeck(deck.id)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
+                activeDeckId === deck.id
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs scale-105'
+                  : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
+              }`}
+            >
+              {deck.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <label className="mb-4 w-full max-w-sm text-xs text-slate-500">
         点击输入框开始练习（支持手机键盘）
         <input
@@ -526,6 +594,34 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
 
           {/* Context Sentence from the original Article */}
           {renderContextSentence()}
+
+          {/* Mobile & Tablet Interactive Letter Bubbles (解决平板和触屏打字障碍) */}
+          <div className="mt-5 w-full max-w-lg px-2 flex flex-col items-center">
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1 select-none">
+              👆 点按字母气泡或敲击键盘键入：
+            </span>
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+              {candidateLetters.map((char, cIdx) => (
+                <button
+                  key={cIdx}
+                  type="button"
+                  onClick={() => handleInputChar(char)}
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 text-slate-700 dark:text-slate-200 font-mono-code font-bold text-sm sm:text-base active:scale-90 transition-all shadow-xs flex items-center justify-center cursor-pointer select-none"
+                >
+                  {char === ' ' ? '␣' : char}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={handleBackspace}
+                disabled={typedLetters.length === 0}
+                className="px-2.5 h-9 sm:h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-mono-code text-xs active:scale-90 transition-all flex items-center justify-center cursor-pointer disabled:opacity-30"
+                title="删除上一个字母"
+              >
+                ⌫ 退格
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Next Word (Screenshot layout) */}

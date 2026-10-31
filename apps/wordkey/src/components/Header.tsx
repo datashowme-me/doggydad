@@ -20,6 +20,8 @@ import {
   ArrowLeft,
   Maximize2,
   Minimize2,
+  Award,
+  Printer,
 } from 'lucide-react';
 import { UserSettings } from '../types';
 
@@ -43,6 +45,8 @@ interface HeaderProps {
   onOpenSettings: () => void;
   onOpenShortcuts: () => void;
   onOpenNotebook: () => void;
+  onOpenBadges?: () => void;
+  onOpenWorksheet?: () => void;
   onExitPracticeMode?: () => void;
   onResetProgress: () => void;
   onShuffleWords: () => void;
@@ -69,6 +73,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   onOpenShortcuts,
   onOpenNotebook,
+  onOpenBadges,
+  onOpenWorksheet,
   onExitPracticeMode,
   onResetProgress,
   onShuffleWords,
@@ -292,6 +298,30 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           )}
         </button>
+
+        {/* A4 Printable Worksheet Button */}
+        {onOpenWorksheet && (
+          <button
+            onClick={onOpenWorksheet}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/40 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 transition-colors border border-sky-200 dark:border-sky-800/60 shadow-xs cursor-pointer"
+            title="打印 A4 纸质单词打卡卷与临摹字帖"
+          >
+            <Printer className="w-3.5 h-3.5 text-sky-500" />
+            <span>A4字帖</span>
+          </button>
+        )}
+
+        {/* Badges Wall Button */}
+        {onOpenBadges && (
+          <button
+            onClick={onOpenBadges}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 transition-colors border border-amber-400/30 shadow-xs cursor-pointer"
+            title="查看我的成就勋章墙"
+          >
+            <Award className="w-3.5 h-3.5 text-amber-500" />
+            <span>勋章</span>
+          </button>
+        )}
 
         {/* Sleek Tool Icon Group (Integrated Glass Bar) */}
         <div className="flex items-center gap-0.5 p-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl border border-slate-200/70 dark:border-slate-700/60 shadow-xs">

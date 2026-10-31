@@ -14,16 +14,45 @@ import { CompletionModal } from './components/CompletionModal';
 import { TaskMilestoneModal } from './components/TaskMilestoneModal';
 import { TrendModal } from './components/TrendModal';
 import { NotebookModal } from './components/NotebookModal';
+import { BadgesModal, BadgeItem } from './components/BadgesModal';
+import { A4WorksheetModal } from './components/A4WorksheetModal';
 import { WordItem, NotebookWordItem, UserSettings, TypingStats, TaskProgressPoint } from './types';
-import { SAMPLE_ARTICLES } from './data/fallbackData';
+import { SAMPLE_ARTICLES, PRIMARY_CURRICULUM_ARTICLES } from './data/fallbackData';
 import { loadOfficialDictionary } from './utils/dictionaryLoader';
 import {
   getNotebookWords,
   recordWordMistake,
   recordWordSuccess,
 } from './utils/notebookStorage';
+import { wordkeyPixelFx } from './utils/pixelFxEngine';
+
+const DEFAULT_BADGES: BadgeItem[] = [
+  { id: 'first_word', name: '第一步踏出', desc: '在 WordKey 完成首个英文单词默写', icon: '🎯', unlocked: false },
+  { id: 'combo_10', name: '连击大师', desc: '默写拼读达成 10 连击 COMBO', icon: '🔥', unlocked: false },
+  { id: 'oxford_star', name: '牛津学霸', desc: '通关牛津版小学起步或进阶核心词库', icon: '🌟', unlocked: false },
+  { id: 'pep_master', name: '人教先锋', desc: '通关统编人教版小学教材核心词库', icon: '📘', unlocked: false },
+  { id: 'speed_rush', name: '闪电极速', desc: '单次练习打字速度突破 45 WPM', icon: '⚡', unlocked: false },
+  { id: 'notebook_hero', name: '生词克星', desc: '将生词本中的生词成功强化攻克', icon: '🛡️', unlocked: false },
+  { id: 'task_complete', name: '任务达人', desc: '完成整组 20 词小任务闯关', icon: '🏆', unlocked: false },
+  { id: 'vocab_master', name: '博学之星', desc: '在 WordKey 累计练习超过 60 个单词', icon: '👑', unlocked: false },
+];
 
 export default function App() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isBadgesOpen, setIsBadgesOpen] = useState<boolean>(false);
+  const [isWorksheetOpen, setIsWorksheetOpen] = useState<boolean>(false);
+  const [activeDeckId, setActiveDeckId] = useState<string>('oxford-primary-g12');
+
+  const [badges, setBadges] = useState<BadgeItem[]>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('wordkey_badges') : null;
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (_) {}
+    }
+    return DEFAULT_BADGES;
+  });
+
   // Initialize with the Oxford sample (matching user's screenshot)
   const defaultArticle = SAMPLE_ARTICLES[0];
   const [allWords, setAllWords] = useState<WordItem[]>(defaultArticle.words);
@@ -230,9 +259,63 @@ export default function App() {
     });
   }, []);
 
+  useEffect(() => {
+    if (canvasRef.current) {
+      wordkeyPixelFx.init(canvasRef.current);
+    }
+  }, []);
+
+  const unlockBadge = useCallback((badgeId: string) => {
+    setBadges((prev) => {
+      const target = prev.find((b) => b.id === badgeId);
+      if (!target || target.unlocked) return prev;
+      wordkeyPixelFx.triggerAchievement();
+      wordkeyPixelFx.triggerConfetti();
+      const updated = prev.map((b) =>
+        b.id === badgeId ? { ...b, unlocked: true, unlockedAt: new Date().toLocaleDateString('zh-CN') } : b
+      );
+      try {
+        localStorage.setItem('wordkey_badges', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+  }, []);
+
+  const handleSelectPrimaryDeck = useCallback((deckId: string) => {
+    const deck = PRIMARY_CURRICULUM_ARTICLES.find((d) => d.id === deckId);
+    if (!deck) return;
+    setActiveDeckId(deckId);
+    setAllWords(deck.words);
+    setArticleTitle(deck.title);
+    setCurrentTaskIndex(0);
+    setTaskWordIndex(0);
+    setAllMistakenWords([]);
+    setTaskMistakes([]);
+    setTaskProgressHistory([]);
+    setSessionProgressHistory([]);
+    setIsComplete(false);
+    setIsTaskMilestoneOpen(false);
+    setStats({
+      elapsedSeconds: 0,
+      totalKeystrokes: 0,
+      correctKeystrokes: 0,
+      wrongKeystrokes: 0,
+      correctWords: 0,
+      wrongWords: 0,
+      wpm: 0,
+      accuracy: 100,
+    });
+    wordkeyPixelFx.triggerLevelUp();
+  }, []);
+
   // Single Word Completed within current task
   const handleWordComplete = useCallback(
     (completedWord: WordItem, mistakesCount: number) => {
+      unlockBadge('first_word');
+      if (mistakesCount === 0 && isNotebookPractice) {
+        unlockBadge('notebook_hero');
+      }
+
       if (mistakesCount > 0) {
         // Automatically persist mistake to local notebook
         recordWordMistake(completedWord);
@@ -276,6 +359,16 @@ export default function App() {
         const nextStreak = mistakesCount === 0 ? (prev.streak || 0) + 1 : 0;
         const nextMaxStreak = Math.max(prev.maxStreak || 0, nextStreak);
 
+        if (nextStreak >= 10) {
+          unlockBadge('combo_10');
+        }
+        if (nextCorrectWords >= 60) {
+          unlockBadge('vocab_master');
+        }
+        if (currentWpm >= 45) {
+          unlockBadge('speed_rush');
+        }
+
         return {
           ...prev,
           correctWords: nextCorrectWords,
@@ -289,6 +382,12 @@ export default function App() {
         setTaskWordIndex((prev) => prev + 1);
       } else {
         // Current 20-word task completed!
+        wordkeyPixelFx.triggerLevelUp();
+        wordkeyPixelFx.triggerConfetti();
+        unlockBadge('task_complete');
+        if (articleTitle.includes('牛津')) unlockBadge('oxford_star');
+        if (articleTitle.includes('PEP') || articleTitle.includes('人教')) unlockBadge('pep_master');
+
         if (currentTaskIndex + 1 < totalTasks) {
           setIsTaskMilestoneOpen(true);
         } else {
@@ -297,7 +396,7 @@ export default function App() {
         }
       }
     },
-    [taskWordIndex, currentTaskWords.length, currentTaskIndex, totalTasks, isNotebookPractice]
+    [taskWordIndex, currentTaskWords.length, currentTaskIndex, totalTasks, isNotebookPractice, unlockBadge, articleTitle]
   );
 
   // Navigation within current task
@@ -486,7 +585,14 @@ export default function App() {
   const nextWord = taskWordIndex + 1 < currentTaskWords.length ? currentTaskWords[taskWordIndex + 1] : null;
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#f4f6fa] dark:bg-[#121620] text-slate-800 dark:text-slate-100 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col justify-between bg-[#f4f6fa] dark:bg-[#121620] text-slate-800 dark:text-slate-100 transition-colors duration-200 relative">
+      {/* PixelFX Canvas (patch-gg/pixelfx 像素粒子与光效画布) */}
+      <canvas
+        ref={canvasRef}
+        id="wordkey-fx-canvas"
+        className="fixed inset-0 pointer-events-none z-50 w-full h-full"
+      />
+
       {/* Zen Mode Minimal Hairline Progress Bar */}
       {isZenMode && (
         <div className="fixed top-0 left-0 right-0 z-40 h-0.5 bg-slate-200/80 dark:bg-slate-800/80">
@@ -520,6 +626,8 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenShortcuts={() => setIsShortcutsOpen(true)}
         onOpenNotebook={() => setIsNotebookOpen(true)}
+        onOpenBadges={() => setIsBadgesOpen(true)}
+        onOpenWorksheet={() => setIsWorksheetOpen(true)}
         onExitPracticeMode={handleExitNotebookPractice}
         onResetProgress={handleResetProgress}
         onShuffleWords={handleShuffleWords}
@@ -533,7 +641,7 @@ export default function App() {
           prevWord={prevWord}
           nextWord={nextWord}
           settings={settings}
-          isPaused={isPaused || isImportOpen || isSettingsOpen || isShortcutsOpen || isNotebookOpen || isTrendModalOpen || isTaskMilestoneOpen || isComplete}
+          isPaused={isPaused || isImportOpen || isSettingsOpen || isShortcutsOpen || isNotebookOpen || isTrendModalOpen || isTaskMilestoneOpen || isComplete || isBadgesOpen || isWorksheetOpen}
           streak={stats.streak}
           isZenMode={isZenMode}
           onToggleZenMode={() => setIsZenMode((prev) => !prev)}
@@ -541,6 +649,8 @@ export default function App() {
           onRecordKeystroke={handleRecordKeystroke}
           onNavigatePrev={handleNavigatePrev}
           onNavigateNext={handleNavigateNext}
+          onSelectPrimaryDeck={handleSelectPrimaryDeck}
+          activeDeckId={activeDeckId}
           onToggleAccent={() =>
             setSettings((prev) => ({
               ...prev,
@@ -621,6 +731,21 @@ export default function App() {
           setIsComplete(false);
           setIsImportOpen(true);
         }}
+      />
+
+      {/* Badges Modal */}
+      <BadgesModal
+        isOpen={isBadgesOpen}
+        onClose={() => setIsBadgesOpen(false)}
+        badges={badges}
+      />
+
+      {/* A4 Printable Worksheet Modal */}
+      <A4WorksheetModal
+        isOpen={isWorksheetOpen}
+        onClose={() => setIsWorksheetOpen(false)}
+        words={currentTaskWords.length > 0 ? currentTaskWords : allWords}
+        title={articleTitle}
       />
     </div>
   );
