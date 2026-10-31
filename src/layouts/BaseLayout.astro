@@ -211,6 +211,11 @@ const navItems = [
     <link rel="alternate" type="application/rss+xml" title="WordsMaster RSS" href={`${siteUrl}/rss.xml`} />
     <link rel="alternate" type="text/plain" title="WordsMaster LLMs.txt" href={`${siteUrl}/llms.txt`} />
     <link rel="icon" href={`${siteUrl}/favicon.svg`} type="image/svg+xml" />
+    <link rel="manifest" href={withBase('/manifest.webmanifest')} />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="WordsMaster" />
+    <link rel="apple-touch-icon" href={withBase('/icon-192.svg')} />
 
     <meta property="og:type" content={article ? 'article' : 'website'} />
     <meta property="og:title" content={title} />
@@ -327,6 +332,12 @@ const navItems = [
         menuToggle.setAttribute('aria-expanded', String(!expanded));
         siteNav?.classList.toggle('is-open', !expanded);
       });
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
     </script>
   </body>
 </html>

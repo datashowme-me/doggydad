@@ -990,6 +990,226 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       20%, 60% { transform: translateX(-8px); }
       40%, 80% { transform: translateX(8px); }
     }
+
+    /* 成就勋章墙样式 */
+    .badge-wall-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 0.85rem;
+      max-height: 55vh;
+      overflow-y: auto;
+      padding: 0.5rem 0.25rem;
+      margin: 1rem 0;
+    }
+    .badge-card {
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .badge-card.is-unlocked {
+      background: linear-gradient(135deg, rgba(254, 240, 138, 0.2), rgba(253, 224, 71, 0.08));
+      border-color: #facc15;
+      box-shadow: 0 4px 12px rgba(234, 179, 8, 0.15);
+    }
+    .badge-card.is-locked {
+      opacity: 0.6;
+      filter: grayscale(0.8);
+    }
+    .badge-card-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    .badge-card-info h4 {
+      font-size: 0.92rem;
+      font-weight: 800;
+      margin-bottom: 0.2rem;
+    }
+    .badge-card-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+    .badge-card-date {
+      font-size: 0.68rem;
+      color: #059669;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+
+    /* A4 打印打卡卷弹窗与预览样式 */
+    .worksheet-dialog {
+      max-width: 820px !important;
+      width: 95vw !important;
+      max-height: 90vh !important;
+      display: flex;
+      flex-direction: column;
+    }
+    .worksheet-ctrl-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      background: var(--bg-page);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      margin: 0.75rem 0;
+    }
+    .worksheet-ctrl-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .worksheet-ctrl-item select, .worksheet-ctrl-item input {
+      padding: 0.35rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+    .worksheet-preview-wrap {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 52vh;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #f1f5f9;
+      padding: 1rem;
+    }
+
+    /* 真实 A4 打印模板 (Screen Preview + Print Media) */
+    .a4-page {
+      background: #fff;
+      color: #1e293b;
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2.2rem 2.4rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-radius: 4px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .a4-header {
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.25rem;
+      text-align: center;
+    }
+    .a4-header h1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      color: #0f172a;
+      margin-bottom: 0.35rem;
+    }
+    .a4-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    .a4-meta-item span {
+      display: inline-block;
+      min-width: 70px;
+      border-bottom: 1px solid #94a3b8;
+    }
+    .a4-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem 1.25rem;
+    }
+    .a4-word-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 0.6rem 0.75rem;
+      background: #fafafa;
+      break-inside: avoid;
+    }
+    .a4-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+    }
+    .a4-card-num {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #64748b;
+    }
+    .a4-card-word {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .a4-card-phonetic {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin-left: 0.35rem;
+    }
+    .a4-card-meaning {
+      font-size: 0.88rem;
+      color: #334155;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+    .a4-four-lines {
+      height: 38px;
+      background: linear-gradient(to bottom, #93c5fd 1px, transparent 1px, transparent 11px, #bfdbfe 1px, transparent 1px, transparent 23px, #fca5a5 1px, transparent 1px, transparent 35px, #93c5fd 1px);
+      border-radius: 4px;
+      margin: 0.35rem 0;
+      border: 1px dashed #cbd5e1;
+    }
+    .a4-check-boxes {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      font-size: 0.75rem;
+      color: #64748b;
+      font-weight: 700;
+      margin-top: 0.3rem;
+    }
+    .a4-footer {
+      margin-top: 1.5rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printable-worksheet, #printable-worksheet * {
+        visibility: visible !important;
+      }
+      #printable-worksheet {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+      }
+      .modal-overlay, .app-header, .control-console, .game-arena, .fx-canvas {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 
@@ -1013,6 +1233,26 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       </div>
 
       <div class="header-tools">
+        <!-- 今日挑战 -->
+        <button type="button" class="tool-btn" id="btn-daily-challenge" title="今日亲子专属挑战：随机精选 10 词">
+          <span>📅</span> 今日挑战
+        </button>
+
+        <!-- A4 单词默写打卡卷打印 -->
+        <button type="button" class="tool-btn highlight" id="btn-print-words" title="生成并打印 A4 四线三格临摹与默写打卡纸">
+          <span>🖨️</span> A4打卡卷
+        </button>
+
+        <!-- 成就勋章墙 -->
+        <button type="button" class="tool-btn" id="btn-open-badges" title="查看亲子成长勋章">
+          <span>🏆</span> 勋章 (<span id="txt-unlocked-badges">0</span>/8)
+        </button>
+
+        <!-- 错题生词本 -->
+        <button type="button" class="tool-btn" id="btn-open-notebook" title="查看生词与复习本">
+          <span>📖</span> 生词本 (<span id="txt-wrong-count">0</span>)
+        </button>
+
         <!-- 慢速发音跟读开关 (适合少儿) -->
         <button type="button" class="tool-btn" id="btn-slow-audio" title="开启慢速发音 (0.75x，方便少儿跟读模仿)">
           <span>🐢</span> <span id="txt-slow-audio">正常语速</span>
@@ -1023,19 +1263,14 @@ const canonicalUrl = `${siteUrl}/games/words/`;
           <span>🔊</span> <span id="txt-sound-state">音效 开</span>
         </button>
 
-        <!-- 试听与音效测试 -->
-        <button type="button" class="tool-btn" id="btn-test-sound" title="测试发音与像素动效">
-          <span>🔔</span> 音效测试
-        </button>
-
-        <!-- 错题生词本 -->
-        <button type="button" class="tool-btn" id="btn-open-notebook" title="查看生词与复习本">
-          <span>📖</span> 生词本 (<span id="txt-wrong-count">0</span>)
-        </button>
-
         <!-- 护眼模式 -->
         <button type="button" class="tool-btn" id="btn-toggle-eye" title="切换柔和护眼羊皮纸背景">
           <span>👓</span> 护眼
+        </button>
+
+        <!-- PWA 桌面安装 (支持浏览器触发时显示) -->
+        <button type="button" class="tool-btn" id="btn-install-pwa" title="添加到手机或平板主屏幕" hidden>
+          <span>📲</span> 安装App
         </button>
       </div>
     </div>
@@ -1073,7 +1308,7 @@ const canonicalUrl = `${siteUrl}/games/words/`;
         </div>
       </div>
 
-      <!-- 词库分级（适合小学低年级各阶段） -->
+      <!-- 词库分级（涵盖牛津版、统编人教PEP版全套） -->
       <div class="console-row">
         <div class="row-title">📚 关卡词库</div>
         <div class="deck-strip" role="radiogroup">
@@ -1081,10 +1316,14 @@ const canonicalUrl = `${siteUrl}/games/words/`;
           <button type="button" class="deck-chip" data-deck="oxford_g12">🏫 牛津1-2年级 (启蒙必背)</button>
           <button type="button" class="deck-chip" data-deck="oxford_g34">📘 牛津3-4年级 (生活交际)</button>
           <button type="button" class="deck-chip" data-deck="oxford_g56">🎓 牛津5-6年级 (小升初核心)</button>
+          <button type="button" class="deck-chip" data-deck="pep_g3">🎒 人教PEP3年级 (基础启蒙)</button>
+          <button type="button" class="deck-chip" data-deck="pep_g4">🏫 人教PEP4年级 (校园日常)</button>
+          <button type="button" class="deck-chip" data-deck="pep_g5">📗 人教PEP5年级 (生活情景)</button>
+          <button type="button" class="deck-chip" data-deck="pep_g6">🎓 人教PEP6年级 (小升初冲刺)</button>
           <button type="button" class="deck-chip" data-deck="foods">🍎 美味果蔬 (小学必会)</button>
           <button type="button" class="deck-chip" data-deck="colors_nums">🎨 颜色数字 (低年级基础)</button>
           <button type="button" class="deck-chip" data-deck="body_home">👀 身体家庭 (日常高频)</button>
-          <button type="button" class="deck-chip" data-deck="school">🎒 校园文具 (PEP精选)</button>
+          <button type="button" class="deck-chip" data-deck="school">🎒 校园文具 (精选)</button>
           <button type="button" class="deck-chip" data-deck="actions">🏃 趣味动作 (常用动词)</button>
           <button type="button" class="deck-chip" data-deck="nature">⛅ 天气四季 (进阶扩展)</button>
           <button type="button" class="deck-chip" data-deck="coder">💻 程序员极客 (Tech)</button>
@@ -1247,6 +1486,88 @@ const canonicalUrl = `${siteUrl}/games/words/`;
     </div>
   </div>
 
+  <!-- 弹窗：成就勋章墙 (Badges Wall) -->
+  <div class="modal-overlay" id="modal-badges" hidden>
+    <div class="modal-card" style="max-width: 640px; width: 92vw;">
+      <div class="modal-header">
+        <h2>🏆 亲子成长勋章墙</h2>
+        <button type="button" class="btn-modal-close" id="btn-close-badges">✕</button>
+      </div>
+      <p style="font-size:0.86rem; color:var(--text-muted);">
+        伴随孩子每一次拼词探索，解锁亮闪闪的成长勋章，持续激发内在学习动力！
+      </p>
+      <div class="badge-wall-grid" id="badges-grid-container"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-primary" id="btn-close-badges-ft">
+          继续冲关 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗：A4 单词默写打卡卷生成与打印 (Print Worksheet) -->
+  <div class="modal-overlay" id="modal-worksheet" hidden>
+    <div class="modal-card worksheet-dialog">
+      <div class="modal-header">
+        <h2>🖨️ 生成 A4 单词打卡临摹练习卷</h2>
+        <button type="button" class="btn-modal-close" id="btn-close-worksheet">✕</button>
+      </div>
+
+      <!-- 控制参数栏 -->
+      <div class="worksheet-ctrl-bar">
+        <div class="worksheet-ctrl-item">
+          <label for="ws-deck-select">词库:</label>
+          <select id="ws-deck-select">
+            <option value="oxford_g12">🏫 牛津1-2年级</option>
+            <option value="oxford_g34">📘 牛津3-4年级</option>
+            <option value="oxford_g56">🎓 牛津5-6年级</option>
+            <option value="pep_g3">🎒 人教PEP3年级</option>
+            <option value="pep_g4">🏫 人教PEP4年级</option>
+            <option value="pep_g5">📗 人教PEP5年级</option>
+            <option value="pep_g6">🎓 人教PEP6年级</option>
+            <option value="animals">🐾 萌宠动物</option>
+            <option value="foods">🍎 美味果蔬</option>
+            <option value="colors_nums">🎨 颜色数字</option>
+            <option value="school">🎒 校园文具</option>
+            <option value="notebook">📕 当前生词本</option>
+          </select>
+        </div>
+        <div class="worksheet-ctrl-item">
+          <label for="ws-type-select">题型版式:</label>
+          <select id="ws-type-select">
+            <option value="copy">四线三格描红临摹版</option>
+            <option value="dictation">看中默英测试版 (含首字母)</option>
+            <option value="trans">看英写中释义版</option>
+          </select>
+        </div>
+        <div class="worksheet-ctrl-item">
+          <label for="ws-count-select">数量:</label>
+          <select id="ws-count-select">
+            <option value="12">12 词 (轻量精炼)</option>
+            <option value="16" selected>16 词 (标准A4满页)</option>
+            <option value="20">20 词 (密集排练)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 实时预览区 (点击打印时直接输出) -->
+      <div class="worksheet-preview-wrap">
+        <div id="printable-worksheet" class="a4-page">
+          <!-- 动态渲染 -->
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:0.75rem;">
+        <button type="button" class="btn-modal-primary" id="btn-do-print">
+          🖨️ 立即打印 A4 练习卷
+        </button>
+        <button type="button" class="btn-modal-secondary" id="btn-close-ws-sec">
+          关闭
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     import { pixelFx } from '../../scripts/pixelFxEngine';
 
@@ -1345,6 +1666,106 @@ const canonicalUrl = `${siteUrl}/games/words/`;
           { word: 'weekend', phonetic: '/ˌwiːkˈend/', meaning: '周末', sentence: 'We have a picnic on the weekend.', emoji: '🧺' },
           { word: 'earth', phonetic: '/ɜːrθ/', meaning: '地球', sentence: 'We must protect our Earth.', emoji: '🌍' },
           { word: 'protect', phonetic: '/prəˈtekt/', meaning: '保护', sentence: 'Plant green trees to protect nature.', emoji: '🌳' }
+        ]
+      },
+      pep_g3: {
+        name: '人教PEP三年级',
+        words: [
+          { word: 'ruler', phonetic: '/ˈruːlər/', meaning: '尺子', sentence: 'I have a long ruler.', emoji: '📏' },
+          { word: 'eraser', phonetic: '/ɪˈreɪsər/', meaning: '橡皮', sentence: 'Show me your eraser.', emoji: '🧼' },
+          { word: 'pencil', phonetic: '/ˈpensl/', meaning: '铅笔', sentence: 'Write gently with your pencil.', emoji: '✏️' },
+          { word: 'crayon', phonetic: '/ˈkreɪən/', meaning: '蜡笔', sentence: 'Draw pictures with colorful crayons.', emoji: '🖍️' },
+          { word: 'bag', phonetic: '/bæɡ/', meaning: '书包', sentence: 'Carry your school bag happily.', emoji: '🎒' },
+          { word: 'pen', phonetic: '/pen/', meaning: '钢笔', sentence: 'Write notes with a blue pen.', emoji: '🖊️' },
+          { word: 'book', phonetic: '/bʊk/', meaning: '书本', sentence: 'Open your English book.', emoji: '📖' },
+          { word: 'arm', phonetic: '/ɑːrm/', meaning: '手臂', sentence: 'Wave your strong arms.', emoji: '💪' },
+          { word: 'leg', phonetic: '/leɡ/', meaning: '腿', sentence: 'Stretch your legs and jump.', emoji: '🦵' },
+          { word: 'foot', phonetic: '/fʊt/', meaning: '脚', sentence: 'Stamp your feet on the ground.', emoji: '🦶' },
+          { word: 'mouth', phonetic: '/maʊθ/', meaning: '嘴巴', sentence: 'Open your mouth and speak out.', emoji: '👄' },
+          { word: 'nose', phonetic: '/noʊz/', meaning: '鼻子', sentence: 'Touch your little nose.', emoji: '👃' },
+          { word: 'eye', phonetic: '/aɪ/', meaning: '眼睛', sentence: 'Look around with bright eyes.', emoji: '👀' },
+          { word: 'ear', phonetic: '/ɪr/', meaning: '耳朵', sentence: 'Listen carefully with your ears.', emoji: '👂' },
+          { word: 'head', phonetic: '/hed/', meaning: '头', sentence: 'Nod your head to say yes.', emoji: '🧑' },
+          { word: 'hand', phonetic: '/hænd/', meaning: '小手', sentence: 'Clap your hands together.', emoji: '👏' },
+          { word: 'milk', phonetic: '/mɪlk/', meaning: '牛奶', sentence: 'Have some milk for breakfast.', emoji: '🥛' },
+          { word: 'bread', phonetic: '/bred/', meaning: '面包', sentence: 'I would like some bread.', emoji: '🍞' },
+          { word: 'water', phonetic: '/ˈwɔːtər/', meaning: '水', sentence: 'Drink some pure water.', emoji: '💧' },
+          { word: 'egg', phonetic: '/eɡ/', meaning: '鸡蛋', sentence: 'Eat a boiled egg every morning.', emoji: '🥚' }
+        ]
+      },
+      pep_g4: {
+        name: '人教PEP四年级',
+        words: [
+          { word: 'classroom', phonetic: '/ˈklæsruːm/', meaning: '教室', sentence: 'Our classroom is clean and bright.', emoji: '🏫' },
+          { word: 'blackboard', phonetic: '/ˈblækbɔːrd/', meaning: '黑板', sentence: 'Clean the blackboard after class.', emoji: '⬛' },
+          { word: 'light', phonetic: '/laɪt/', meaning: '电灯', sentence: 'Turn on the light in the evening.', emoji: '💡' },
+          { word: 'picture', phonetic: '/ˈpɪktʃər/', meaning: '图画', sentence: 'Hang the beautiful picture on the wall.', emoji: '🖼️' },
+          { word: 'door', phonetic: '/dɔːr/', meaning: '门', sentence: 'Please close the door gently.', emoji: '🚪' },
+          { word: 'window', phonetic: '/ˈwɪndoʊ/', meaning: '窗户', sentence: 'Open the window to let fresh air in.', emoji: '🪟' },
+          { word: 'desk', phonetic: '/desk/', meaning: '书桌', sentence: 'Keep your study desk neat.', emoji: '🪑' },
+          { word: 'chair', phonetic: '/tʃer/', meaning: '椅子', sentence: 'Please sit down on your chair.', emoji: '💺' },
+          { word: 'library', phonetic: '/ˈlaɪbrəri/', meaning: '图书馆', sentence: 'Be quiet in the school library.', emoji: '📚' },
+          { word: 'playground', phonetic: '/ˈpleɪɡraʊnd/', meaning: '操场', sentence: 'Children run on the green playground.', emoji: '⚽' },
+          { word: 'breakfast', phonetic: '/ˈbrekfəst/', meaning: '早餐', sentence: 'It is time for morning breakfast.', emoji: '🥞' },
+          { word: 'lunch', phonetic: '/lʌntʃ/', meaning: '午餐', sentence: 'Enjoy a tasty lunch with classmates.', emoji: '🍱' },
+          { word: 'dinner', phonetic: '/ˈdɪnər/', meaning: '晚餐', sentence: 'Have a warm family dinner.', emoji: '🍲' },
+          { word: 'jacket', phonetic: '/ˈdʒækɪt/', meaning: '夹克衫', sentence: 'Put on your warm jacket.', emoji: '🧥' },
+          { word: 'shirt', phonetic: '/ʃɜːrt/', meaning: '衬衫', sentence: 'A clean white shirt looks smart.', emoji: '👔' },
+          { word: 'skirt', phonetic: '/skɜːrt/', meaning: '短裙', sentence: 'She likes her new plaid skirt.', emoji: '👗' },
+          { word: 'dress', phonetic: '/dres/', meaning: '连衣裙', sentence: 'A pretty floral summer dress.', emoji: '👗' },
+          { word: 'weather', phonetic: '/ˈweðər/', meaning: '天气', sentence: 'What is the weather like today?', emoji: '🌤️' },
+          { word: 'warm', phonetic: '/wɔːrm/', meaning: '温暖的', sentence: 'Spring days are sunny and warm.', emoji: '🌸' },
+          { word: 'cool', phonetic: '/kuːl/', meaning: '凉爽的', sentence: 'Autumn breeze is pleasant and cool.', emoji: '🍃' }
+        ]
+      },
+      pep_g5: {
+        name: '人教PEP五年级',
+        words: [
+          { word: 'teacher', phonetic: '/ˈtiːtʃər/', meaning: '老师', sentence: 'Our English teacher is very kind.', emoji: '👩‍🏫' },
+          { word: 'clever', phonetic: '/ˈklevər/', meaning: '聪明的', sentence: 'The clever student solved the puzzle.', emoji: '🧠' },
+          { word: 'polite', phonetic: '/pəˈlaɪt/', meaning: '有礼貌的', sentence: 'Always be polite to everyone.', emoji: '🤝' },
+          { word: 'helpful', phonetic: '/ˈhelpfl/', meaning: '乐于助人的', sentence: 'He is very helpful at home.', emoji: '🤲' },
+          { word: 'weekend', phonetic: '/ˌwiːkˈend/', meaning: '周末', sentence: 'What do you do on the weekend?', emoji: '🧺' },
+          { word: 'season', phonetic: '/ˈsiːzn/', meaning: '季节', sentence: 'Which season do you like best?', emoji: '🍂' },
+          { word: 'spring', phonetic: '/sprɪŋ/', meaning: '春天', sentence: 'Spring is green with flowers.', emoji: '🌱' },
+          { word: 'summer', phonetic: '/ˈsʌmər/', meaning: '夏天', sentence: 'I like swimming in hot summer.', emoji: '☀️' },
+          { word: 'autumn', phonetic: '/ˈɔːtəm/', meaning: '秋天', sentence: 'Autumn leaves turn golden yellow.', emoji: '🍁' },
+          { word: 'winter', phonetic: '/ˈwɪntər/', meaning: '冬天', sentence: 'Make snowmen in snowy winter.', emoji: '⛄' },
+          { word: 'picnic', phonetic: '/ˈpɪknɪk/', meaning: '野餐', sentence: 'Go on a family picnic in the park.', emoji: '🥪' },
+          { word: 'healthy', phonetic: '/ˈhelθi/', meaning: '健康的', sentence: 'Fresh fruit keeps your body healthy.', emoji: '💪' },
+          { word: 'vegetable', phonetic: '/ˈvedʒtəbl/', meaning: '蔬菜', sentence: 'Eat green vegetables every meal.', emoji: '🥦' },
+          { word: 'sandwich', phonetic: '/ˈsænwɪtʃ/', meaning: '三明治', sentence: 'A delicious chicken sandwich.', emoji: '🥪' },
+          { word: 'salad', phonetic: '/ˈsæləd/', meaning: '沙拉', sentence: 'Fresh fruit salad is refreshing.', emoji: '🥗' },
+          { word: 'bridge', phonetic: '/brɪdʒ/', meaning: '桥梁', sentence: 'There is a wooden bridge over the river.', emoji: '🌉' },
+          { word: 'building', phonetic: '/ˈbɪldɪŋ/', meaning: '建筑物', sentence: 'Tall modern buildings in the city.', emoji: '🏢' },
+          { word: 'village', phonetic: '/ˈvɪlɪdʒ/', meaning: '村庄', sentence: 'A quiet village surrounded by hills.', emoji: '🏡' },
+          { word: 'forest', phonetic: '/ˈfɔːrɪst/', meaning: '森林', sentence: 'Wild animals live in the big forest.', emoji: '🌲' },
+          { word: 'nature', phonetic: '/ˈneɪtʃər/', meaning: '大自然', sentence: 'We love walking in beautiful nature.', emoji: '🏞️' }
+        ]
+      },
+      pep_g6: {
+        name: '人教PEP六年级',
+        words: [
+          { word: 'science', phonetic: '/ˈsaɪəns/', meaning: '科学', sentence: 'Science helps us understand the world.', emoji: '🔬' },
+          { word: 'museum', phonetic: '/mjuˈziːəm/', meaning: '博物馆', sentence: 'Visit the science museum this Saturday.', emoji: '🏛️' },
+          { word: 'bookstore', phonetic: '/ˈbʊkstɔːr/', meaning: '书店', sentence: 'Buy a new comic at the bookstore.', emoji: '📚' },
+          { word: 'cinema', phonetic: '/ˈsɪnəmə/', meaning: '电影院', sentence: 'Watch a 3D animated film at cinema.', emoji: '🎬' },
+          { word: 'hospital', phonetic: '/ˈhɑːspɪtl/', meaning: '医院', sentence: 'Go to the hospital to see the doctor.', emoji: '🏥' },
+          { word: 'dictionary', phonetic: '/ˈdɪkʃəneri/', meaning: '词典', sentence: 'Look up new words in the dictionary.', emoji: '📖' },
+          { word: 'comic', phonetic: '/ˈkɑːmɪk/', meaning: '连环画/漫画', sentence: 'Read funny comic books for fun.', emoji: '🎨' },
+          { word: 'holiday', phonetic: '/ˈhɑːlədeɪ/', meaning: '假期', sentence: 'Where did you go on winter holiday?', emoji: '🏖️' },
+          { word: 'doctor', phonetic: '/ˈdɑːktər/', meaning: '医生', sentence: 'Doctors work hard to heal patients.', emoji: '👨‍⚕️' },
+          { word: 'worker', phonetic: '/ˈwɜːrkər/', meaning: '工人', sentence: 'Factory workers produce goods safely.', emoji: '👷' },
+          { word: 'police', phonetic: '/pəˈliːs/', meaning: '警察', sentence: 'Call the police when in trouble.', emoji: '👮' },
+          { word: 'spaceship', phonetic: '/ˈspeɪsʃɪp/', meaning: '宇宙飞船', sentence: 'The spaceship flew into deep space.', emoji: '🚀' },
+          { word: 'shadow', phonetic: '/ˈʃædoʊ/', meaning: '影子', sentence: 'The sun casts a long shadow.', emoji: '👥' },
+          { word: 'universe', phonetic: '/ˈjuːnɪvɜːrs/', meaning: '宇宙', sentence: 'The boundless universe has many stars.', emoji: '🌌' },
+          { word: 'explore', phonetic: '/ɪkˈsplɔːr/', meaning: '探索', sentence: 'Brave astronauts explore new planets.', emoji: '🧭' },
+          { word: 'planet', phonetic: '/ˈplænɪt/', meaning: '行星', sentence: 'Earth is our precious green planet.', emoji: '🪐' },
+          { word: 'country', phonetic: '/ˈkʌntri/', meaning: '国家', sentence: 'China is a great ancient country.', emoji: '🇨🇳' },
+          { word: 'trip', phonetic: '/trɪp/', meaning: '旅行', sentence: 'Have a safe and happy school trip.', emoji: '🧳' },
+          { word: 'dream', phonetic: '/driːm/', meaning: '梦想', sentence: 'Work hard to realize your big dream.', emoji: '✨' },
+          { word: 'future', phonetic: '/ˈfjuːtʃər/', meaning: '未来', sentence: 'Technology shapes a bright future.', emoji: '🔮' }
         ]
       },
       foods: {
@@ -1626,6 +2047,8 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       scrambledLetters: [],
       matchCards: [],
       selectedMatchCards: [],
+      isDrillMode: false,
+      isDailyChallenge: false,
       wrongWords: JSON.parse(localStorage.getItem('wordsmaster_wrong_words') || '[]')
     };
 
@@ -1659,11 +2082,15 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       // 连连看元素
       matchCardsContainer: document.getElementById('match-cards-container')!,
       // 工具与设置
+      btnDailyChallenge: document.getElementById('btn-daily-challenge')!,
+      btnPrintWords: document.getElementById('btn-print-words')!,
+      btnOpenBadges: document.getElementById('btn-open-badges')!,
+      txtUnlockedBadges: document.getElementById('txt-unlocked-badges')!,
+      btnInstallPwa: document.getElementById('btn-install-pwa')!,
       btnSlowAudio: document.getElementById('btn-slow-audio')!,
       txtSlowAudio: document.getElementById('txt-slow-audio')!,
       btnToggleSound: document.getElementById('btn-toggle-sound')!,
       txtSoundState: document.getElementById('txt-sound-state')!,
-      btnTestSound: document.getElementById('btn-test-sound')!,
       btnOpenNotebook: document.getElementById('btn-open-notebook')!,
       txtWrongCount: document.getElementById('txt-wrong-count')!,
       btnToggleEye: document.getElementById('btn-toggle-eye')!,
@@ -1682,7 +2109,21 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       vicMaxCombo: document.getElementById('vic-max-combo')!,
       vicAccuracy: document.getElementById('vic-accuracy')!,
       btnVicRestart: document.getElementById('btn-vic-restart')!,
-      btnVicNextTier: document.getElementById('btn-vic-next-tier')!
+      btnVicNextTier: document.getElementById('btn-vic-next-tier')!,
+      // 勋章弹窗
+      modalBadges: document.getElementById('modal-badges')!,
+      btnCloseBadges: document.getElementById('btn-close-badges')!,
+      btnCloseBadgesFt: document.getElementById('btn-close-badges-ft')!,
+      badgesGridContainer: document.getElementById('badges-grid-container')!,
+      // A4 打印弹窗
+      modalWorksheet: document.getElementById('modal-worksheet')!,
+      btnCloseWorksheet: document.getElementById('btn-close-worksheet')!,
+      btnCloseWsSec: document.getElementById('btn-close-ws-sec')!,
+      btnDoPrint: document.getElementById('btn-do-print')!,
+      wsDeckSelect: document.getElementById('ws-deck-select') as HTMLSelectElement,
+      wsTypeSelect: document.getElementById('ws-type-select') as HTMLSelectElement,
+      wsCountSelect: document.getElementById('ws-count-select') as HTMLSelectElement,
+      printableWorksheet: document.getElementById('printable-worksheet')!
     };
 
     // ---------------- 游戏引擎流程逻辑 ----------------
@@ -1836,6 +2277,7 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       if (isCorrect) {
         state.typedLetters.push(char.toLowerCase());
         sound.playPop();
+        triggerHaptic('tap');
 
         if (bubbleId !== undefined) {
           const b = state.scrambledLetters.find(x => x.id === bubbleId);
@@ -1872,6 +2314,18 @@ const canonicalUrl = `${siteUrl}/games/words/`;
 
           sound.playSuccess(state.streak);
           speakText(currentWord.word);
+          triggerHaptic(state.streak >= 5 ? 'combo' : 'success');
+
+          // 生词专训消灭机制：攻克并移出生词本
+          if (state.isDrillMode) {
+            state.wrongWords = state.wrongWords.filter(w => w.word.toLowerCase() !== currentWord.word.toLowerCase());
+            localStorage.setItem('wordsmaster_wrong_words', JSON.stringify(state.wrongWords));
+            unlockBadge('drill_hero');
+            if (window.pixelFx) {
+              window.pixelFx.triggerLevelUp(`攻克生词: ${currentWord.word}!`);
+            }
+          }
+          checkBadgesProgress();
 
           // 触发 PixelFX 特效
           const centerSlot = els.spellSlots.children[Math.floor(targetChars.length / 2)] as HTMLElement;
@@ -1892,6 +2346,7 @@ const canonicalUrl = `${siteUrl}/games/words/`;
         // 拼写错误反馈
         state.streak = 0;
         sound.playWrong();
+        triggerHaptic('error');
         addWrongWord(currentWord);
 
         const slot = els.spellSlots.children[slotIndex] as HTMLElement;
@@ -2004,6 +2459,14 @@ const canonicalUrl = `${siteUrl}/games/words/`;
 
         sound.playSuccess(state.streak);
         speakText(correct.word);
+        triggerHaptic(state.streak >= 5 ? 'combo' : 'success');
+
+        if (state.isDrillMode) {
+          state.wrongWords = state.wrongWords.filter(w => w.word.toLowerCase() !== correct.word.toLowerCase());
+          localStorage.setItem('wordsmaster_wrong_words', JSON.stringify(state.wrongWords));
+          unlockBadge('drill_hero');
+        }
+        checkBadgesProgress();
 
         if (window.pixelFx) {
           window.pixelFx.triggerCorrect(cardEl, state.streak, true);
@@ -2021,6 +2484,7 @@ const canonicalUrl = `${siteUrl}/games/words/`;
         cardEl.classList.add('wrong');
         state.streak = 0;
         sound.playWrong();
+        triggerHaptic('error');
         addWrongWord(correct);
 
         if (window.pixelFx) {
@@ -2108,6 +2572,8 @@ const canonicalUrl = `${siteUrl}/games/words/`;
           state.score += 20 + state.streak * 2;
 
           sound.playSuccess(state.streak);
+          triggerHaptic(state.streak >= 5 ? 'combo' : 'success');
+          checkBadgesProgress();
           if (card1.isEnglish) speakText(card1.text);
           else speakText(card2.text);
 
@@ -2127,6 +2593,7 @@ const canonicalUrl = `${siteUrl}/games/words/`;
           // 配对失败
           state.streak = 0;
           sound.playWrong();
+          triggerHaptic('error');
           if (window.pixelFx) {
             window.pixelFx.triggerWrong(cardEl, els.gameStage);
           }
@@ -2368,13 +2835,304 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       renderNotebook();
       updateHud();
     });
+    // ---------------- 亲子成长勋章体系 (Badges System) ----------------
+    interface BadgeDef {
+      id: string;
+      title: string;
+      desc: string;
+      icon: string;
+      unlockedAt?: string;
+    }
+    const BADGES_CONFIG: BadgeDef[] = [
+      { id: 'first_word', title: '初露锋芒', desc: '成功拼写出第 1 个正确单词', icon: '🎖️' },
+      { id: 'combo_10', title: '连击大师', desc: '在单轮练习中达成 10+ 连击', icon: '🔥' },
+      { id: 'oxford_star', title: '牛津小学霸', desc: '完成大陆牛津版教材词库挑战', icon: '🏫' },
+      { id: 'pep_master', title: '人教PEP达人', desc: '完成统编人教版 PEP 词库挑战', icon: '🎒' },
+      { id: 'rush_speed', title: '限时极速狂飙', desc: '在限时冲关中快速拼对 10 词以上', icon: '⚡' },
+      { id: 'drill_hero', title: '生词克星', desc: '在生词专训中成功攻克消灭生词', icon: '📕' },
+      { id: 'daily_hero', title: '每日自律之星', desc: '完成今日亲子专属 10 词挑战打卡', icon: '📅' },
+      { id: 'vocab_master', title: '词汇全能王', desc: '累计探索突破 50 个少儿与学术词汇', icon: '👑' }
+    ];
+
+    function getUnlockedBadges(): Record<string, string> {
+      try {
+        return JSON.parse(localStorage.getItem('wordsmaster_badges') || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function unlockBadge(id: string) {
+      const unlocked = getUnlockedBadges();
+      if (!unlocked[id]) {
+        unlocked[id] = new Date().toLocaleDateString('zh-CN');
+        localStorage.setItem('wordsmaster_badges', JSON.stringify(unlocked));
+        updateBadgesCount();
+
+        const badge = BADGES_CONFIG.find(b => b.id === id);
+        if (badge && window.pixelFx) {
+          window.pixelFx.triggerLevelUp(`解锁新勋章: ${badge.icon} ${badge.title}!`);
+        }
+      }
+    }
+
+    function updateBadgesCount() {
+      const unlocked = getUnlockedBadges();
+      const count = Object.keys(unlocked).length;
+      if (els.txtUnlockedBadges) {
+        els.txtUnlockedBadges.textContent = String(count);
+      }
+    }
+
+    function checkBadgesProgress() {
+      if (state.correctCount >= 1) unlockBadge('first_word');
+      if (state.streak >= 10) unlockBadge('combo_10');
+      if (state.currentDeck.startsWith('oxford_') && state.correctCount >= 5) unlockBadge('oxford_star');
+      if (state.currentDeck.startsWith('pep_') && state.correctCount >= 5) unlockBadge('pep_master');
+      if (state.mode === 'rush' && state.correctCount >= 10) unlockBadge('rush_speed');
+      if (state.isDailyChallenge && state.currentIndex >= state.wordList.length - 1) unlockBadge('daily_hero');
+
+      // 累计词汇量统计
+      const totalLearned = parseInt(localStorage.getItem('wordsmaster_total_learned') || '0', 10) + 1;
+      localStorage.setItem('wordsmaster_total_learned', String(totalLearned));
+      if (totalLearned >= 50) unlockBadge('vocab_master');
+    }
+
+    function renderBadges() {
+      const unlocked = getUnlockedBadges();
+      els.badgesGridContainer.innerHTML = '';
+      BADGES_CONFIG.forEach(badge => {
+        const isUnlocked = !!unlocked[badge.id];
+        const card = document.createElement('div');
+        card.className = `badge-card ${isUnlocked ? 'is-unlocked' : 'is-locked'}`;
+        card.innerHTML = `
+          <div class="badge-card-icon">${badge.icon}</div>
+          <div class="badge-card-info">
+            <h4>${badge.title}</h4>
+            <p>${badge.desc}</p>
+            ${isUnlocked ? `<div class="badge-card-date">✓ 已解锁 · ${unlocked[badge.id]}</div>` : '<div style="font-size:0.68rem; color:#94a3b8; margin-top:0.25rem;">未解锁</div>'}
+          </div>
+        `;
+        els.badgesGridContainer.appendChild(card);
+      });
+    }
+
+    // ---------------- A4 单词默写打卡卷生成与打印 (Worksheet) ----------------
+    function renderWorksheet() {
+      const deckKey = els.wsDeckSelect.value;
+      const format = els.wsTypeSelect.value;
+      const count = parseInt(els.wsCountSelect.value, 10);
+
+      let words: WordItem[] = [];
+      let deckName = '少儿英语';
+
+      if (deckKey === 'notebook') {
+        words = [...state.wrongWords];
+        deckName = '生词本错词专训';
+      } else if (VOCAB_DECKS[deckKey]) {
+        words = [...VOCAB_DECKS[deckKey].words];
+        deckName = VOCAB_DECKS[deckKey].name;
+      }
+
+      if (words.length === 0) {
+        els.printableWorksheet.innerHTML = `
+          <div style="text-align:center; padding:3rem; color:#64748b;">
+            <h3>当前所选词库为空，请选择其他词库。</h3>
+          </div>
+        `;
+        return;
+      }
+
+      const displayWords = words.slice(0, count);
+
+      let html = `
+        <div class="a4-header">
+          <h1>小学英语每日单词打卡临摹卷 · ${deckName}</h1>
+          <div class="a4-meta-row">
+            <div class="a4-meta-item">学生姓名: <span></span></div>
+            <div class="a4-meta-item">班级年级: <span></span></div>
+            <div class="a4-meta-item">打卡日期: <span></span></div>
+            <div class="a4-meta-item">完成用时: <span></span></div>
+            <div class="a4-meta-item">默写得分: <span></span></div>
+          </div>
+        </div>
+
+        <div class="a4-grid">
+      `;
+
+      displayWords.forEach((item, index) => {
+        const numStr = String(index + 1).padStart(2, '0');
+        let cardContent = '';
+
+        if (format === 'copy') {
+          // 四线三格临摹描红版
+          cardContent = `
+            <div class="a4-card-top">
+              <span class="a4-card-num">#${numStr}</span>
+              <div>
+                <span class="a4-card-word">${item.word}</span>
+                <span class="a4-card-phonetic">${item.phonetic}</span>
+              </div>
+              <span>${item.emoji}</span>
+            </div>
+            <div class="a4-card-meaning">${item.meaning} · <em style="font-size:0.75rem; color:#64748b; font-style:normal;">"${item.sentence}"</em></div>
+            <div class="a4-four-lines" style="position:relative; overflow:hidden;">
+              <span style="position:absolute; left:12px; top:4px; font-size:1.15rem; color:#cbd5e1; font-family:monospace; letter-spacing:2px;">${item.word}</span>
+            </div>
+          `;
+        } else if (format === 'dictation') {
+          // 看中默英版 (带首字母提示)
+          const hint = item.word.charAt(0) + ' ' + '_ '.repeat(item.word.length - 1);
+          cardContent = `
+            <div class="a4-card-top">
+              <span class="a4-card-num">#${numStr}</span>
+              <span class="a4-card-meaning" style="font-size:1rem; font-weight:800; color:#0f172a;">${item.meaning}</span>
+              <span>${item.emoji}</span>
+            </div>
+            <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.25rem;">首字母提示: <strong>${hint}</strong> <span style="font-size:0.75rem;">(${item.phonetic})</span></div>
+            <div class="a4-four-lines"></div>
+          `;
+        } else {
+          // 看英写中翻译版
+          cardContent = `
+            <div class="a4-card-top">
+              <span class="a4-card-num">#${numStr}</span>
+              <div>
+                <span class="a4-card-word">${item.word}</span>
+                <span class="a4-card-phonetic">${item.phonetic}</span>
+              </div>
+              <span>${item.emoji}</span>
+            </div>
+            <div style="margin: 0.5rem 0; border-bottom: 1px dashed #94a3b8; height: 26px; display: flex; align-items: flex-end; font-size: 0.85rem; color: #64748b;">
+              中文释义: 
+            </div>
+          `;
+        }
+
+        html += `
+          <div class="a4-word-card">
+            ${cardContent}
+            <div class="a4-check-boxes">
+              <span>打卡核对:</span>
+              <span>□ 1次</span>
+              <span>□ 2次</span>
+              <span>□ 3次</span>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+        </div>
+        <div class="a4-footer">
+          <div>家长/导师签名: ____________________</div>
+          <div>今日专注度评分: ⭐ ⭐ ⭐ ⭐ ⭐</div>
+          <div>WordsMaster · 亲子英语打卡专属卷</div>
+        </div>
+      `;
+
+      els.printableWorksheet.innerHTML = html;
+    }
+
+    // ---------------- 今日亲子挑战 (Daily Challenge) ----------------
+    function startDailyChallenge() {
+      // 聚合牛津、PEP、动物、果蔬库，以当天日期作为伪随机种子抽取 10 个词
+      const allDecks = ['oxford_g12', 'oxford_g34', 'oxford_g56', 'pep_g3', 'pep_g4', 'pep_g5', 'pep_g6', 'animals', 'foods'];
+      let pool: WordItem[] = [];
+      allDecks.forEach(k => {
+        if (VOCAB_DECKS[k]) pool.push(...VOCAB_DECKS[k].words);
+      });
+
+      // 洗牌抽取 10 词
+      state.wordList = shuffleArray(pool).slice(0, 10);
+      state.isDailyChallenge = true;
+      state.isDrillMode = false;
+      state.currentIndex = 0;
+      state.streak = 0;
+      state.score = 0;
+
+      // 切换到拼词模式
+      switchGameMode('spelling');
+      if (window.pixelFx) {
+        window.pixelFx.triggerLevelUp('今日亲子挑战开启 · 10词大闯关!');
+      }
+    }
+
+    // ---------------- PWA 离线安装提示 ----------------
+    let deferredInstallPrompt: any = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (els.btnInstallPwa) {
+        els.btnInstallPwa.hidden = false;
+      }
+    });
+
+    if (els.btnInstallPwa) {
+      els.btnInstallPwa.addEventListener('click', async () => {
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          const { outcome } = await deferredInstallPrompt.userChoice;
+          if (outcome === 'accepted') {
+            els.btnInstallPwa.hidden = true;
+          }
+          deferredInstallPrompt = null;
+        }
+      });
+    }
+
+    // ---------------- 绑定勋章、打印、打卡按钮 ----------------
+    if (els.btnOpenBadges) {
+      els.btnOpenBadges.addEventListener('click', () => {
+        renderBadges();
+        els.modalBadges.hidden = false;
+      });
+    }
+    if (els.btnCloseBadges) {
+      els.btnCloseBadges.addEventListener('click', () => els.modalBadges.hidden = true);
+    }
+    if (els.btnCloseBadgesFt) {
+      els.btnCloseBadgesFt.addEventListener('click', () => els.modalBadges.hidden = true);
+    }
+
+    if (els.btnPrintWords) {
+      els.btnPrintWords.addEventListener('click', () => {
+        renderWorksheet();
+        els.modalWorksheet.hidden = false;
+      });
+    }
+    if (els.btnCloseWorksheet) {
+      els.btnCloseWorksheet.addEventListener('click', () => els.modalWorksheet.hidden = true);
+    }
+    if (els.btnCloseWsSec) {
+      els.btnCloseWsSec.addEventListener('click', () => els.modalWorksheet.hidden = true);
+    }
+    if (els.btnDoPrint) {
+      els.btnDoPrint.addEventListener('click', () => {
+        window.print();
+      });
+    }
+
+    els.wsDeckSelect?.addEventListener('change', renderWorksheet);
+    els.wsTypeSelect?.addEventListener('change', renderWorksheet);
+    els.wsCountSelect?.addEventListener('change', renderWorksheet);
+
+    if (els.btnDailyChallenge) {
+      els.btnDailyChallenge.addEventListener('click', startDailyChallenge);
+    }
+
+    // 生词专训按钮点击开启专训
     els.btnDrillNotebook.addEventListener('click', () => {
       if (state.wrongWords.length === 0) return;
+      state.isDrillMode = true;
       state.wordList = shuffleArray([...state.wrongWords]);
       state.currentIndex = 0;
       state.streak = 0;
       els.modalNotebook.hidden = true;
       startCurrentMode();
+      if (window.pixelFx) {
+        window.pixelFx.triggerLevelUp('生词专训开启！答对即刻消灭！');
+      }
     });
 
     // 胜利弹窗按钮
@@ -2387,6 +3145,8 @@ const canonicalUrl = `${siteUrl}/games/words/`;
     });
     els.btnVicNextTier.addEventListener('click', () => {
       closeVictoryModal();
+      state.isDrillMode = false;
+      state.isDailyChallenge = false;
       const keys = Object.keys(VOCAB_DECKS);
       const nextIdx = (keys.indexOf(state.currentDeck) + 1) % keys.length;
       const nextDeck = keys[nextIdx];
@@ -2397,7 +3157,8 @@ const canonicalUrl = `${siteUrl}/games/words/`;
       switchDeck(nextDeck);
     });
 
-    // 初始化运行
+    // 初始化运行与勋章更新
+    updateBadgesCount();
     startCurrentMode();
   </script>
 </body>

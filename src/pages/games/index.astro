@@ -85,14 +85,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           </div>
           <div class="game-body">
             <h2>单词大冒险 · 少儿趣味拼读</h2>
-            <p>专为少儿与学生打造的沉浸式背单词闯关：同步大陆牛津版小学教材（1-6年级核心）、字母气泡拼词、听音辨词侦探、连连看消消乐与 1/2/3 分钟限时狂飙，搭载 PixelFX 动效与纯正发音。</p>
+            <p>专为少儿与学生打造的沉浸式背单词闯关：同步大陆牛津版与统编人教PEP版（1-6年级全套核心）、A4单词打卡临摹卷打印、生词本错词闭环、成长勋章墙、字母气泡拼词、听音辨词与限时狂飙，搭载 PixelFX 动效与触觉振动反馈。</p>
             <div class="game-tags">
-              <span>牛津1-6年级同步</span>
+              <span>牛津 & PEP教材全同步</span>
+              <span>A4打卡卷打印</span>
+              <span>错词本复习闭环</span>
+              <span>成长勋章墙</span>
               <span>自然拼读</span>
-              <span>萌宠果蔬文具</span>
-              <span>听音辨词</span>
               <span>1/2/3min限时</span>
-              <span>真人纯正发音</span>
+              <span>触觉振动</span>
               <span>PixelFX 动效</span>
             </div>
             <div class="game-cta">开启单词冒险 →</div>
@@ -227,7 +228,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             <div class="math-hero-text">
               <h2>🔤 单词大冒险 · 趣味拼读与速记</h2>
               <p class="math-hero-desc">
-                专为少儿、学生与英语爱好者打造的沉浸式单词游戏。融合 <strong>大陆牛津版小学英语（1-6年级同步词库）</strong>、<strong>字母气泡拼词</strong>、<strong>听音辨词小侦探</strong>、<strong>限时冲关狂飙 (1/2/3分钟)</strong> 与 <strong>单词连连看消消乐</strong> 4 大玩法。涵盖牛津低/中/高各年级、萌宠动物、果蔬美食、日常文具等 11 大精选词库，支持慢速发音跟读与 PixelFX 像素打击特效。
+                专为少儿、学生与英语爱好者打造的沉浸式单词游戏。融合 <strong>大陆牛津版 + 统编人教PEP版（1-6年级全套教材同步）</strong>、<strong>A4单词打卡练习卷打印</strong>、<strong>生词本闭环专训</strong>、<strong>亲子成长勋章墙</strong>、<strong>字母气泡拼词</strong>、<strong>听音辨词小侦探</strong>、<strong>限时冲关狂飙 (1/2/3分钟)</strong> 与 <strong>单词连连看消消乐</strong>。涵盖牛津与人教PEP全学段、动物、果蔬、日常等 15 大精选词库，支持慢速发音跟读、PixelFX 像素打击特效与移动端触觉振动。
               </p>
               <div class="math-hero-actions">
                 <a class="btn-primary-action" style="background:#0284c7;" href={`${base}/games/words/`}>
@@ -247,6 +248,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                 <div class="preview-chips">
                   <span>🔊 真人发音</span>
                   <span>🐢 0.75x慢速跟读</span>
+                  <span>🖨️ A4一键打印</span>
+                  <span>🏆 8枚成就勋章</span>
                   <span>✨ PixelFX 动效</span>
                 </div>
               </div>
@@ -272,27 +275,31 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             <p>支持 1 分钟快速热身、2 分钟标准演练与 3 分钟极限刷词，连续答对触发 PixelFX 火箭连击与暴击加分！</p>
           </div>
           <div class="math-feature-item">
-            <div class="feat-icon">🧩</div>
-            <h3>单词连连看消消乐</h3>
-            <p>英文单词与中文释义卡片网格随机分布，快速匹配翻转消除，锻炼记忆广度与瞬时注意力。</p>
+            <div class="feat-icon">🖨️</div>
+            <h3>A4 单词打卡卷 & 生词本闭环</h3>
+            <p>一键生成标准四线三格描红临摹卡与默写单，支持连接打印机；生词本支持专训攻克，掌握即刻消灭。</p>
           </div>
         </div>
 
-        <!-- 11 大词库全景速览 -->
+        <!-- 15 大词库全景速览 -->
         <div class="math-tiers-summary">
-          <h3>📚 11 大精选词库一览（含大陆牛津版小学全套）</h3>
+          <h3>📚 15 大精选词库一览（牛津版 + 统编人教PEP版全套）</h3>
           <div class="tiers-tags-list">
             <span class="tier-chip highlight"><strong>01</strong> 🏫 牛津1-2年级 (低年级启蒙核心)</span>
             <span class="tier-chip highlight"><strong>02</strong> 📘 牛津3-4年级 (中年级生活交际)</span>
             <span class="tier-chip highlight"><strong>03</strong> 🎓 牛津5-6年级 (高年级小升初核心)</span>
-            <span class="tier-chip"><strong>04</strong> 🐾 萌宠动物 (自然拼读入门)</span>
-            <span class="tier-chip"><strong>05</strong> 🍎 美味果蔬 (小学高频日常)</span>
-            <span class="tier-chip"><strong>06</strong> 🎨 颜色数字 (低年级基础认知)</span>
-            <span class="tier-chip"><strong>07</strong> 👀 身体家庭 (生活情景表达)</span>
-            <span class="tier-chip"><strong>08</strong> 🎒 校园文具 (PEP教材核心)</span>
-            <span class="tier-chip"><strong>09</strong> 🏃 趣味动作 (常用动词速记)</span>
-            <span class="tier-chip"><strong>10</strong> ⛅ 天气四季 (进阶扩展词汇)</span>
-            <span class="tier-chip"><strong>11</strong> 💻 程序员极客 (Tech 常用技术词)</span>
+            <span class="tier-chip highlight"><strong>04</strong> 🎒 人教PEP3年级 (基础启蒙)</span>
+            <span class="tier-chip highlight"><strong>05</strong> 🏫 人教PEP4年级 (校园日常)</span>
+            <span class="tier-chip highlight"><strong>06</strong> 📗 人教PEP5年级 (生活情景)</span>
+            <span class="tier-chip highlight"><strong>07</strong> 🎓 人教PEP6年级 (小升初冲刺)</span>
+            <span class="tier-chip"><strong>08</strong> 🐾 萌宠动物 (自然拼读入门)</span>
+            <span class="tier-chip"><strong>09</strong> 🍎 美味果蔬 (小学高频日常)</span>
+            <span class="tier-chip"><strong>10</strong> 🎨 颜色数字 (低年级基础认知)</span>
+            <span class="tier-chip"><strong>11</strong> 👀 身体家庭 (生活情景表达)</span>
+            <span class="tier-chip"><strong>12</strong> 🎒 校园文具 (精选词汇)</span>
+            <span class="tier-chip"><strong>13</strong> 🏃 趣味动作 (常用动词速记)</span>
+            <span class="tier-chip"><strong>14</strong> ⛅ 天气四季 (进阶扩展词汇)</span>
+            <span class="tier-chip"><strong>15</strong> 💻 程序员极客 (Tech 常用技术词)</span>
           </div>
         </div>
       </div>
