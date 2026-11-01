@@ -124,7 +124,7 @@ class PixelFxEngine {
       const inst = this.instances[i];
       inst.fx.update(dt);
 
-      if (inst.fx.done) {
+      if (inst.fx.done()) {
         this.instances.splice(i, 1);
         continue;
       }
@@ -132,11 +132,9 @@ class PixelFxEngine {
       clearFrame(inst.frame);
       inst.fx.draw(inst.frame);
 
-      const len = inst.frame.data.length;
-      const target = inst.imgData.data;
-      for (let p = 0; p < len; p++) {
-        target[p] = inst.frame.data[p];
-      }
+      // pixelfx 0.3.x frames hold color+light as Uint32Array; composite() flattens
+      // them into the RGBA bytes that ImageData can display.
+      composite(inst.frame, inst.imgData.data, null);
       inst.offscreenCtx.putImageData(inst.imgData, 0, 0);
 
       const renderW = inst.w * inst.scale;
@@ -163,9 +161,9 @@ class PixelFxEngine {
     }
   }
 
-  // 1. 正确按键或点击字母像素光芒 (Hit Spark)
-  public triggerHitSpark(x: number, y: number, scale = 2.5) {
-    const inst = this.createInstance(hitSparkMod, {}, x, y, scale);
+  // 1. 正确按键或点击字母像素光芒 (Hit Spark), palette 可选(指法提示时按手指颜色着色)
+  public triggerHitSpark(x: number, y: number, scale = 2.5, palette?: string[]) {
+    const inst = this.createInstance(hitSparkMod, palette ? { palette } : {}, x, y, scale);
     if (inst) {
       this.instances.push(inst);
       this.ensureLoop();

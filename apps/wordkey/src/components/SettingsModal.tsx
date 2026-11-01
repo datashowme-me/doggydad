@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Volume2, EyeOff, Music, Sliders, VolumeX } from 'lucide-react';
+import { X, Volume2, EyeOff, Music, Sliders, VolumeX, Hand } from 'lucide-react';
 import { UserSettings } from '../types';
 
 interface SettingsModalProps {
@@ -96,6 +96,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }))
               }
               className="w-5 h-5 accent-indigo-600 cursor-pointer rounded"
+            />
+          </div>
+
+          {/* Finger placement hints toggle */}
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700/60">
+            <div className="flex items-center gap-2.5">
+              <Hand className="w-5 h-5 text-sky-500" />
+              <div>
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  指法提示 (标准打字手法)
+                </p>
+                <p className="text-xs text-slate-400">
+                  字母按标准指法着色，提示下一键该用哪根手指，按键火花同步染成手指色
+                </p>
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.fingerHints !== false}
+              onChange={(e) =>
+                onUpdateSettings((prev) => ({
+                  ...prev,
+                  fingerHints: e.target.checked,
+                }))
+              }
+              className="w-5 h-5 accent-sky-500 cursor-pointer rounded"
             />
           </div>
 

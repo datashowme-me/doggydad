@@ -59,6 +59,7 @@ export interface UserSettings {
   audioRate: number; // 发音语速: 0.8 (慢速), 1.0 (原速), 1.2 (快速)
   audioRepeat: 1 | 2; // 播放次数: 1 次或 2 次
   keySound: boolean; // Mechanical keyboard click sound
+  fingerHints: boolean; // 指法提示: finger-colored letters, next-key hint & finger FX
   showMeaning: boolean; // Show/hide Chinese translation
   showPhonetic: boolean; // Show/hide phonetic
   wordFilter: 'all' | 'medium_hard' | 'hard'; // Vocabulary difficulty filter

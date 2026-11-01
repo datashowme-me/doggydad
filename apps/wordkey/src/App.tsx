@@ -82,6 +82,7 @@ export default function App() {
       audioRate: 1.0, // 默认标准语速
       audioRepeat: 1, // 默认播放 1 次
       keySound: true,
+      fingerHints: true, // 默认开启标准指法提示
       showMeaning: true,
       showPhonetic: true,
       wordFilter: 'all',
