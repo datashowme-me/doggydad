@@ -7,6 +7,52 @@ const canonicalUrl = `${siteUrl}/games/math/`;
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
+  <script is:inline>
+    (function() {
+      if (typeof window === 'undefined' || !window.WebSocket) return;
+      var NativeWebSocket = window.WebSocket;
+      function SafeWebSocket(url, protocols) {
+        if (typeof url === 'string' && (url.indexOf('undefined') !== -1 || !url)) {
+          return {
+            readyState: 3,
+            url: url,
+            close: function() {},
+            send: function() {},
+            addEventListener: function() {},
+            removeEventListener: function() {},
+            dispatchEvent: function() { return false; },
+            onopen: null,
+            onclose: null,
+            onerror: null,
+            onmessage: null
+          };
+        }
+        try {
+          return protocols !== undefined ? new NativeWebSocket(url, protocols) : new NativeWebSocket(url);
+        } catch (e) {
+          return {
+            readyState: 3,
+            url: String(url),
+            close: function() {},
+            send: function() {},
+            addEventListener: function() {},
+            removeEventListener: function() {},
+            dispatchEvent: function() { return false; },
+            onopen: null,
+            onclose: null,
+            onerror: null,
+            onmessage: null
+          };
+        }
+      }
+      SafeWebSocket.prototype = NativeWebSocket.prototype;
+      SafeWebSocket.CONNECTING = 0;
+      SafeWebSocket.OPEN = 1;
+      SafeWebSocket.CLOSING = 2;
+      SafeWebSocket.CLOSED = 3;
+      window.WebSocket = SafeWebSocket;
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>口算大冲关 · 100以内速算小能手 | WordsMaster</title>
   <meta name="description" content="专为小学低年级学生（1–3年级）设计的 100 以内口算速算练习独立单页 Web 应用：11级数段平滑晋阶、加减乘除与比大小、智能按键切换、手写草稿纸、巧算点拨、A4打印题卡与错题闭环。" />

@@ -197,6 +197,52 @@ const navItems = [
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <script is:inline>
+      (function() {
+        if (typeof window === 'undefined' || !window.WebSocket) return;
+        var NativeWebSocket = window.WebSocket;
+        function SafeWebSocket(url, protocols) {
+          if (typeof url === 'string' && (url.indexOf('undefined') !== -1 || !url)) {
+            return {
+              readyState: 3,
+              url: url,
+              close: function() {},
+              send: function() {},
+              addEventListener: function() {},
+              removeEventListener: function() {},
+              dispatchEvent: function() { return false; },
+              onopen: null,
+              onclose: null,
+              onerror: null,
+              onmessage: null
+            };
+          }
+          try {
+            return protocols !== undefined ? new NativeWebSocket(url, protocols) : new NativeWebSocket(url);
+          } catch (e) {
+            return {
+              readyState: 3,
+              url: String(url),
+              close: function() {},
+              send: function() {},
+              addEventListener: function() {},
+              removeEventListener: function() {},
+              dispatchEvent: function() { return false; },
+              onopen: null,
+              onclose: null,
+              onerror: null,
+              onmessage: null
+            };
+          }
+        }
+        SafeWebSocket.prototype = NativeWebSocket.prototype;
+        SafeWebSocket.CONNECTING = 0;
+        SafeWebSocket.OPEN = 1;
+        SafeWebSocket.CLOSING = 2;
+        SafeWebSocket.CLOSED = 3;
+        window.WebSocket = SafeWebSocket;
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f4f0e8" />
     <title>{title}</title>
