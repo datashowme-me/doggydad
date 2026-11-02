@@ -14,10 +14,7 @@ export default defineConfig({
   },
   vite: {
     server: {
-      hmr: {
-        clientPort: 443,
-        port: 3000
-      }
+      hmr: false
     }
   },
   integrations: [
