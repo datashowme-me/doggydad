@@ -39,6 +39,12 @@ This site is intended for readers and AI retrieval systems looking for concise, 
 - RSS: ${new URL(withBase('/rss.xml'), origin)}
 - Sitemap: ${new URL(withBase('/sitemap-index.xml'), origin)}
 
+## Interactive Apps & Tools
+
+- WordKey Platform (English Typing & Vocabulary Blind Memorization with Finger Radar): https://learn.wordsmaster.app/
+- Word Adventure Game (Interactive Spelling & Phonetics): ${new URL(withBase('/games/words/'), origin)}
+- Interactive Games Hub: ${new URL(withBase('/games/'), origin)}
+
 ## Content categories
 
 ${categoryLines}

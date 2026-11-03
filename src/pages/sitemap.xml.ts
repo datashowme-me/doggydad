@@ -14,9 +14,11 @@ export const GET: APIRoute = async ({ site: astroSite }) => {
     { url: `${origin}/`, changefreq: 'daily', priority: '1.0', lastmod: today },
     { url: `${origin}/about/`, changefreq: 'monthly', priority: '0.6', lastmod: today },
     { url: `${origin}/games/`, changefreq: 'weekly', priority: '0.8', lastmod: today },
+    { url: `${origin}/games/words/`, changefreq: 'weekly', priority: '0.85', lastmod: today },
     { url: `${origin}/games/math/`, changefreq: 'weekly', priority: '0.85', lastmod: today },
     { url: `${origin}/games/fruitwave/`, changefreq: 'weekly', priority: '0.85', lastmod: today },
-    { url: `${origin}/games/artcatcher/`, changefreq: 'weekly', priority: '0.8', lastmod: today }
+    { url: `${origin}/games/artcatcher/`, changefreq: 'weekly', priority: '0.8', lastmod: today },
+    { url: `${origin}/search/`, changefreq: 'monthly', priority: '0.5', lastmod: today }
   ];
 
   const categoryPages = Object.keys(categories).map((catKey) => ({

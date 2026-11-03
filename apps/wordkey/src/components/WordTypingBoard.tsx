@@ -395,22 +395,7 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
         </div>
       )}
 
-      <label className="mb-4 w-full max-w-sm text-xs text-slate-500">
-        点击输入框开始练习（支持手机键盘）
-        <input
-          aria-label="练习单词输入"
-          className="mt-1 w-full rounded-lg border border-slate-300 bg-white dark:bg-slate-800 px-3 py-2 text-base"
-          type="text" value={typedLetters} disabled={isPaused}
-          autoComplete="off" autoCapitalize="none" spellCheck={false} autoCorrect="off"
-          onChange={(event) => {
-            if (event.nativeEvent instanceof InputEvent && event.nativeEvent.isComposing) return;
-            const value = event.target.value.toLowerCase();
-            const key = value.length < typedLetters.length ? 'Backspace'
-              : value.startsWith(typedLetters) && value.length === typedLetters.length + 1 ? value.slice(-1) : '';
-            if (key) window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-          }}
-        />
-      </label>
+
       {/* Toast feedback for bookmarking */}
       {toastFeedback && (
         <div className="fixed top-20 z-50 px-4 py-2 rounded-full bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 text-xs font-medium shadow-xl backdrop-blur-md animate-pop flex items-center gap-1.5 border border-white/10 dark:border-slate-800/10">

@@ -20,7 +20,8 @@ export default defineConfig({
   integrations: [
     sitemap({
       customPages: [
-        'https://wordsmaster.app/games/artcatcher/'
+        'https://wordsmaster.app/games/artcatcher/',
+        'https://wordsmaster.app/games/words/'
       ],
       filter: (page) => !page.includes('/posts/general/getting-started') && !page.includes('/sitemap.xml'),
       serialize(item) {
