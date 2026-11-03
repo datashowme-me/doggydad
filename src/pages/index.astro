@@ -279,9 +279,9 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
             <!-- 极简双手指法动态雷达 (Dual-Hand Finger Radar) -->
             <div class="zen-finger-radar-box">
               <div class="zen-radar-hands">
-                <!-- 左手微缩轮廓 -->
-                <svg class="radar-hand-svg" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="左手指法">
-                  <path d="M18 42 C12 36 10 24 16 16 C19 12 25 15 25 24 L25 35 M34 32 L34 10 C34 4 41 4 41 10 L41 33 M50 32 L50 6 C50 0 57 0 57 6 L57 33 M66 35 L66 12 C66 6 73 6 73 12 L73 38 M82 45 L95 36 C100 32 105 38 100 44 L86 58 C78 66 40 68 28 60 L18 42 Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="hand-path"/>
+                <!-- 左手微缩轮廓 (固定尺寸 72x42，绝不撑大) -->
+                <svg class="radar-hand-svg" width="72" height="42" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="左手指法" style="width:72px;height:42px;max-width:72px;flex-shrink:0;">
+                  <path d="M18 42 C12 36 10 24 16 16 C19 12 25 15 25 24 L25 35 M34 32 L34 10 C34 4 41 4 41 10 L41 33 M50 32 L50 6 C50 0 57 0 57 6 L57 33 M66 35 L66 12 C66 6 73 6 73 12 L73 38 M82 45 L95 36 C100 32 105 38 100 44 L86 58 C78 66 40 68 28 60 L18 42 Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="hand-path"/>
                   <!-- 左手指尖点 -->
                   <circle id="dot-l-pinky" cx="19" cy="16" r="4.5" class="radar-dot dot-pinky" />
                   <circle id="dot-l-ring" cx="37.5" cy="8" r="4.5" class="radar-dot dot-ring" />
@@ -295,9 +295,9 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
                   <span class="radar-key-text" id="finger-radar-label">👈 左手小指 · A 键</span>
                 </div>
 
-                <!-- 右手微缩轮廓 -->
-                <svg class="radar-hand-svg" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="右手指法">
-                  <path d="M102 42 C108 36 110 24 104 16 C101 12 95 15 95 24 L95 35 M86 32 L86 10 C86 4 79 4 79 10 L79 33 M70 32 L70 6 C70 0 63 0 63 6 L63 33 M54 35 L54 12 C54 6 47 6 47 12 L47 38 M38 45 L25 36 C20 32 15 38 20 44 L34 58 C42 66 80 68 92 60 L102 42 Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="hand-path"/>
+                <!-- 右手微缩轮廓 (固定尺寸 72x42，绝不撑大) -->
+                <svg class="radar-hand-svg" width="72" height="42" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="右手指法" style="width:72px;height:42px;max-width:72px;flex-shrink:0;">
+                  <path d="M102 42 C108 36 110 24 104 16 C101 12 95 15 95 24 L95 35 M86 32 L86 10 C86 4 79 4 79 10 L79 33 M70 32 L70 6 C70 0 63 0 63 6 L63 33 M54 35 L54 12 C54 6 47 6 47 12 L47 38 M38 45 L25 36 C20 32 15 38 20 44 L34 58 C42 66 80 68 92 60 L102 42 Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="hand-path"/>
                   <!-- 右手指尖点 -->
                   <circle id="dot-r-thumb" cx="22" cy="38" r="4" class="radar-dot dot-thumb" />
                   <circle id="dot-r-index" cx="50.5" cy="10" r="4.5" class="radar-dot dot-index" />
@@ -3157,7 +3157,11 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    padding: 0.2rem 0.25rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   }
   .zen-brand-hint {
     display: inline-flex;
@@ -3195,7 +3199,7 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     padding: 0.28rem 0.65rem;
     border-radius: 6px;
     border: 1px solid var(--color-border);
-    background: var(--color-surface);
+    background: var(--color-surface-raised);
     color: var(--color-text-muted);
     font-size: 0.76rem;
     font-weight: 600;
@@ -3248,22 +3252,22 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     justify-content: space-between;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--color-border);
-    gap: 1rem;
+    gap: 0.85rem;
     flex-wrap: wrap;
   }
   .zen-dock-left {
     display: flex;
     align-items: center;
-    gap: 1.2rem;
+    gap: 1.1rem;
     flex-wrap: wrap;
   }
   .zen-deck-dropdown {
-    padding: 0.32rem 0.8rem;
+    padding: 0.35rem 0.85rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: var(--color-surface);
     color: var(--color-heading);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
     outline: none;
@@ -3291,7 +3295,7 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     align-items: center;
     gap: 0.55rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: var(--color-text-muted);
   }
   .zen-metric-item strong {
@@ -3319,12 +3323,12 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     gap: 0.15rem;
   }
   .zen-time-btn {
-    padding: 0.16rem 0.5rem;
+    padding: 0.18rem 0.52rem;
     border: 0;
     border-radius: 4px;
     background: transparent;
     color: var(--color-text-muted);
-    font-size: 0.72rem;
+    font-size: 0.73rem;
     font-weight: 600;
     font-family: ui-monospace, monospace;
     cursor: pointer;
@@ -3339,7 +3343,7 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
   }
   .zen-timer-clock {
     font-family: ui-monospace, monospace;
-    font-size: 0.84rem;
+    font-size: 0.86rem;
     font-weight: 700;
     color: var(--color-heading);
     padding: 0.2rem 0.4rem;
@@ -3354,7 +3358,7 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     border-radius: 6px;
     background: var(--color-surface);
     color: var(--color-text-muted);
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     cursor: pointer;
     transition: all 0.15s ease;
   }
@@ -3383,20 +3387,21 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     text-align: center;
   }
 
-  /* 字母流主显示槽位 */
+  /* 字母流主显示槽位 (Monkeytype 风格无边框沉浸大字流) */
   .zen-letters-track {
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+    font-size: clamp(2.8rem, 6vw, 4.2rem);
     font-weight: 700;
     line-height: 1.15;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.16em;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 0.15rem;
-    margin-bottom: 0.9rem;
+    gap: 0.1ch;
+    margin: 0 auto 0.9rem;
     cursor: text;
+    user-select: none;
   }
   :global(.letter-char) {
     position: relative;
@@ -3406,10 +3411,16 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     min-width: 1.1ch;
     color: var(--color-text-muted, #94a3b8);
     transition: color 0.1s ease, transform 0.12s ease;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    height: auto !important;
+    padding: 0 0.04ch !important;
   }
   :global(.letter-char.is-current) {
     color: var(--color-heading);
-    border-bottom: 3.5px solid #f59e0b;
+    border-bottom: 3.5px solid #f59e0b !important;
+    border-radius: 0 !important;
     animation: caretBlink 1.1s infinite;
   }
   @keyframes caretBlink {
@@ -3417,13 +3428,13 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     50% { border-bottom-color: transparent; }
   }
   :global(.letter-char.is-correct) {
-    color: #10b981;
+    color: #10b981 !important;
     transform: translateY(-1px);
-    text-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+    text-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
   }
   :global(.letter-char.is-wrong) {
-    color: #f43f5e;
-    background: rgba(244, 63, 94, 0.12);
+    color: #f43f5e !important;
+    background: rgba(244, 63, 94, 0.15) !important;
     border-radius: 4px;
     animation: gentleShake 0.22s;
   }
@@ -3502,10 +3513,14 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     backdrop-filter: blur(4px);
   }
   .radar-hand-svg {
-    width: 84px;
-    height: 48px;
+    width: 72px !important;
+    height: 42px !important;
+    max-width: 72px !important;
+    min-width: 72px !important;
     color: var(--color-text-muted);
     opacity: 0.8;
+    flex-shrink: 0;
+    display: inline-block;
   }
   .hand-path {
     stroke: currentColor;
@@ -3879,8 +3894,10 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
       padding: 0.4rem 0.7rem;
     }
     .radar-hand-svg {
-      width: 60px;
-      height: 35px;
+      width: 58px !important;
+      height: 34px !important;
+      max-width: 58px !important;
+      min-width: 58px !important;
     }
     .zen-stage-dock {
       flex-direction: column;
