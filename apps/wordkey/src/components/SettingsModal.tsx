@@ -105,10 +105,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <Hand className="w-5 h-5 text-sky-500" />
               <div>
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                  指法提示 (标准打字手法)
+                  指法视觉雷达 (双手微缩手模 + 键位指示)
                 </p>
                 <p className="text-xs text-slate-400">
-                  字母按标准指法着色，提示下一键该用哪根手指，按键火花同步染成手指色
+                  双手指尖动态光圈实时定位，字母按指法着色，可一键展开 8 色标准键位全键盘
                 </p>
               </div>
             </div>

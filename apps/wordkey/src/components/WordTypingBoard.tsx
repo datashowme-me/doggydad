@@ -16,6 +16,7 @@ import { soundManager } from '../utils/soundEffects';
 import { isWordFavorited, toggleWordFavorite } from '../utils/notebookStorage';
 import { wordkeyPixelFx } from '../utils/pixelFxEngine';
 import { getFingerInfo, FINGER_LEGEND, HOME_ROW_HINT, FingerInfo } from '../utils/fingerMap';
+import { FingerHandsVisualizer } from './FingerHandsVisualizer';
 
 interface WordTypingBoardProps {
   currentWord: WordItem | null;
@@ -573,36 +574,23 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
             )}
           </div>
 
-          {/* Helper badge when current cursor is expecting a space */}
+          {/* 指法方案 3: 双手机械微缩指示标 + 可选展开 8 色键位键盘 */}
+          {settings.fingerHints && !isPaused && (
+            <FingerHandsVisualizer
+              currentKey={nextLetter}
+              fingerInfo={nextFinger}
+              onKeyPress={handleInputChar}
+              className="mt-3"
+            />
+          )}
+
+          {/* Helper badge when current cursor is expecting a space and finger hints are disabled */}
           {targetWord[typedLetters.length] === ' ' && !isPaused && !settings.fingerHints && (
             <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 text-xs font-semibold animate-pulse shadow-xs">
               <span>此处为词组空格：请按键盘</span>
               <kbd className="px-1.5 py-0.5 text-[11px] font-mono-code font-bold rounded bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 shadow-2xs">
                 Space 空格键
               </kbd>
-            </div>
-          )}
-
-          {/* 指法提示: 下一键该用哪根手指 (动效入口) */}
-          {nextFinger && !isPaused && (
-            <div
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-xs animate-pop select-none"
-              style={{ backgroundColor: nextFinger.color + '14', borderColor: nextFinger.color + '44' }}
-            >
-              <span className="text-xs font-semibold" style={{ color: nextFinger.color }}>
-                👉 下一键
-              </span>
-              {!settings.dictationMode && nextLetter !== null && (
-                <kbd
-                  className="px-1.5 py-0.5 text-[11px] font-mono-code font-bold rounded bg-white dark:bg-slate-800 border shadow-2xs"
-                  style={{ color: nextFinger.color, borderColor: nextFinger.color + '66' }}
-                >
-                  {nextLetter === ' ' ? '␣ Space' : nextLetter}
-                </kbd>
-              )}
-              <span className="text-xs font-bold" style={{ color: nextFinger.color }}>
-                {nextFinger.short}
-              </span>
             </div>
           )}
 
@@ -685,27 +673,35 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
             <div className="flex items-center justify-center gap-1.5 flex-wrap">
               {candidateLetters.map((char, cIdx) => {
                 const bubbleFinger = settings.fingerHints ? getFingerInfo(char === ' ' ? ' ' : char) : null;
+                const isTargetLetter = nextLetter !== null && char.toLowerCase() === nextLetter.toLowerCase();
                 return (
                   <button
                     key={cIdx}
                     type="button"
                     onClick={() => handleInputChar(char)}
                     title={bubbleFinger ? `标准指法: ${bubbleFinger.label}` : undefined}
-                    className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 text-slate-700 dark:text-slate-200 font-mono-code font-bold text-sm sm:text-base active:scale-90 transition-all shadow-xs flex items-center justify-center cursor-pointer select-none"
+                    className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 border text-slate-700 dark:text-slate-200 font-mono-code font-bold text-sm sm:text-base active:scale-90 transition-all shadow-xs flex items-center justify-center cursor-pointer select-none ${
+                      isTargetLetter
+                        ? 'ring-2 ring-indigo-400 dark:ring-indigo-500 scale-105 z-10'
+                        : 'hover:border-indigo-400 dark:hover:border-indigo-500'
+                    }`}
                     style={
                       bubbleFinger
-                        ? { color: bubbleFinger.color, borderColor: bubbleFinger.color + '88' }
+                        ? {
+                            color: bubbleFinger.color,
+                            borderColor: isTargetLetter ? bubbleFinger.color : `${bubbleFinger.color}66`,
+                            backgroundColor: isTargetLetter ? `${bubbleFinger.color}15` : undefined,
+                          }
                         : undefined
                     }
                   >
                     {char === ' ' ? '␣' : char}
                     {bubbleFinger && (
                       <span
-                        className="absolute -bottom-0.5 -right-0.5 px-0.5 rounded-sm text-[8px] font-bold leading-[10px] bg-white/90 dark:bg-slate-900/90"
-                        style={{ color: bubbleFinger.color }}
-                      >
-                        {bubbleFinger.mini}
-                      </span>
+                        className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: bubbleFinger.color }}
+                        title={bubbleFinger.label}
+                      />
                     )}
                   </button>
                 );
@@ -720,26 +716,6 @@ export const WordTypingBoard: React.FC<WordTypingBoardProps> = ({
                 ⌫ 退格
               </button>
             </div>
-
-            {/* 指法图例: 颜色 ↔ 手指对照 + 基准键提示 */}
-            {settings.fingerHints && (
-              <div
-                className="mt-3 hidden sm:flex items-center justify-center gap-2 flex-wrap select-none"
-                title={HOME_ROW_HINT}
-              >
-                <span className="text-[10px] text-slate-400 dark:text-slate-500">🖐️ 指法</span>
-                {FINGER_LEGEND.map((f) => (
-                  <span
-                    key={f.id}
-                    className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 dark:text-slate-400"
-                  >
-                    <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: f.color }} />
-                    {f.short}
-                  </span>
-                ))}
-                <span className="text-[10px] text-slate-300 dark:text-slate-600">| {HOME_ROW_HINT}</span>
-              </div>
-            )}
           </div>
         </div>
 

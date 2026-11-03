@@ -93,3 +93,35 @@ export const FINGER_LEGEND: FingerInfo[] = [
 ];
 
 export const HOME_ROW_HINT = '基准键 ASDF · JKL;';
+
+export interface KeyDefinition {
+  key: string;
+  display?: string;
+  width?: string;
+  isHomeKey?: boolean;
+}
+
+export const KEYBOARD_ROWS: KeyDefinition[][] = [
+  [
+    { key: '1' }, { key: '2' }, { key: '3' }, { key: '4' }, { key: '5' },
+    { key: '6' }, { key: '7' }, { key: '8' }, { key: '9' }, { key: '0' },
+    { key: '-' }, { key: '=' },
+  ],
+  [
+    { key: 'q' }, { key: 'w' }, { key: 'e' }, { key: 'r' }, { key: 't' },
+    { key: 'y' }, { key: 'u' }, { key: 'i' }, { key: 'o' }, { key: 'p' },
+    { key: '[' }, { key: ']' },
+  ],
+  [
+    { key: 'a' }, { key: 's' }, { key: 'd' }, { key: 'f', isHomeKey: true }, { key: 'g' },
+    { key: 'h' }, { key: 'j', isHomeKey: true }, { key: 'k' }, { key: 'l' }, { key: ';' },
+    { key: "'" },
+  ],
+  [
+    { key: 'z' }, { key: 'x' }, { key: 'c' }, { key: 'v' }, { key: 'b' },
+    { key: 'n' }, { key: 'm' }, { key: ',' }, { key: '.' }, { key: '/' },
+  ],
+  [
+    { key: ' ', display: 'Space 空格', width: 'w-44 sm:w-60' },
+  ],
+];
