@@ -184,11 +184,12 @@ const jsonLdGraph = [
 
 const navItems = [
   { href: withBase('/'), label: '首页', active: pathname === withBase('/') },
+  { href: 'https://learn.wordsmaster.app/', label: 'WordKey', target: '_blank', active: false },
+  { href: withBase('/games/'), label: '游戏', active: pathname.includes('/games') },
   { href: withBase('/category/reading-notes/'), label: '读书', active: pathname.includes('/reading-notes') },
   { href: withBase('/category/tech-learning/'), label: '技术', active: pathname.includes('/tech-learning') },
   { href: withBase('/category/investment/'), label: '投资', active: pathname.includes('/investment') },
   { href: withBase('/category/turing-award/'), label: '人物', active: pathname.includes('/turing-award') },
-  { href: withBase('/games/'), label: '游戏', active: pathname.includes('/games') },
   { href: withBase('/about/'), label: '关于', active: pathname.includes('/about') }
 ];
 ---
@@ -328,7 +329,14 @@ const navItems = [
 
           <nav class="site-nav" id="site-nav" aria-label="主要导航">
             {navItems.map((item) => (
-              <a href={item.href} aria-current={item.active ? 'page' : undefined}>{item.label}</a>
+              <a
+                href={item.href}
+                target={item.target}
+                rel={item.target ? 'noopener noreferrer' : undefined}
+                aria-current={item.active ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
             ))}
             <a class="search-link" href={withBase('/search/')} aria-label="搜索文章">搜索</a>
             <button class="theme-toggle" id="theme-toggle" aria-label="切换深浅主题">

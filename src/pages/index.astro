@@ -25,14 +25,14 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
 ---
 
 <BaseLayout
-  title="WordsMaster | 深度技术架构、价值投资与认知哲学 · 独立数字花园"
-  description="WordsMaster (wordsmaster.app)：把复杂的技术演进、商业逻辑与认知模型，写成可以反复阅读的长期笔记。由工程师 DoggyDad 主笔，涵盖 AI Agent 工程架构、价值投资复利体系、图灵奖先驱全史，以及自研体感与图形学实验室。"
-  keywords={['WordsMaster', 'DoggyDad', '技术博客', 'AI Agent', '软件架构', '价值投资', '商业护城河', '图灵奖', '读书笔记', '数字花园']}
+  title="WordsMaster | 单词盲打练习 · 趣味互动游戏 · 独立技术博客"
+  description="WordsMaster (wordsmaster.app)：集 WordKey 英语单词盲打速记、双手指法视觉雷达、趣味少儿拼词与体感游戏，以及 AI Agent 架构、图灵奖历史与价值投资长期笔记于一体的综合数字平台。"
+  keywords={['WordsMaster', 'WordKey', '单词盲打', '标准指法', '双手指法雷达', '打字练习', '少儿英语游戏', 'AI Agent', 'DoggyDad', '技术博客', '价值投资', '图灵奖', '数字花园']}
   structuredData={[{
     '@type': 'CollectionPage',
     '@id': `${new URL(withBase('/'), Astro.site).toString()}#collection`,
-    name: 'WordsMaster · 独立技术与深度思考知识库',
-    description: '深入探讨 AI Agent 与现代软件架构、价值投资与复利哲学、图灵奖先驱计算机科学史、精选读书笔记及 Web 交互实验室。',
+    name: 'WordsMaster · 单词盲打 · 互动游戏 · 深度博客',
+    description: '开箱即用的专业单词盲打与标准指法速记平台，兼具趣味交互实验，以及对 AI Agent 架构、图灵奖历史与价值投资的深度长文。',
     mainEntity: { '@type': 'ItemList', itemListElement: homeItems }
   }]}
 >
@@ -47,20 +47,20 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
         <div class="hero-kicker">
           <span class="kicker-brand">WORDSMASTER</span>
           <span class="kicker-divider" aria-hidden="true">/</span>
-          <span class="kicker-subtitle">读书 · 技术 · 实验室</span>
+          <span class="kicker-subtitle">单词盲打 · 互动游戏 · 深度博客</span>
         </div>
         <h1 class="hero-title">
-          把复杂的技术与思想，<span class="hero-highlight">写成可以反复读的笔记。</span>
+          把单词练习变成肌肉记忆，<span class="hero-highlight">把技术思想写成长期笔记。</span>
         </h1>
         <p class="hero-desc">
-          记录读过的经典著作、正在演进的技术范式与塑造计算机科学的人。少一点浮躁结论，多一点来龙去脉与可交互动手的实践。
+          开箱即用的专业单词盲打与标准指法速记平台，兼具寓教于乐的互动游戏实验室，以及对 AI Agent 架构、图灵奖先驱历史与价值投资的深度长文复盘。
         </p>
         <div class="hero-meta-bar" aria-label="全站统计">
-          <span class="meta-stat"><strong>{posts.length}</strong> 篇长期长文</span>
+          <span class="meta-stat">⚡ <strong>WordKey</strong> 盲打速记</span>
           <span class="meta-sep" aria-hidden="true">·</span>
-          <span class="meta-stat"><strong>5</strong> 大知识专栏</span>
+          <span class="meta-stat">🎮 <strong>4</strong> 款沉浸游戏</span>
           <span class="meta-sep" aria-hidden="true">·</span>
-          <span class="meta-stat"><strong>3</strong> 个可交互实验</span>
+          <span class="meta-stat">📚 <strong>{posts.length}</strong> 篇长期深度专栏</span>
         </div>
       </div>
 
@@ -108,20 +108,23 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
 
           <button
             type="button"
-            id="tab-btn-blog"
+            id="tab-btn-words"
             class="segmented-btn active"
             role="tab"
             aria-selected="true"
-            aria-controls="panel-blog"
-            data-tab="blog"
+            aria-controls="panel-words"
+            data-tab="words"
           >
             <svg class="btn-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-              <path d="M6 6h10"></path>
-              <path d="M6 10h10"></path>
+              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+              <path d="M6 10h.01"></path>
+              <path d="M10 10h.01"></path>
+              <path d="M14 10h.01"></path>
+              <path d="M18 10h.01"></path>
+              <path d="M8 14h8"></path>
             </svg>
-            <span class="btn-title">博客文章</span>
-            <span class="btn-counter">{posts.length}</span>
+            <span class="btn-title">单词练习</span>
+            <span class="btn-counter">WordKey</span>
             <kbd class="key-shortcut" title="按键盘数字键 1 快速切换">1</kbd>
           </button>
 
@@ -142,79 +145,233 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
               <circle cx="18" cy="13" r="1"></circle>
             </svg>
             <span class="btn-title">游戏实验室</span>
-            <span class="btn-counter">FruitWave / 爪机</span>
+            <span class="btn-counter">FruitWave / 单词大冒险</span>
             <kbd class="key-shortcut" title="按键盘数字键 2 快速切换">2</kbd>
           </button>
 
           <button
             type="button"
-            id="tab-btn-words"
+            id="tab-btn-blog"
             class="segmented-btn"
             role="tab"
             aria-selected="false"
-            aria-controls="panel-words"
-            data-tab="words"
+            aria-controls="panel-blog"
+            data-tab="blog"
           >
             <svg class="btn-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-              <path d="M6 10h.01"></path>
-              <path d="M10 10h.01"></path>
-              <path d="M14 10h.01"></path>
-              <path d="M18 10h.01"></path>
-              <path d="M8 14h8"></path>
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+              <path d="M6 6h10"></path>
+              <path d="M6 10h10"></path>
             </svg>
-            <span class="btn-title">单词练习</span>
-            <span class="btn-counter">WordKey</span>
+            <span class="btn-title">博客文章</span>
+            <span class="btn-counter">{posts.length}</span>
             <kbd class="key-shortcut" title="按键盘数字键 3 快速切换">3</kbd>
           </button>
         </nav>
       </div>
     </div>
 
-    <!-- ================= Tab 1: 博客文章 ================= -->
-    <section id="panel-blog" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-blog">
-      <!-- 5 大分类导航条（带精确收录篇数透出） -->
-      <nav class="category-strip" aria-label="内容专栏分类">
-        {Object.entries(categories).map(([key, category], index) => {
-          const count = categoryCounts[key] || 0;
-          return (
-            <a href={withBase(`/category/${key}/`)} class="category-strip-item" style={`--cat-color:${category.accent}`}>
-              <div class="cat-top">
-                <span class="cat-num">0{index + 1}</span>
-                <span class="cat-count-badge">{count} 篇</span>
-              </div>
-              <span class="cat-name">{category.name}</span>
-              <span class="cat-desc">{category.description}</span>
-            </a>
-          );
-        })}
-      </nav>
-
-      <!-- 精选推荐 -->
-      {featuredPost && (
-        <div class="featured-block">
-          <div class="block-header">
-            <span class="block-kicker">FEATURED HIGHLIGHT</span>
-            <h2 class="block-title">从这里开始</h2>
+    <!-- ================= Tab 1: 单词练习 (WordKey) ================= -->
+    <section id="panel-words" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-words">
+      <div class="words-split-layout">
+        <!-- 左侧：理念与完整平台入口 -->
+        <div class="words-concept-col">
+          <div class="game-tag">
+            <span class="tag-accent">WORDKEY</span>
+            <span class="tag-sep">·</span>
+            <span class="tag-title">KEYBOARD DRILLS</span>
           </div>
-          <PostCard post={featuredPost} featured />
-        </div>
-      )}
+          <h2 class="words-heading">把单词练习，变成有节奏的肌肉记忆</h2>
+          <p class="words-desc">
+            告别死记硬背。敲击真实键盘按键，在打字节奏与例句语境中掌握拼写、发音与词义。
+          </p>
 
-      <!-- 最新文章列表 -->
-      <div class="archive-block">
-        <div class="block-header">
-          <span class="block-kicker">RECENT ARTICLES</span>
-          <h2 class="block-title">最新归档</h2>
+          <div class="pro-platform-box">
+            <div class="pro-box-header">
+              <span class="pro-crown">⚡</span>
+              <span class="pro-label">WordKey 独立全功能平台</span>
+            </div>
+            <p class="pro-box-desc">
+              双手指法动态雷达、8色标准键位映射、牛津5000与小学教材词库，带艾宾浩斯复习曲线与真人英美双音标发音。
+            </p>
+            <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer" class="pro-link-btn" style="background:#0284c7; color:#fff; border-color:#0284c7; margin-bottom:0.75rem;">
+              <span>⚡ 进入 WordKey 全屏指法学习平台</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+            <a href={withBase('/games/words/')} class="pro-link-btn">
+              <span>🎮 开启『单词大冒险』趣味闯关</span>
+              <span aria-hidden="true">→</span>
+            </a>
+            <span class="pro-extra-hint">零广告 · 无需登录 · 纯粹开放</span>
+          </div>
         </div>
-        <div class="post-grid">
-          {latestPosts.map((post) => <PostCard post={post} />)}
+
+        <!-- 右侧：首页即刻运行的高性能交互打字练习机 (WordKey 像素闯关游戏主体) -->
+        <div class="words-trainer-col">
+          <div class="terminal-card" id="wordkey-trainer">
+            <!-- 游戏顶部状态与仪表盘 HUD -->
+            <div class="terminal-top">
+              <div class="terminal-status">
+                <span class="status-pulse"></span>
+                <span class="status-text">🎮 WordKey · 像素闯关挑战</span>
+              </div>
+              <div class="terminal-metrics">
+                <button type="button" class="sound-toggle-btn" id="sound-toggle-btn" title="开关机械按键音效" aria-label="切换按键音效">
+                  <span id="sound-icon">🔊</span>
+                  <span id="sound-label">按键音</span>
+                </button>
+                <button type="button" class="sound-toggle-btn" id="wk-slow-audio-btn" title="慢速发音 (0.75x 方便少儿跟读模仿)">
+                  <span>🐢</span>
+                  <span id="wk-slow-label">正常语速</span>
+                </button>
+                <div class="metric-cell">
+                  <span class="metric-label">得分</span>
+                  <span class="metric-val text-brand" id="score-counter">0</span>
+                </div>
+                <div class="metric-cell">
+                  <span class="metric-label">连击</span>
+                  <span class="metric-val text-combo" id="streak-counter">🔥 0</span>
+                </div>
+                <div class="metric-cell">
+                  <span class="metric-label">倒计时</span>
+                  <span class="metric-val text-time" id="timer-counter">02:00</span>
+                </div>
+                <div class="metric-cell">
+                  <span class="metric-label">准确率</span>
+                  <span class="metric-val" id="accuracy-counter">100%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 限时冲刺模式选项 (1min, 2min, 3min, 自由) -->
+            <div class="wk-time-bar" role="radiogroup" aria-label="限时冲刺模式">
+              <span class="wk-bar-label">⏱️ 限时模式:</span>
+              <div class="wk-time-pills">
+                <button type="button" class="wk-time-pill" data-time="60">1分钟</button>
+                <button type="button" class="wk-time-pill active" data-time="120">2分钟</button>
+                <button type="button" class="wk-time-pill" data-time="180">3分钟</button>
+                <button type="button" class="wk-time-pill" data-time="0">无限制</button>
+              </div>
+            </div>
+
+            <!-- 词库主题切换标签 -->
+            <div class="deck-selector" role="radiogroup" aria-label="选择练习词库">
+              <button type="button" class="deck-btn active" data-deck="kids">🐾 萌宠拼读</button>
+              <button type="button" class="deck-btn" data-deck="oxford_g12">🏫 牛津1-2年级</button>
+              <button type="button" class="deck-btn" data-deck="oxford_g34">📘 牛津3-4年级</button>
+              <button type="button" class="deck-btn" data-deck="oxford_g56">🎓 牛津5-6年级</button>
+              <button type="button" class="deck-btn" data-deck="pep_g3">🎒 PEP三年级</button>
+              <button type="button" class="deck-btn" data-deck="pep_g4">🏫 PEP四年级</button>
+              <button type="button" class="deck-btn" data-deck="pep_g5">📗 PEP五年级</button>
+              <button type="button" class="deck-btn" data-deck="pep_g6">🎓 PEP六年级</button>
+              <button type="button" class="deck-btn" data-deck="daily">🍎 生活高频</button>
+              <button type="button" class="deck-btn" data-deck="school">🎒 校园文具</button>
+              <button type="button" class="deck-btn" data-deck="coder">💻 计算机技术</button>
+              <button type="button" class="deck-btn" data-deck="cognitive">🧠 认知模型</button>
+              <button type="button" class="deck-btn" data-deck="academic">🎓 雅思学术</button>
+            </div>
+
+            <!-- 单词拼写主展示区 (Word Focus Area) -->
+            <div class="word-focus-area">
+              <div class="word-header-row">
+                <span class="word-emoji-badge" id="wk-word-emoji">🐱</span>
+                <div class="phonetic-row">
+                  <span class="phonetic-text" id="display-phonetic">/kæt/</span>
+                  <button type="button" class="pronounce-icon-btn" id="pronounce-btn" aria-label="朗读发音" title="听真人发音 (按空格也可重播)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 字母输入插槽 (Slots) -->
+              <div class="letters-row" id="letters-track"></div>
+
+              <!-- 触屏与鼠标交互字母气泡池 (解决纯键盘局限，少儿点击即可拼写) -->
+              <div class="wk-bubbles-wrap">
+                <span class="wk-bubbles-hint">👆 点击下方字母气泡或敲击键盘键入：</span>
+                <div class="wk-bubbles-pool" id="wk-bubbles-track"></div>
+              </div>
+
+              <!-- 释义与例句 -->
+              <div class="meaning-block">
+                <p class="meaning-text" id="display-translation">n. 小猫</p>
+                <p class="sentence-text" id="display-sentence">
+                  "The cute cat is sleeping."
+                </p>
+              </div>
+            </div>
+
+            <!-- 终端底部操作与快捷提示 -->
+            <div class="terminal-bottom">
+              <div class="wk-quick-tools">
+                <button type="button" id="wk-btn-backspace" class="wk-tool-pill" title="退格撤销 (Backspace)">
+                  <span>⌫</span> 退格
+                </button>
+                <button type="button" id="wk-btn-hint" class="wk-tool-pill" title="提示下一个字母">
+                  <span>💡</span> 提示
+                </button>
+                <button type="button" id="skip-word-btn" class="wk-tool-pill" title="跳过当前词 (Skip)">
+                  <span>⏭️</span> 跳过
+                </button>
+              </div>
+              <div class="terminal-controls">
+                <button type="button" id="reset-stats-btn" class="ctrl-link">🔄 重新开始</button>
+                <a href={withBase('/games/words/')} class="ctrl-link highlight-link">🎮 全屏大冒险 →</a>
+              </div>
+              <input type="text" id="hidden-word-input" class="hidden-field" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="打字输入框" />
+            </div>
+
+            <!-- WordKey 挑战结算弹窗 -->
+            <div class="wk-victory-overlay hidden" id="wk-victory-modal">
+              <div class="wk-victory-card">
+                <div class="wk-vic-trophy">🏆</div>
+                <h3 class="wk-vic-title" id="wk-vic-title">冲关挑战大获全胜！</h3>
+                <div class="wk-vic-stars" id="wk-vic-stars">⭐⭐⭐</div>
+                <p class="wk-vic-desc" id="wk-vic-desc">太棒了！词汇积累与键入反应非常敏锐！</p>
+                <div class="wk-vic-stats">
+                  <div class="wk-vic-stat-item">
+                    <span class="stat-num text-brand" id="wk-vic-score">240</span>
+                    <span class="stat-lbl">得分</span>
+                  </div>
+                  <div class="wk-vic-stat-item">
+                    <span class="stat-num text-combo" id="wk-vic-combo">🔥 10</span>
+                    <span class="stat-lbl">最高连击</span>
+                  </div>
+                  <div class="wk-vic-stat-item">
+                    <span class="stat-num" id="wk-vic-acc">100%</span>
+                    <span class="stat-lbl">准确率</span>
+                  </div>
+                </div>
+                <div class="wk-vic-actions">
+                  <button type="button" class="wk-vic-btn-primary" id="wk-vic-restart-btn">🔄 再来一局</button>
+                  <button type="button" class="wk-vic-btn-secondary" id="wk-vic-close-btn">关闭</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="all-link-wrapper">
-          <a class="all-posts-btn" href={withBase('/search/')}>
-            <span>浏览全部 {posts.length} 篇归档文章</span>
-            <span aria-hidden="true">→</span>
-          </a>
+      </div>
+
+      <!-- 词库体系导览 -->
+      <div class="vocab-trio">
+        <div class="vocab-card">
+          <span class="vocab-tag">基础进阶</span>
+          <h3>CET-4 / CET-6 & 考研英语</h3>
+          <p>覆盖真题高频核心词，告别孤立背词法，在真实句子中理解词汇搭配与多重引申义。</p>
+        </div>
+        <div class="vocab-card">
+          <span class="vocab-tag">学术留学</span>
+          <h3>IELTS 雅思 & TOEFL 托福</h3>
+          <p>核心学术词汇与学术写作常用表达，针对听力辨音、快速拼写纠错与精准用词设计。</p>
+        </div>
+        <div class="vocab-card">
+          <span class="vocab-tag">工程师专属</span>
+          <h3>Coder 计算机专业英语</h3>
+          <p>系统架构、算法设计、数据库与日常开源社区常用技术术语，流畅阅读一手英文技术文档。</p>
         </div>
       </div>
     </section>
@@ -484,207 +641,50 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
       </div>
     </section>
 
-    <!-- ================= Tab 3: 单词练习 (WordKey) ================= -->
-    <section id="panel-words" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-words">
-      <div class="words-split-layout">
-        <!-- 左侧：理念与完整平台入口 -->
-        <div class="words-concept-col">
-          <div class="game-tag">
-            <span class="tag-accent">WORDKEY</span>
-            <span class="tag-sep">·</span>
-            <span class="tag-title">KEYBOARD DRILLS</span>
-          </div>
-          <h2 class="words-heading">把单词练习，变成有节奏的肌肉记忆</h2>
-          <p class="words-desc">
-            告别死记硬背。敲击真实键盘按键，在打字节奏与例句语境中掌握拼写、发音与词义。
-          </p>
-
-          <div class="pro-platform-box">
-            <div class="pro-box-header">
-              <span class="pro-crown">⚡</span>
-              <span class="pro-label">WordKey 独立全功能平台</span>
-            </div>
-            <p class="pro-box-desc">
-              收录 CET-4/6、考研英语、雅思托福与计算机专业真题语境短文，带艾宾浩斯复习曲线与生词本。
-            </p>
-            <a href={withBase('/games/words/')} class="pro-link-btn" style="background:#0284c7; color:#fff; border-color:#0284c7; margin-bottom:0.75rem;">
-              <span>🎮 开启『单词大冒险』闯关游戏</span>
-              <span aria-hidden="true">→</span>
+    <!-- ================= Tab 3: 博客文章 ================= -->
+    <section id="panel-blog" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-blog">
+      <!-- 5 大分类导航条（带精确收录篇数透出） -->
+      <nav class="category-strip" aria-label="内容专栏分类">
+        {Object.entries(categories).map(([key, category], index) => {
+          const count = categoryCounts[key] || 0;
+          return (
+            <a href={withBase(`/category/${key}/`)} class="category-strip-item" style={`--cat-color:${category.accent}`}>
+              <div class="cat-top">
+                <span class="cat-num">0{index + 1}</span>
+                <span class="cat-count-badge">{count} 篇</span>
+              </div>
+              <span class="cat-name">{category.name}</span>
+              <span class="cat-desc">{category.description}</span>
             </a>
-            <a href="https://learn.wordsmaster.app/" target="_blank" rel="noopener noreferrer" class="pro-link-btn">
-              <span>进入 WordKey 学习平台</span>
-              <span aria-hidden="true">↗</span>
-            </a>
-            <span class="pro-extra-hint">零广告 · 无需登录 · 纯粹开放</span>
+          );
+        })}
+      </nav>
+
+      <!-- 精选推荐 -->
+      {featuredPost && (
+        <div class="featured-block">
+          <div class="block-header">
+            <span class="block-kicker">FEATURED HIGHLIGHT</span>
+            <h2 class="block-title">从这里开始</h2>
           </div>
+          <PostCard post={featuredPost} featured />
         </div>
+      )}
 
-        <!-- 右侧：首页即刻运行的高性能交互打字练习机 (WordKey 像素闯关游戏主体) -->
-        <div class="words-trainer-col">
-          <div class="terminal-card" id="wordkey-trainer">
-            <!-- 游戏顶部状态与仪表盘 HUD -->
-            <div class="terminal-top">
-              <div class="terminal-status">
-                <span class="status-pulse"></span>
-                <span class="status-text">🎮 WordKey · 像素闯关挑战</span>
-              </div>
-              <div class="terminal-metrics">
-                <button type="button" class="sound-toggle-btn" id="sound-toggle-btn" title="开关机械按键音效" aria-label="切换按键音效">
-                  <span id="sound-icon">🔊</span>
-                  <span id="sound-label">按键音</span>
-                </button>
-                <button type="button" class="sound-toggle-btn" id="wk-slow-audio-btn" title="慢速发音 (0.75x 方便少儿跟读模仿)">
-                  <span>🐢</span>
-                  <span id="wk-slow-label">正常语速</span>
-                </button>
-                <div class="metric-cell">
-                  <span class="metric-label">得分</span>
-                  <span class="metric-val text-brand" id="score-counter">0</span>
-                </div>
-                <div class="metric-cell">
-                  <span class="metric-label">连击</span>
-                  <span class="metric-val text-combo" id="streak-counter">🔥 0</span>
-                </div>
-                <div class="metric-cell">
-                  <span class="metric-label">倒计时</span>
-                  <span class="metric-val text-time" id="timer-counter">02:00</span>
-                </div>
-                <div class="metric-cell">
-                  <span class="metric-label">准确率</span>
-                  <span class="metric-val" id="accuracy-counter">100%</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 限时冲刺模式选项 (1min, 2min, 3min, 自由) -->
-            <div class="wk-time-bar" role="radiogroup" aria-label="限时冲刺模式">
-              <span class="wk-bar-label">⏱️ 限时模式:</span>
-              <div class="wk-time-pills">
-                <button type="button" class="wk-time-pill" data-time="60">1分钟</button>
-                <button type="button" class="wk-time-pill active" data-time="120">2分钟</button>
-                <button type="button" class="wk-time-pill" data-time="180">3分钟</button>
-                <button type="button" class="wk-time-pill" data-time="0">无限制</button>
-              </div>
-            </div>
-
-            <!-- 词库主题切换标签 -->
-            <div class="deck-selector" role="radiogroup" aria-label="选择练习词库">
-              <button type="button" class="deck-btn active" data-deck="kids">🐾 萌宠拼读</button>
-              <button type="button" class="deck-btn" data-deck="oxford_g12">🏫 牛津1-2年级</button>
-              <button type="button" class="deck-btn" data-deck="oxford_g34">📘 牛津3-4年级</button>
-              <button type="button" class="deck-btn" data-deck="oxford_g56">🎓 牛津5-6年级</button>
-              <button type="button" class="deck-btn" data-deck="pep_g3">🎒 PEP三年级</button>
-              <button type="button" class="deck-btn" data-deck="pep_g4">🏫 PEP四年级</button>
-              <button type="button" class="deck-btn" data-deck="pep_g5">📗 PEP五年级</button>
-              <button type="button" class="deck-btn" data-deck="pep_g6">🎓 PEP六年级</button>
-              <button type="button" class="deck-btn" data-deck="daily">🍎 生活高频</button>
-              <button type="button" class="deck-btn" data-deck="school">🎒 校园文具</button>
-              <button type="button" class="deck-btn" data-deck="coder">💻 计算机技术</button>
-              <button type="button" class="deck-btn" data-deck="cognitive">🧠 认知模型</button>
-              <button type="button" class="deck-btn" data-deck="academic">🎓 雅思学术</button>
-            </div>
-
-            <!-- 单词拼写主展示区 (Word Focus Area) -->
-            <div class="word-focus-area">
-              <div class="word-header-row">
-                <span class="word-emoji-badge" id="wk-word-emoji">🐱</span>
-                <div class="phonetic-row">
-                  <span class="phonetic-text" id="display-phonetic">/kæt/</span>
-                  <button type="button" class="pronounce-icon-btn" id="pronounce-btn" aria-label="朗读发音" title="听真人发音 (按空格也可重播)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 字母输入插槽 (Slots) -->
-              <div class="letters-row" id="letters-track"></div>
-
-              <!-- 触屏与鼠标交互字母气泡池 (解决纯键盘局限，少儿点击即可拼写) -->
-              <div class="wk-bubbles-wrap">
-                <span class="wk-bubbles-hint">👆 点击下方字母气泡或敲击键盘键入：</span>
-                <div class="wk-bubbles-pool" id="wk-bubbles-track"></div>
-              </div>
-
-              <!-- 释义与例句 -->
-              <div class="meaning-block">
-                <p class="meaning-text" id="display-translation">n. 小猫</p>
-                <p class="sentence-text" id="display-sentence">
-                  "The cute cat is sleeping."
-                </p>
-              </div>
-            </div>
-
-            <!-- 终端底部操作与快捷提示 -->
-            <div class="terminal-bottom">
-              <div class="wk-quick-tools">
-                <button type="button" id="wk-btn-backspace" class="wk-tool-pill" title="退格撤销 (Backspace)">
-                  <span>⌫</span> 退格
-                </button>
-                <button type="button" id="wk-btn-hint" class="wk-tool-pill" title="提示下一个字母">
-                  <span>💡</span> 提示
-                </button>
-                <button type="button" id="skip-word-btn" class="wk-tool-pill" title="跳过当前词 (Skip)">
-                  <span>⏭️</span> 跳过
-                </button>
-              </div>
-              <div class="terminal-controls">
-                <button type="button" id="reset-stats-btn" class="ctrl-link">🔄 重新开始</button>
-                <a href={withBase('/games/words/')} class="ctrl-link highlight-link">🎮 全屏大冒险 →</a>
-              </div>
-              <input type="text" id="hidden-word-input" class="hidden-field" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="打字输入框" />
-            </div>
-
-            <!-- WordKey 挑战结算弹窗 -->
-            <div class="wk-victory-overlay hidden" id="wk-victory-modal">
-              <div class="wk-victory-card">
-                <div class="wk-vic-trophy">🏆</div>
-                <h3 class="wk-vic-title" id="wk-vic-title">冲关挑战大获全胜！</h3>
-                <div class="wk-vic-stars" id="wk-vic-stars">⭐⭐⭐</div>
-                <p class="wk-vic-desc" id="wk-vic-desc">太棒了！词汇积累与键入反应非常敏锐！</p>
-                <div class="wk-vic-stats">
-                  <div class="wk-vic-stat-item">
-                    <span class="stat-num text-brand" id="wk-vic-score">240</span>
-                    <span class="stat-lbl">得分</span>
-                  </div>
-                  <div class="wk-vic-stat-item">
-                    <span class="stat-num text-combo" id="wk-vic-combo">🔥 10</span>
-                    <span class="stat-lbl">最高连击</span>
-                  </div>
-                  <div class="wk-vic-stat-item">
-                    <span class="stat-num" id="wk-vic-acc">100%</span>
-                    <span class="stat-lbl">准确率</span>
-                  </div>
-                </div>
-                <div class="wk-vic-actions">
-                  <button type="button" class="wk-vic-btn-primary" id="wk-vic-restart-btn">🔄 再来一局</button>
-                  <button type="button" class="wk-vic-btn-secondary" id="wk-vic-close-btn">关闭</button>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- 最新文章列表 -->
+      <div class="archive-block">
+        <div class="block-header">
+          <span class="block-kicker">RECENT ARTICLES</span>
+          <h2 class="block-title">最新归档</h2>
         </div>
-      </div>
-
-      <!-- 词库体系导览 -->
-      <div class="vocab-trio">
-        <div class="vocab-card">
-          <span class="vocab-tag">基础进阶</span>
-          <h3>CET-4 / CET-6 & 考研英语</h3>
-          <p>覆盖真题高频核心词，告别孤立背词法，在真实句子中理解词汇搭配与多重引申义。</p>
+        <div class="post-grid">
+          {latestPosts.map((post) => <PostCard post={post} />)}
         </div>
-        <div class="vocab-card">
-          <span class="vocab-tag">学术留学</span>
-          <h3>IELTS 雅思 & TOEFL 托福</h3>
-          <p>核心学术词汇与学术写作常用表达，针对听力辨音、快速拼写纠错与精准用词设计。</p>
-        </div>
-        <div class="vocab-card">
-          <span class="vocab-tag">工程师专属</span>
-          <h3>Coder 计算机专业英语</h3>
-          <p>系统架构、算法设计、数据库与日常开源社区常用技术术语，流畅阅读一手英文技术文档。</p>
+        <div class="all-link-wrapper">
+          <a class="all-posts-btn" href={withBase('/search/')}>
+            <span>浏览全部 {posts.length} 篇归档文章</span>
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
       </div>
     </section>
@@ -788,8 +788,8 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
   }
 
   function switchTab(tabId: string, updateUrl = true) {
-    if (!['blog', 'games', 'words'].includes(tabId)) {
-      tabId = 'blog';
+    if (!['words', 'games', 'blog'].includes(tabId)) {
+      tabId = 'words';
     }
 
     let activeBtn: HTMLButtonElement | null = null;
@@ -821,18 +821,18 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
     }
   }
 
-  // 快捷键 1, 2, 3 秒切 Tab
+  // 快捷键 1, 2, 3 秒切 Tab: 1=单词练习, 2=游戏实验室, 3=博客文章
   window.addEventListener('keydown', (e) => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
     if (e.key === '1') {
       e.preventDefault();
-      switchTab('blog');
+      switchTab('words');
     } else if (e.key === '2') {
       e.preventDefault();
       switchTab('games');
     } else if (e.key === '3') {
       e.preventDefault();
-      switchTab('words');
+      switchTab('blog');
     }
   });
 
