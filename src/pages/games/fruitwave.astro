@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.4.0`;
+const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.5.0`;
 ---
 
 <BaseLayout
@@ -19,6 +19,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
       <span>🍎 12 种水果</span>
       <span>🔥 连击倍增</span>
       <span>🎥 手势 / 鼠标双模</span>
+      <a href="/games/fruitwave/" target="_blank" rel="noopener" class="game-spec-link" title="在独立新标签页打开，彻底避免 preview 小窗与 iframe 的权限拦截">↗️ 独立新窗口打开</a>
     </div>
 
     <div class="game-shell">
@@ -136,13 +137,22 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     margin-bottom: 1.5rem;
   }
 
-  .game-specs span {
+  .game-specs span,
+  .game-specs a {
     background: var(--color-surface-alt);
     border: 1px solid var(--color-border);
     border-radius: 999px;
     padding: 0.2rem 0.75rem;
     font-size: 0.85rem;
     color: var(--color-text-muted);
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .game-specs a:hover {
+    color: #38bdf8;
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
   }
 
   .game-shell {

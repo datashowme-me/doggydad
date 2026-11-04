@@ -2058,7 +2058,7 @@ async function openCamera() {
     ids = list.filter((d) => d.kind === 'videoinput' && d.deviceId).map((d) => d.deviceId);
   } catch (e) { /* 忽略 */ }
 
-  // 尝试顺序：上次用过的设备 (快速验证 3s) → 默认设备（带 facingMode: user, 8s）→ 其余设备
+  // 尝试顺序：上次用过的设备 (快速验证 3s) → 默认设备（带 facingMode: user, 8s）→ 其余设备 → 宽松通用约束
   const tries = [];
   if (savedCamId) {
     tries.push({ video: { deviceId: { ideal: savedCamId }, width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 3200, tag: 'saved' });
@@ -2069,8 +2069,10 @@ async function openCamera() {
       tries.push({ video: { deviceId: { ideal: id }, width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 4000, tag: id.slice(0, 8) });
     }
   }
+  tries.push({ video: true, timeoutMs: 6000, tag: 'simple' });
 
-  for (const t of tries.slice(0, 4)) {
+  for (const t of tries.slice(0, 5)) {
+    if (sawDenied) break; // 若明确被系统/用户拒绝授权，无需轮询其他设备
     const s = await accept({ audio: false, video: t.video }, t.timeoutMs || 8000, t.tag);
     if (s) {
       const actualId = s.getVideoTracks()[0] && s.getVideoTracks()[0].getSettings().deviceId;
@@ -2110,20 +2112,13 @@ async function startHandMode() {
       throw err;
     }
 
-    // 2. 预先检查权限状态，提供精准指引
+    // 2. 检查权限状态仅用于优化提示文案，绝不提前拦截抛错（iframe 内 query 常返回 denied，但调用 getUserMedia 仍可触发授权弹窗）
     let permState = 'prompt';
     if (navigator.permissions && navigator.permissions.query) {
       try {
         const status = await navigator.permissions.query({ name: 'camera' });
         permState = status.state;
-        if (permState === 'denied') {
-          const err = new Error('permission_denied');
-          err.name = 'NotAllowedError';
-          throw err;
-        }
-      } catch (e) {
-        if (e && e.name === 'NotAllowedError') throw e;
-      }
+      } catch (e) { /* 忽略 query 报错 */ }
     }
 
     if (permState === 'granted') {
@@ -2170,10 +2165,18 @@ async function startHandMode() {
     mode = 'pointer';
     resetBlades();
     startGame();
+    const inIframe = typeof window !== 'undefined' && window.self !== window.top;
     if (err && (err.name === 'NotAllowedError' || err.message === 'permission_denied')) {
-      toast('摄像头未获授权，已切换鼠标模式。请在浏览器地址栏 🔒 允许权限', 4500);
+      if (inIframe) {
+        toast('预览小窗未获摄像头授权。请在浏览器地址栏 🔒 允许，或点击上方「独立新窗口打开」', 5500);
+      } else {
+        toast('摄像头未获授权，已切换鼠标模式。请在浏览器地址栏 🔒 允许权限', 4500);
+      }
       if (camHint) {
-        camHint.innerHTML = '⚠️ <strong>摄像头权限未开启</strong>：请点击浏览器地址栏 🔒 或 🎥 图标允许访问，或刷新重试。';
+        const curUrl = typeof window !== 'undefined' ? window.location.href : '/games/fruitwave/';
+        camHint.innerHTML = inIframe
+          ? `⚠️ <strong>预览小窗权限受限</strong>：浏览器可能限制了 iframe 摄像头调用。<br/><a href="${curUrl}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;color:#38bdf8;text-decoration:underline;font-weight:600;">↗️ 在新标签页独立打开（免受预览限制）</a>`
+          : '⚠️ <strong>摄像头权限未开启</strong>：请点击浏览器地址栏 🔒 或 🎥 图标允许访问，或刷新重试。';
         camHint.hidden = false;
       }
     } else if (err && (err.name === 'SecurityError' || err.message === 'insecure_context')) {
