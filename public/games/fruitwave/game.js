@@ -1583,10 +1583,19 @@ function updateBest() {
 }
 
 function showPanel(p) {
-  for (const el of [panelMenu, panelLoading, panelPause, panelGameover]) el.hidden = el !== p;
+  for (const el of [panelMenu, panelLoading, panelPause, panelGameover]) {
+    if (el) el.hidden = el !== p;
+  }
   overlay.hidden = false;
+  overlay.style.display = 'flex';
 }
-function hideOverlay() { overlay.hidden = true; }
+function hideOverlay() {
+  overlay.hidden = true;
+  overlay.style.display = 'none';
+  for (const el of [panelMenu, panelLoading, panelPause, panelGameover]) {
+    if (el) el.hidden = true;
+  }
+}
 
 let toastTimer = 0, lastToastT = 0;
 function toast(msg, ms = 3000) {
@@ -1856,14 +1865,16 @@ async function validateCameraStream(stream, timeoutMs = CAMERA_TIMEOUT_MS) {
   }
 }
 
-// 授权成功后枚举摄像头，多于 1 个时显示切换器
+// 授权成功后枚举摄像头，多于 1 个时显示切换器（带超时，绝不挂起主线程）
 async function initCamPicker() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
   try {
-    const list = await navigator.mediaDevices.enumerateDevices();
-    camDevices = list.filter((d) => d.kind === 'videoinput' && d.deviceId);
+    const list = await withTimeout(navigator.mediaDevices.enumerateDevices(), 1500, 'enum timeout');
+    camDevices = (list || []).filter((d) => d.kind === 'videoinput' && d.deviceId);
   } catch (e) {
     camDevices = [];
   }
+  if (!camPicker) return;
   camPicker.hidden = camDevices.length < 2;
   if (camPicker.hidden) return;
   camPicker.textContent = '';
@@ -1873,9 +1884,8 @@ async function initCamPicker() {
     opt.textContent = d.label || `摄像头 ${i + 1}`;
     camPicker.appendChild(opt);
   });
-  const activeId = camStream && camStream.getVideoTracks()[0]
-    ? camStream.getVideoTracks()[0].getSettings().deviceId
-    : '';
+  const track = camStream && camStream.getVideoTracks ? camStream.getVideoTracks()[0] : null;
+  const activeId = track && track.getSettings ? (track.getSettings().deviceId || '') : '';
   const selectedId = activeId || savedCamId;
   if (selectedId) {
     camPicker.value = selectedId;
@@ -2093,12 +2103,12 @@ async function startHandMode() {
     await withTimeout(video.play(), CAMERA_TIMEOUT_MS, 'video play timeout');
     cameraStack.hidden = false;
     if (!handLandmarker) await loadLandmarker();
-    await initCamPicker();
     mode = 'hand';
-    watchActiveCamera(camStream);
+    try { watchActiveCamera(camStream); } catch (e) {}
     resetBlades();
     startGame();
     toast('左手、右手或双手挥砍均可（食指或手刀），握拳停止');
+    initCamPicker().catch(() => {});
   } catch (err) {
     clearTimeout(permHint1);
     clearTimeout(permHint2);
