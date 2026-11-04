@@ -919,20 +919,60 @@ function drawComboBanners(now) {
 /* ---------------- 几何 / 生成 / 碰撞 ---------------- */
 function fruitRadius() { return Math.max(52, Math.min(128, H * 0.11)); }
 
-function spawnFruit() {
+function spawnFruit(customX = null, customVx = null, customVy = null) {
   const fi = (Math.random() * FRUITS.length) | 0;
   const r = fruitRadius();
+  const x = customX !== null ? customX : W * (0.15 + 0.7 * Math.random());
+  const vx = customVx !== null ? customVx : W * (Math.random() - 0.5) * 0.32;
+  const vy = customVy !== null ? customVy : -H * (1.05 + 0.55 * Math.random());
   fruits.push({
     fi,
-    x: W * (0.15 + 0.7 * Math.random()),
+    x,
     y: H + r * 1.4,
-    vx: W * (Math.random() - 0.5) * 0.3,
-    vy: -H * (1.05 + 0.55 * Math.random()),
+    vx,
+    vy,
     r,
     rot: Math.random() * Math.PI * 2,
     vr: (Math.random() - 0.5) * 7,
   });
   if (state === 'playing') playFruitToss();
+}
+
+function spawnFruitWave(progress = 0) {
+  // 随游戏进程推进（0.0 开局 -> 1.0 终局），同屏上限与波次密度动态攀升
+  const maxAllowed = Math.floor(6 + progress * 8); // 从 6 个提升至 14 个
+  if (fruits.length >= maxAllowed) return;
+
+  let waveCount = 1;
+  const roll = Math.random();
+  if (progress < 0.25) {
+    // 0~22 秒：以单果为主（75%），偶尔双果齐出（25%）
+    waveCount = roll < 0.25 ? 2 : 1;
+  } else if (progress < 0.55) {
+    // 23~50 秒：1~3 个水果组合抛出
+    waveCount = roll < 0.35 ? 1 : (roll < 0.82 ? 2 : 3);
+  } else if (progress < 0.80) {
+    // 50~72 秒：2~4 个密集并发抛射
+    waveCount = roll < 0.35 ? 2 : (roll < 0.82 ? 3 : 4);
+  } else {
+    // 冲刺阶段（最后 18 秒狂潮）：2~5 个成波次爆发密集齐发！
+    waveCount = roll < 0.20 ? 2 : (roll < 0.65 ? 3 : (roll < 0.90 ? 4 : 5));
+  }
+
+  waveCount = Math.min(waveCount, maxAllowed - fruits.length);
+  if (waveCount <= 0) return;
+
+  // 抛出位置在水平宽度上错开，带向中轴微聚拢的自然抛物线
+  const slotWidth = 0.75 / Math.max(1, waveCount);
+  const offsetBase = 0.12 + Math.random() * 0.08;
+  for (let i = 0; i < waveCount; i++) {
+    const slotX = W * (offsetBase + (i + 0.2 + Math.random() * 0.6) * slotWidth);
+    const clampedX = Math.max(W * 0.12, Math.min(W * 0.88, slotX));
+    const centerBias = (W * 0.5 - clampedX) / W;
+    const vx = centerBias * W * (0.16 + Math.random() * 0.22) + W * (Math.random() - 0.5) * 0.12;
+    const vy = -H * (1.02 + 0.52 * Math.random());
+    spawnFruit(clampedX, vx, vy);
+  }
 }
 
 // 线段（刀光上一帧→当前帧）与水果圆的相交检测，保证重复命中不重复计分
@@ -1201,8 +1241,14 @@ function updateGame(dt, now) {
     if (sb.t >= sb.life) sonicBlasts.splice(i, 1);
   }
 
+  // 随着游戏进行（倒计时 90s 从开局到终盘），生成间隔加速缩短（更密集）
+  const progress = Math.min(1, Math.max(0, 1 - remaining / ROUND_MS));
+  const currentSpawnInterval = Math.max(340, 860 - progress * 520);
   spawnAcc += dt * 1000;
-  if (spawnAcc >= SPAWN_MS) { spawnAcc = 0; if (fruits.length < MAX_FRUITS) spawnFruit(); }
+  if (spawnAcc >= currentSpawnInterval) {
+    spawnAcc = 0;
+    spawnFruitWave(progress);
+  }
   if (comboTimer > 0) {
     comboTimer -= dt;
     if (comboTimer <= 0) combo = 0;

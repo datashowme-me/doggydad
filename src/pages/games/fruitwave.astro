@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.3.0`;
+const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.4.0`;
 ---
 
 <BaseLayout
@@ -59,15 +59,11 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
       <div class="overlay" id="overlay">
         <div class="panel" id="panel-menu">
           <div class="panel-title">🍉 FruitWave</div>
-          <p class="panel-sub">切水果 · 浏览器体感版</p>
-          <p class="panel-desc">90 秒内切中尽可能多的水果，连击音调升高，挑战最高分！</p>
+          <p class="panel-sub">切水果 · 体感互动</p>
           <div class="panel-best">🏆 最高分：<span id="best-menu">0</span></div>
           <button class="btn btn-primary" id="btn-camera-mode">🎥 摄像头手势模式</button>
           <button class="btn btn-secondary" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
           <p id="cam-status-hint" class="panel-hint" style="color: #e11d48; font-weight: 500;" hidden></p>
-          <p class="panel-hint">
-            💡 借鉴 open-source-hands 极速手势引擎：🗡️ 剑指光刃 · ✋ 宽刃手刀（范围+35%）· 👏 双手击掌全屏清屏 · ✊ 握拳停刀 · 👍 大拇指免触控开局
-          </p>
         </div>
 
         <div class="panel" id="panel-loading" hidden>
@@ -101,10 +97,10 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     <div class="game-notes">
       <h2>游戏指引</h2>
       <ul>
-        <li>🎮 <strong>左右手 / 双手双刀</strong>：已全面支持左手、右手单独挥砍，或双手同屏挥砍双刀（食指或手刀均可识别，握拳停止）。</li>
-        <li>📷 <strong>摄像头小窗防遮挡</strong>：默认置于右上角避开水果下落区，支持一键【收起 / 展开】或【换位置】（右上 / 右下自选），半透明背景不遮视野。</li>
-        <li>⚡ <strong>连击音效</strong>：快速连续切中水果可触发连击，音调逐级攀升，不同水果音色各有特色。</li>
-        <li>🔒 <strong>本地安全</strong>：画面与手势关键点纯浏览器本地识别，零视频数据上传；最高分自动保存在本地。</li>
+        <li>🎮 <strong>手势挥砍</strong>：支持单手、双手同屏挥刀，食指或手刀均可识别，握拳停止。</li>
+        <li>📷 <strong>摄像头小窗</strong>：右上角实时预览，支持随时【收起】或【换位置】。</li>
+        <li>⚡ <strong>多重连击</strong>：连续快速切中水果可触发高倍连击音效与震屏。</li>
+        <li>🔒 <strong>本地安全</strong>：所有识别纯浏览器本地计算，零视频上传，保护隐私安全。</li>
       </ul>
     </div>
   </section>
