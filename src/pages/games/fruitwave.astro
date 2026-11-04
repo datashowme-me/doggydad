@@ -72,8 +72,8 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
 
         <div class="panel" id="panel-loading" hidden>
           <div class="spinner"></div>
-          <p id="loading-text" style="font-weight: 600; font-size: 1.02rem; margin-bottom: 6px;">正在请求摄像头权限…</p>
-          <p id="loading-subtext" style="font-size: 0.82rem; color: #94a3b8; margin: 0 0 14px 0; max-width: 290px; text-align: center; line-height: 1.4;" hidden></p>
+          <p id="loading-text" style="font-weight: 600; font-size: 1.02rem; margin-bottom: 6px;">正在准备摄像头…</p>
+          <p id="loading-subtext" style="font-size: 0.84rem; color: #cbd5e1; margin: 0 0 14px 0; max-width: 290px; text-align: center; line-height: 1.5;">正在检测摄像头设备与权限…</p>
           <div style="display: flex; gap: 8px; flex-direction: column; width: 100%; max-width: 240px;">
             <button class="btn btn-primary btn-sm" id="btn-skip-loading" style="background: linear-gradient(135deg, #0ea5e9, #2563eb); border: none; padding: 8px 14px; font-weight: 600;">🖱️ 立即跳过，用鼠标开切</button>
             <button class="btn btn-secondary btn-sm" id="btn-cancel-loading" style="padding: 6px 12px; font-size: 0.85rem;">取消并返回</button>
@@ -109,6 +109,12 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     </div>
   </section>
 </BaseLayout>
+
+<script is:inline>
+  if (window.self !== window.top) {
+    document.documentElement.classList.add('is-iframe-embed');
+  }
+</script>
 
 <script
   id="fruitwave-script"
@@ -535,5 +541,37 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     .game-shell {
       min-height: 380px;
     }
+  }
+
+  /* 嵌入试玩沙盒 (iframe) 纯净视口优化：隐藏重复的 Header / Footer / 标题，全屏填充满沙盒 */
+  :global(html.is-iframe-embed header.site-header),
+  :global(html.is-iframe-embed footer),
+  :global(html.is-iframe-embed .game-page > h1),
+  :global(html.is-iframe-embed .game-page > .game-intro),
+  :global(html.is-iframe-embed .game-page > .game-specs),
+  :global(html.is-iframe-embed .game-notes) {
+    display: none !important;
+  }
+
+  :global(html.is-iframe-embed body) {
+    background: transparent !important;
+    overflow: hidden !important;
+  }
+
+  :global(html.is-iframe-embed .game-page) {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  :global(html.is-iframe-embed .game-shell) {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    min-height: 100vh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 </style>

@@ -440,7 +440,7 @@ const homeItems = sortedPosts.slice(0, 12).map((post, index) => ({
           </div>
         </div>
         <div class="embed-box-viewport">
-          <iframe id="game-iframe" src="about:blank" data-src={withBase('/games/fruitwave/')} title="FruitWave & ArtCatcher Game" loading="lazy" allow="camera; accelerometer; gyroscope; microphone"></iframe>
+          <iframe id="game-iframe" src="about:blank" data-src={withBase('/games/fruitwave/')} title="FruitWave & ArtCatcher Game" loading="lazy" allow="camera *; accelerometer; gyroscope; microphone; fullscreen"></iframe>
         </div>
       </div>
 
