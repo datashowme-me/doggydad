@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 540" width="100%" height="100%" style="background:#0f172a; border-radius:16px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;">
+  <defs>
+    <linearGradient id="plugGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="cpoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="interposerGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <text x="460" y="45" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="800" letter-spacing="0.5">光电集成三级跳：可插拔 → CPO → 2.5D 光学中介层</text>
+  <text x="460" y="72" text-anchor="middle" fill="#94a3b8" font-size="13">光电转换位置不断向计算芯片靠近 · 电连接越短，带宽密度越高 · 但集成越深，热管理与制造难度越大</text>
+
+  <!-- Stage arrows -->
+  <text x="308" y="118" text-anchor="middle" fill="#64748b" font-size="22" font-weight="700">→</text>
+  <text x="612" y="118" text-anchor="middle" fill="#64748b" font-size="22" font-weight="700">→</text>
+
+  <!-- Card 1: Pluggable -->
+  <g transform="translate(30, 135)" filter="url(#cardShadow)">
+    <rect width="270" height="280" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect width="270" height="52" rx="12" fill="url(#plugGrad)"/>
+    <rect y="40" width="270" height="12" fill="url(#plugGrad)"/>
+    <text x="135" y="32" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">可插拔光模块</text>
+    <text x="135" y="47" text-anchor="middle" fill="#e2e8f0" font-size="11">成熟商用 · 已大规模部署</text>
+
+    <g transform="translate(14, 66)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">光电转换位置</text>
+      <text x="0" y="33" fill="#cbd5e1" font-size="11.5">交换机板边 / 面板</text>
+      <text x="0" y="50" fill="#cbd5e1" font-size="11.5">光模块通过长电连接到达 ASIC</text>
+    </g>
+    <line x1="14" y1="128" x2="256" y2="128" stroke="#334155" stroke-dasharray="3,3"/>
+    <g transform="translate(14, 140)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">优势</text>
+      <text x="0" y="33" fill="#cbd5e1" font-size="11.5">成熟、标准化、便于现场维护</text>
+    </g>
+    <line x1="14" y1="188" x2="256" y2="188" stroke="#334155" stroke-dasharray="3,3"/>
+    <g transform="translate(14, 200)">
+      <text x="0" y="14" fill="#f87171" font-size="12" font-weight="700">瓶颈</text>
+      <text x="0" y="33" fill="#fca5a5" font-size="11.5">电连接长、速率与密度受限</text>
+      <text x="0" y="50" fill="#fca5a5" font-size="11.5">单位比特能耗随带宽上涨</text>
+    </g>
+  </g>
+
+  <!-- Card 2: CPO -->
+  <g transform="translate(325, 135)" filter="url(#cardShadow)">
+    <rect width="270" height="280" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect width="270" height="52" rx="12" fill="url(#cpoGrad)"/>
+    <rect y="40" width="270" height="12" fill="url(#cpoGrad)"/>
+    <text x="135" y="32" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">CPO 共封装光学</text>
+    <text x="135" y="47" text-anchor="middle" fill="#d1fae5" font-size="11">已商业验证 · 2026 初期量产</text>
+
+    <g transform="translate(14, 66)">
+      <text x="0" y="14" fill="#34d399" font-size="12" font-weight="700">光电转换位置</text>
+      <text x="0" y="33" fill="#cbd5e1" font-size="11.5">与交换 ASIC 位于同一封装</text>
+      <text x="0" y="50" fill="#cbd5e1" font-size="11.5">电连接大幅缩短至封装内</text>
+    </g>
+    <line x1="14" y1="128" x2="256" y2="128" stroke="#334155" stroke-dasharray="3,3"/>
+    <g transform="translate(14, 140)">
+      <text x="0" y="14" fill="#34d399" font-size="12" font-weight="700">代表产品</text>
+      <text x="0" y="33" fill="#cbd5e1" font-size="11.5">Quantum-X Photonics 115.2T</text>
+      <text x="0" y="50" fill="#cbd5e1" font-size="11.5">Spectrum-X Photonics 102.4T</text>
+    </g>
+    <line x1="14" y1="188" x2="256" y2="188" stroke="#334155" stroke-dasharray="3,3"/>
+    <g transform="translate(14, 200)">
+      <text x="0" y="14" fill="#fbbf24" font-size="12" font-weight="700">工程取舍</text>
+      <text x="0" y="33" fill="#fde68a" font-size="11.5">微环对温度敏感 → 控制环路</text>
+      <text x="0" y="50" fill="#fde68a" font-size="11.5">激光器外置（ELS）可现场更换</text>
+    </g>
+  </g>
+
+  <!-- Card 3: Interposer -->
+  <g transform="translate(620, 135)" filter="url(#cardShadow)">
+    <rect width="270" height="280" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect width="270" height="52" rx="12" fill="url(#interposerGrad)"/>
+    <rect y="40" width="270" height="12" fill="url(#interposerGrad)"/>
+    <text x="135" y="32" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">2.5D 光学硅中介层</text>
+    <text x="135" y="47" text-anchor="middle" fill="#e0f2fe" font-size="11">已实验验证 · 未规模商用</text>
+
+    <g transform="translate(14, 66)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">光电转换位置</text>
+      <text x="0" y="33" fill="#cbd5e1" font-size="11.5">光引擎集成进硅中介层</text>
+      <text x="0" y="50" fill="#cbd5e1" font-size="11.5">紧邻 GPU，宽并行短距电连接</text>
+    </g>
+    <line x1="14" y1="128" x2="256" y2="128" stroke="#334155" stroke-dasharray="3,3"/>
+    <g transform="translate(14, 140)">
+      <text x="0" y="14" fill="#38bdf8" font-size="12" font-weight="700">核心思路（Slow-and-Wide）</text>
+      <text x="0" y="33" fill="#cbd5e1" font-size="11.5">更多并行通道而非更快单通道</text>
+      <text x="0" y="50" fill="#cbd5e1" font-size="11.5">降低单位比特能耗</text>
+    </g>
+    <line x1="14" y1="188" x2="256" y2="188" stroke="#334155" stroke-dasharray="3,3"/>
+    <g transform="translate(14, 200)">
+      <text x="0" y="14" fill="#fbbf24" font-size="12" font-weight="700">待解决</text>
+      <text x="0" y="33" fill="#fde68a" font-size="11.5">封装复杂性、热管理、光纤耦合</text>
+      <text x="0" y="50" fill="#fde68a" font-size="11.5">良率、成本与长期可靠性</text>
+    </g>
+  </g>
+
+  <!-- Bottom insight band -->
+  <g transform="translate(30, 440)" filter="url(#cardShadow)">
+    <rect width="860" height="68" rx="12" fill="#0f172a" stroke="#0284c7" stroke-width="1.5"/>
+    <text x="24" y="28" fill="#38bdf8" font-size="13" font-weight="700">关键分界：交换侧 CPO 已商业化，计算侧（GPU 邻近）光 I/O 仍在验证</text>
+    <text x="24" y="50" fill="#e2e8f0" font-size="12">2023 年论文回答的是「能否把光学带进高性能计算封装」；2026 年的问题是「谁能把它做成可量产、可维护、低成本的基础设施」。</text>
+  </g>
+</svg>
