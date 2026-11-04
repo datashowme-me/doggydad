@@ -28,6 +28,8 @@ const hudScore = $('hud-score');
 const hudCombo = $('hud-combo');
 const hudComboChip = $('hud-combo-chip');
 const hudBest = $('hud-best');
+const hudClapChip = $('hud-clap-chip');
+const hudClap = $('hud-clap');
 const hudMode = $('hud-mode');
 const hudButtons = $('hud-buttons');
 const btnPause = $('btn-pause');
@@ -121,6 +123,10 @@ function createBlade(id, color) {
     color,
     x: 0, y: 0, px: 0, py: 0, tx: 0, ty: 0,
     targetSet: false, active: false, hasPrev: false,
+    speed: 0,
+    gesture: 'point', // 'point' | 'chop' | 'peace' | 'fist' | 'thumbs-up'
+    reachScale: 1.0,  // 手刀斩模式可达 1.35x 判定范围
+    filter2d: new OneEuroFilter2D({ minCutoff: 1.1, beta: 5.5, dCutoff: 1.2 }),
     oex: new OneEuroFilter(1.2, 0.05, 1),
     oey: new OneEuroFilter(1.2, 0.05, 1),
     trail: [],
@@ -128,7 +134,56 @@ function createBlade(id, color) {
 }
 let blades = [];
 
-/* ---------------- One Euro 滤波（平滑手部抖动） ---------------- */
+/* ---------------- 借鉴 open-source-hands：One Euro 2D 矢量滤波 ---------------- */
+// 论文算法 (Casiez, Roussel & Vogel, CHI 2012)：低速时 1.1Hz 强力抑制静止手部抖动，
+// 快速斩击时通过矢量速度 hypot(dx, dy) 动态提升 cutoff（延迟 < 25ms），且对角线挥砍绝不弯曲
+function smoothingAlpha(cutoffHz, dt) {
+  const tau = 1 / (2 * Math.PI * cutoffHz);
+  return 1 / (1 + tau / dt);
+}
+
+function OneEuroFilter2D(params = {}) {
+  this.minCutoff = params.minCutoff ?? 1.1;
+  this.beta = params.beta ?? 5.5;
+  this.dCutoff = params.dCutoff ?? 1.2;
+  this.x = 0; this.y = 0;
+  this.dx = 0; this.dy = 0;
+  this.speed = 0;
+  this.lastT = -1;
+  this.initialised = false;
+}
+OneEuroFilter2D.prototype.reset = function () {
+  this.initialised = false;
+  this.dx = 0; this.dy = 0; this.speed = 0;
+};
+OneEuroFilter2D.prototype.filter = function (vx, vy, tMs) {
+  const t = tMs / 1000;
+  if (!this.initialised) {
+    this.x = vx; this.y = vy;
+    this.dx = 0; this.dy = 0; this.speed = 0;
+    this.lastT = t;
+    this.initialised = true;
+    return { x: vx, y: vy, speed: 0 };
+  }
+  let dt = t - this.lastT;
+  this.lastT = t;
+  if (dt < 0.001) dt = 0.001;
+  if (dt > 0.1) dt = 0.1;
+
+  const ad = smoothingAlpha(this.dCutoff, dt);
+  this.dx += ad * ((vx - this.x) / dt - this.dx);
+  this.dy += ad * ((vy - this.y) / dt - this.dy);
+  this.speed = Math.hypot(this.dx, this.dy);
+
+  const screenDim = Math.max(W, H, 600);
+  const cutoff = this.minCutoff + this.beta * (this.speed / screenDim);
+  const a = smoothingAlpha(cutoff, dt);
+  this.x += a * (vx - this.x);
+  this.y += a * (vy - this.y);
+  return { x: this.x, y: this.y, speed: this.speed };
+};
+
+/* 兼容旧 1D 滤波器（用于鼠标平滑兜底） */
 function OneEuroFilter(minCutoff, beta, dCutoff) {
   this.minCutoff = minCutoff; this.beta = beta; this.dCutoff = dCutoff;
   this.x = null; this.dx = 0; this.lastT = 0; this.first = true;
@@ -150,6 +205,22 @@ OneEuroFilter.prototype.filter = function (x, t) {
   this.x = this.x + a * (x - this.x);
   return this.x;
 };
+
+/* ---------------- 借鉴 open-source-hands：交互舒适区 (DEFAULT_REGION) 映射 ---------------- */
+// 边缘补偿：玩家在摄像头取景框 0.08~0.92 范围内即可触及游戏画布 0~100% 边缘，避免手移出摄像头丢失定位
+const DEFAULT_REGION = { x0: 0.08, x1: 0.92, y0: 0.10, y1: 0.88 };
+function toGameScreen(normX, normY) {
+  const cx = Math.max(0, Math.min(1, (normX - DEFAULT_REGION.x0) / (DEFAULT_REGION.x1 - DEFAULT_REGION.x0)));
+  const cy = Math.max(0, Math.min(1, (normY - DEFAULT_REGION.y0) / (DEFAULT_REGION.y1 - DEFAULT_REGION.y0)));
+  return { x: cx * W, y: cy * H };
+}
+
+/* ---------------- 借鉴 open-source-hands：双手击掌 (Clap) 与点赞 (Thumbs-Up) 机制 ---------------- */
+let clapCooldown = 0;        // 双手击掌气刃技能冷却时间 (秒)
+let lastHandsDist = -1;      // 双手掌心历史间距
+const sonicBlasts = [];      // 气刃合掌破全屏冲击波池
+let thumbsUpTimer = 0;       // 大拇指点赞免触控开局计时
+let thumbsUpHandPos = null;  // 大拇指点赞屏幕提示位置
 
 blades = [
   createBlade(0, 'emerald'),
@@ -508,6 +579,81 @@ function playGameOverGong() {
   });
 }
 
+// 7. 双手合十气刃爆破音效（Sub-Bass 次声冲击波 + 白噪刀风 + 高频清鸣）
+function playClapSonicBlast() {
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+
+  // ① 低频次声爆破冲击（冲击震颤）
+  const osc = audioCtx.createOscillator();
+  const oscGain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(160, t);
+  osc.frequency.exponentialRampToValueAtTime(34, t + 0.45);
+  oscGain.gain.setValueAtTime(0.65, t);
+  oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+  osc.connect(oscGain);
+  oscGain.connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.52);
+
+  // ② 气刃撕裂爆风（呼啸扩散）
+  try {
+    const bufferSize = Math.floor(audioCtx.sampleRate * 0.35);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.08));
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseFilter = audioCtx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(1400, t);
+    noiseFilter.frequency.exponentialRampToValueAtTime(280, t + 0.35);
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.48, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(t);
+  } catch (e) {}
+
+  // ③ 高频剑鸣清音（余音绕梁）
+  const chime = audioCtx.createOscillator();
+  const chimeGain = audioCtx.createGain();
+  chime.type = 'triangle';
+  chime.frequency.setValueAtTime(880, t);
+  chime.frequency.exponentialRampToValueAtTime(1760, t + 0.1);
+  chime.frequency.exponentialRampToValueAtTime(520, t + 0.6);
+  chimeGain.gain.setValueAtTime(0.24, t);
+  chimeGain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+  chime.connect(chimeGain);
+  chimeGain.connect(audioCtx.destination);
+  chime.start(t);
+  chime.stop(t + 0.62);
+}
+
+// 8. 大拇指点赞免触控开始确认音
+function playThumbsUpChime() {
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  const freqs = [523.25, 659.25, 783.99, 1046.50];
+  freqs.forEach((freq, idx) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(freq, t + idx * 0.06);
+    g.gain.setValueAtTime(0.18, t + idx * 0.06);
+    g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.4);
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start(t + idx * 0.06);
+    o.stop(t + idx * 0.06 + 0.42);
+  });
+}
+
 /* ---------------- 背景果汁喷溅与流淌系统（Fruit Ninja 灵魂木墙水渍） ---------------- */
 function addWallSplat(x, y, fi) {
   const f = FRUITS[fi] || FRUITS[0];
@@ -796,8 +942,31 @@ function segCircle(x0, y0, x1, y1, cx, cy, r) {
 }
 
 function applyCut(x0, y0, x1, y1, cutter) {
+  const reach = (cutter && cutter.reachScale) ? cutter.reachScale : 1.0;
   for (let i = fruits.length - 1; i >= 0; i--) {
-    if (segCircle(x0, y0, x1, y1, fruits[i].x, fruits[i].y, fruits[i].r)) sliceFruit(i, cutter);
+    if (segCircle(x0, y0, x1, y1, fruits[i].x, fruits[i].y, fruits[i].r * reach)) sliceFruit(i, cutter);
+  }
+}
+
+// 借鉴 open-source-hands：双手合十全屏气刃爆破 (Clap Shockwave)
+function triggerClapBlast() {
+  playClapSonicBlast();
+  triggerScreenShake(8.5, 0.35);
+  sonicBlasts.push({
+    x: W / 2, y: H / 2,
+    r: 20, maxR: Math.hypot(W, H) * 0.72,
+    t: 0, life: 0.65,
+  });
+  let cutCount = 0;
+  for (let i = fruits.length - 1; i >= 0; i--) {
+    sliceFruit(i, { ...blades[0], hasPrev: true, px: fruits[i].x - 10, py: fruits[i].y, x: fruits[i].x + 10, y: fruits[i].y });
+    cutCount++;
+  }
+  if (cutCount > 0) {
+    spawnComboBanner(Math.max(cutCount, 3), W / 2, H * 0.35);
+    toast(`👏 双手合十 · 气刃爆发！狂斩 ${cutCount} 颗水果！`, 3000);
+  } else {
+    toast(`👏 双手合十 · 气刃爆发！`, 2000);
   }
 }
 
@@ -959,8 +1128,18 @@ function updateBlade(b, now, dt) {
     b.hasPrev = false;
     return;
   }
-  const sx = b.oex.filter(b.tx, now);
-  const sy = b.oey.filter(b.ty, now);
+  let sx, sy, curSpeed = 0;
+  if (b.filter2d) {
+    const filtered = b.filter2d.filter(b.tx, b.ty, now);
+    sx = filtered.x;
+    sy = filtered.y;
+    curSpeed = filtered.speed;
+    b.speed = curSpeed;
+  } else {
+    sx = b.oex.filter(b.tx, now);
+    sy = b.oey.filter(b.ty, now);
+    b.speed = 0;
+  }
   b.x = sx; b.y = sy;
   if (!b.active) { b.hasPrev = false; return; }
   if (!b.hasPrev) {
@@ -977,8 +1156,8 @@ function updateBlade(b, now, dt) {
     applyCut(b.px, b.py, sx, sy, b);
     if (d > 1.5) b.trail.push({ x: sx, y: sy, t: now });
 
-    // 水果忍者经典高速破空呼啸声与刀尖电火花
-    const speed = dt > 0 ? d / dt : 0;
+    // 水果忍者经典高速破空呼啸声与刀尖电火花（结合 2D 矢量滤波器瞬时速率）
+    const speed = curSpeed > 0 ? curSpeed : (dt > 0 ? d / dt : 0);
     if (speed > W * 0.65) {
       if (!b.lastWhooshT || now - b.lastWhooshT > 120) {
         b.lastWhooshT = now;
@@ -1002,6 +1181,19 @@ function updateGame(dt, now) {
   if (sec <= 10 && sec > 0 && sec !== lastTickSec) {
     lastTickSec = sec;
     playTick(sec <= 5);
+  }
+
+  // 借鉴 open-source-hands：双手合十气刃冷却更新
+  if (clapCooldown > 0) {
+    clapCooldown -= dt;
+    if (clapCooldown < 0) clapCooldown = 0;
+  }
+
+  // 全屏气刃冲击波生命期更新
+  for (let i = sonicBlasts.length - 1; i >= 0; i--) {
+    const sb = sonicBlasts[i];
+    sb.t += dt;
+    if (sb.t >= sb.life) sonicBlasts.splice(i, 1);
   }
 
   spawnAcc += dt * 1000;
@@ -1079,6 +1271,28 @@ function draw(now) {
     ctx.stroke();
   }
 
+  // 借鉴 open-source-hands：双手合十全屏气刃冲击波 (Sonic Blast Shockwaves)
+  for (const sb of sonicBlasts) {
+    const k = sb.t / sb.life;
+    const curR = sb.r + (sb.maxR - sb.r) * Math.sin((k * Math.PI) / 2);
+    ctx.save();
+    ctx.globalAlpha = (1 - k) * 0.85;
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 10 * (1 - k);
+    ctx.shadowColor = '#0284c7';
+    ctx.shadowBlur = 24;
+    ctx.beginPath();
+    ctx.arc(sb.x, sb.y, curR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3.5 * (1 - k);
+    ctx.beginPath();
+    ctx.arc(sb.x, sb.y, curR * 0.94, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   // 4. 果汁粒子（动态拉伸水滴）
   for (const p of particles) {
     const lifeRatio = p.t / p.life;
@@ -1146,7 +1360,33 @@ function draw(now) {
   // 连击暴击大横幅与星芒爆炸
   drawComboBanners(now);
 
-  while (trail.length && now - trail[0].t > TRAIL_MS) trail.shift();
+  // 借鉴 open-source-hands：大拇指免触控开局蓄力提示光圈
+  if (thumbsUpTimer > 0 && thumbsUpHandPos) {
+    ctx.save();
+    const progress = Math.min(1, thumbsUpTimer / 0.8);
+    ctx.translate(thumbsUpHandPos.x, thumbsUpHandPos.y);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(0, 0, 42, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#34d399';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(0, 0, 42, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+    ctx.stroke();
+
+    ctx.font = '700 16px Inter, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 6;
+    ctx.fillText('👍 保持点赞开局', 0, -52);
+    ctx.restore();
+  }
+
   ctx.restore();
 }
 
@@ -1271,6 +1511,7 @@ function drawTrails(now) {
     const isEmerald = b.color === 'emerald';
     const cOuter = isEmerald ? '52, 211, 153' : '251, 191, 36';
     const cMid = isEmerald ? '167, 243, 208' : '254, 240, 138';
+    const widthScale = b.gesture === 'chop' ? 1.45 : (b.gesture === 'peace' ? 1.18 : 1.0);
 
     // 外层柔光
     for (let i = 1; i < n; i++) {
@@ -1278,7 +1519,7 @@ function drawTrails(now) {
       const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
       if (a <= 0) continue;
       ctx.strokeStyle = `rgba(${cOuter}, ${(0.42 * a).toFixed(3)})`;
-      ctx.lineWidth = 18 * a;
+      ctx.lineWidth = 18 * a * widthScale;
       ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
     }
     // 中层电光
@@ -1287,7 +1528,7 @@ function drawTrails(now) {
       const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
       if (a <= 0) continue;
       ctx.strokeStyle = `rgba(${cMid}, ${(0.82 * a).toFixed(3)})`;
-      ctx.lineWidth = 7.5 * a;
+      ctx.lineWidth = 7.5 * a * widthScale;
       ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
     }
     // 核心白刃刀芒
@@ -1296,7 +1537,7 @@ function drawTrails(now) {
       const a = Math.max(0, 1 - (now - p1.t) / TRAIL_MS);
       if (a <= 0) continue;
       ctx.strokeStyle = `rgba(255, 255, 255, ${(0.96 * a).toFixed(3)})`;
-      ctx.lineWidth = 3.2 * a;
+      ctx.lineWidth = 3.2 * a * widthScale;
       ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
     }
     while (tr.length && now - tr[0].t > TRAIL_MS) tr.shift();
@@ -1320,6 +1561,20 @@ function updateHud() {
     lastHudCombo = combo;
     hudCombo.textContent = combo;
     hudComboChip.hidden = combo < 2;
+  }
+  if (hudClapChip && hudClap) {
+    if (mode === 'hand') {
+      hudClapChip.hidden = false;
+      if (clapCooldown <= 0) {
+        hudClapChip.classList.add('ready');
+        hudClap.textContent = '气刃就绪 (双手合十)';
+      } else {
+        hudClapChip.classList.remove('ready');
+        hudClap.textContent = `气刃充能 ${Math.ceil(clapCooldown)}s`;
+      }
+    } else {
+      hudClapChip.hidden = true;
+    }
   }
 }
 function updateBest() {
@@ -1349,6 +1604,7 @@ function resetBlades() {
     b.active = false;
     b.targetSet = false;
     b.trail.length = 0;
+    if (b.filter2d) b.filter2d.reset();
     b.oex.reset();
     b.oey.reset();
     b.lastWhooshT = 0;
@@ -1828,19 +2084,24 @@ async function startHandMode() {
 
 function analyzeHand(lm) {
   const p0 = lm[0]; // 手腕
-  // 食指关节与指尖
-  const p5 = lm[5]; // 食指根部 MCP
-  const p6 = lm[6]; // 食指第一关节 PIP
-  const p8 = lm[8]; // 食指尖 TIP
-  // 中指关节与指尖
-  const p9 = lm[9]; // 中指根部 MCP
-  const p10 = lm[10]; // 中指第一关节 PIP
-  const p12 = lm[12]; // 中指尖 TIP
+  // 大拇指
+  const p2 = lm[2], p3 = lm[3], p4 = lm[4];
+  // 食指
+  const p5 = lm[5], p6 = lm[6], p8 = lm[8];
+  // 中指
+  const p9 = lm[9], p10 = lm[10], p12 = lm[12];
   // 无名指与小指
-  const p13 = lm[13], p16 = lm[16];
-  const p17 = lm[17], p20 = lm[20];
+  const p13 = lm[13], p14 = lm[14], p16 = lm[16];
+  const p17 = lm[17], p18 = lm[18], p20 = lm[20];
 
-  // 计算指尖相对手腕距离（无视俯仰角，鲁棒性极高）
+  // 借鉴 open-source-hands：计算掌心坐标与手掌几何尺寸尺度
+  const palm = {
+    x: (p0.x + p5.x + p9.x + p17.x) / 4,
+    y: (p0.y + p5.y + p9.y + p17.y) / 4,
+  };
+  const handScale = Math.hypot(p9.x - p0.x, p9.y - p0.y) || 0.15;
+
+  // 各手指末端与指节相对手腕的距离
   const dIndexTip = Math.hypot(p8.x - p0.x, p8.y - p0.y);
   const dIndexPip = Math.hypot(p6.x - p0.x, p6.y - p0.y);
   const dIndexMcp = Math.hypot(p5.x - p0.x, p5.y - p0.y);
@@ -1849,37 +2110,81 @@ function analyzeHand(lm) {
   const dMidPip = Math.hypot(p10.x - p0.x, p10.y - p0.y);
 
   const dRingTip = Math.hypot(p16.x - p0.x, p16.y - p0.y);
-  const dRingMcp = Math.hypot(p13.x - p0.x, p13.y - p0.y);
+  const dRingPip = Math.hypot(p14.x - p0.x, p14.y - p0.y);
 
   const dPinkyTip = Math.hypot(p20.x - p0.x, p20.y - p0.y);
-  const dPinkyMcp = Math.hypot(p17.x - p0.x, p17.y - p0.y);
+  const dPinkyPip = Math.hypot(p18.x - p0.x, p18.y - p0.y);
 
-  // 食指或中指伸直判定（左右手、食指指点、双指剑指、手掌手刀均可触发）
-  const indexExtended = dIndexTip > dIndexPip * 1.05 && dIndexTip > 0.12;
-  const midExtended = dMidTip > dMidPip * 1.05 && dMidTip > 0.12;
+  // 指尖伸直判定
+  const indexExtended = dIndexTip > dIndexPip * 1.05 && dIndexTip > handScale * 0.88;
+  const midExtended = dMidTip > dMidPip * 1.05 && dMidTip > handScale * 0.88;
+  const ringExtended = dRingTip > dRingPip * 1.05 && dRingTip > handScale * 0.82;
+  const pinkyExtended = dPinkyTip > dPinkyPip * 1.05 && dPinkyTip > handScale * 0.78;
 
-  // 握拳检测：四指全部紧缩回掌部
-  const isFist = (dIndexTip < dIndexPip * 0.98 || dIndexTip < 0.11) &&
-                 (dMidTip < dMidPip * 0.98 || dMidTip < 0.11) &&
-                 (dRingTip < dRingMcp * 1.1) &&
-                 (dPinkyTip < dPinkyMcp * 1.1);
+  // 借鉴 open-source-hands：5 种核心手势识别（fist | thumbs-up | chop | peace | point）
+  const fourCurled = !indexExtended && !midExtended && !ringExtended && !pinkyExtended;
+  // 大拇指朝上且其余四指收拢 -> 点赞姿势
+  const isThumbsUp = fourCurled && (p4.y < p3.y - 0.03 || p4.y < p2.y - 0.045) && (p4.y < p0.y - handScale * 0.35);
+  const isFist = fourCurled && !isThumbsUp;
+  const isChop = indexExtended && midExtended && ringExtended && pinkyExtended;
+  const isPeace = indexExtended && midExtended && !ringExtended && !pinkyExtended;
 
-  // 挥砍有效：非握拳，并且食指、中指或整个手掌伸展
-  const active = !isFist && (indexExtended || midExtended || (dIndexTip > dIndexMcp * 1.12));
+  let gesture = 'point';
+  let reachScale = 1.0;
+  let active = false;
 
-  // 刀刃点：优先食指尖，若中指更伸出则取中指尖
+  if (isThumbsUp) {
+    gesture = 'thumbs-up';
+    reachScale = 1.0;
+    active = false;
+  } else if (isFist) {
+    gesture = 'fist';
+    reachScale = 1.0;
+    active = false;
+  } else if (isChop) {
+    gesture = 'chop';
+    reachScale = 1.35; // 借鉴 open-source-hands：宽刃手刀判定范围扩展 35%！
+    active = true;
+  } else if (isPeace) {
+    gesture = 'peace';
+    reachScale = 1.15;
+    active = true;
+  } else if (indexExtended || midExtended || (dIndexTip > dIndexMcp * 1.12)) {
+    gesture = 'point';
+    reachScale = 1.0;
+    active = true;
+  }
+
+  // 刀锋命中基准点
   let tip = p8;
-  if (!indexExtended && midExtended) tip = p12;
+  if (gesture === 'chop') {
+    tip = { x: (p8.x + p12.x) / 2, y: (p8.y + p12.y) / 2 };
+  } else if (gesture === 'peace') {
+    tip = { x: (p8.x + p12.x) / 2, y: (p8.y + p12.y) / 2 };
+  } else if (!indexExtended && midExtended) {
+    tip = p12;
+  }
 
-  // 镜像到用户视角（摄像头自拍视角，横坐标翻转）
-  const tx = (1 - tip.x) * W;
-  const ty = tip.y * H;
+  // 借鉴 open-source-hands：DEFAULT_REGION 取景框边缘补偿（镜像横向坐标）
+  const screenPos = toGameScreen(1 - tip.x, tip.y);
+  const palmScreen = toGameScreen(1 - palm.x, palm.y);
 
-  return { active, tx, ty, tip, isFist, lm };
+  return {
+    active,
+    tx: screenPos.x,
+    ty: screenPos.y,
+    tip,
+    palm,
+    palmScreen,
+    gesture,
+    reachScale,
+    isFist,
+    lm,
+  };
 }
 
-// 节流到约 30fps 的本地手势推理（支持单手/双手同屏识别）
-function detectHand(now) {
+// 节流到约 30fps 的本地手势推理（支持单手/双手同屏识别 + 击掌 + 点赞开局）
+function detectHand(now, dt = 0.033) {
   if (mode !== 'hand' || !handLandmarker || video.readyState < 2) return;
   if (video.currentTime === lastVideoTime) return;
   lastVideoTime = video.currentTime;
@@ -1904,12 +2209,55 @@ function detectHand(now) {
     // 分析所有检测到的手部（支持左手、右手、双手）
     const analyzedHands = landmarks.map((lm) => analyzeHand(lm));
 
+    // 借鉴 open-source-hands：双手击掌合十检测（Clap Motion -> 全屏气刃爆破）
+    if (analyzedHands.length >= 2) {
+      const h0 = analyzedHands[0], h1 = analyzedHands[1];
+      const palmDist = Math.hypot(h0.palm.x - h1.palm.x, h0.palm.y - h1.palm.y);
+      let closingSpeed = 0;
+      if (lastHandsDist > 0 && dt > 0) {
+        closingSpeed = (lastHandsDist - palmDist) / dt;
+      }
+      if (state === 'playing' && clapCooldown <= 0) {
+        if (palmDist < 0.18 && (closingSpeed > 0.65 || (lastHandsDist < 0.22 && palmDist < 0.13))) {
+          triggerClapBlast();
+          clapCooldown = 6.0;
+        }
+      }
+      lastHandsDist = palmDist;
+    } else {
+      lastHandsDist = -1;
+    }
+
+    // 借鉴 open-source-hands：点赞免触控开局 / 重新开始 (Thumbs-up hands-free start)
+    const tuHand = analyzedHands.find((h) => h.gesture === 'thumbs-up');
+    if (tuHand) {
+      thumbsUpHandPos = tuHand.palmScreen;
+      thumbsUpTimer += dt;
+      if (thumbsUpTimer >= 0.8) {
+        thumbsUpTimer = 0;
+        playThumbsUpChime();
+        if (state === 'menu' || state === 'gameover') {
+          restartRound();
+          toast('👍 点赞确认！免触控自动开局！', 3000);
+        } else if (state === 'paused') {
+          togglePause();
+          toast('👍 点赞确认！继续游戏！', 2500);
+        }
+      }
+    } else {
+      thumbsUpTimer = 0;
+      thumbsUpHandPos = null;
+    }
+
+    // 刀光分配
     if (analyzedHands.length === 1) {
       // 只有一只手（无论是左手还是右手），都稳定分配给第 1 把刀
       const h0 = analyzedHands[0];
       blades[0].active = h0.active;
       blades[0].tx = h0.tx;
       blades[0].ty = h0.ty;
+      blades[0].gesture = h0.gesture;
+      blades[0].reachScale = h0.reachScale;
       blades[0].targetSet = true;
 
       // 第 2 把刀收起
@@ -1924,6 +2272,8 @@ function detectHand(now) {
         blades[i].active = h.active;
         blades[i].tx = h.tx;
         blades[i].ty = h.ty;
+        blades[i].gesture = h.gesture;
+        blades[i].reachScale = h.reachScale;
         blades[i].targetSet = true;
       }
     }
@@ -1931,6 +2281,9 @@ function detectHand(now) {
     drawSkeletons(analyzedHands);
   } else {
     handPresent = false;
+    lastHandsDist = -1;
+    thumbsUpTimer = 0;
+    thumbsUpHandPos = null;
     for (const b of blades) {
       b.active = false;
       b.hasPrev = false;
@@ -1952,19 +2305,35 @@ const HAND_CONNECTIONS = [
   [0, 17],
 ];
 
-// 在小窗预览上绘制手部骨架（随外层 CSS 水平镜像，双手分色展示）
+// 借鉴 open-source-hands：赛博霓虹双色手部骨架 + 手势指示胶囊徽标
 function drawSkeletons(analyzedHands) {
   const vw = video.videoWidth, vh = video.videoHeight;
   if (!vw) return;
   if (camOverlay.width !== vw) { camOverlay.width = vw; camOverlay.height = vh; }
   octx.clearRect(0, 0, vw, vh);
 
+  const gestureBadges = {
+    'chop': '✋ 手刀斩 +35%',
+    'peace': '✌️ 剑诀',
+    'point': '🗡️ 剑指',
+    'fist': '✊ 握拳收刃',
+    'thumbs-up': '👍 点赞开局',
+  };
+
   analyzedHands.forEach((h, idx) => {
     const lm = h.lm;
     const isEmerald = idx === 0;
-    octx.strokeStyle = isEmerald ? 'rgba(80, 230, 160, 0.95)' : 'rgba(251, 191, 36, 0.95)';
-    octx.lineWidth = vw * 0.009;
+    const strokeCol = isEmerald ? 'rgba(52, 211, 153, 0.95)' : 'rgba(251, 191, 36, 0.95)';
+    const glowCol = isEmerald ? 'rgba(16, 185, 129, 0.45)' : 'rgba(245, 158, 11, 0.45)';
+
+    // ① 赛博外发光骨骼
+    octx.save();
+    octx.shadowColor = glowCol;
+    octx.shadowBlur = 8;
+    octx.strokeStyle = strokeCol;
+    octx.lineWidth = vw * 0.012;
     octx.lineCap = 'round';
+    octx.lineJoin = 'round';
     for (const [a, b] of HAND_CONNECTIONS) {
       const A = lm[a], B = lm[b];
       octx.beginPath();
@@ -1972,13 +2341,51 @@ function drawSkeletons(analyzedHands) {
       octx.lineTo(B.x * vw, B.y * vh);
       octx.stroke();
     }
+    octx.restore();
+
+    // ② 关节高光球点
     octx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     for (const p of lm) {
-      octx.beginPath(); octx.arc(p.x * vw, p.y * vh, vw * 0.012, 0, Math.PI * 2); octx.fill();
+      octx.beginPath(); octx.arc(p.x * vw, p.y * vh, vw * 0.011, 0, Math.PI * 2); octx.fill();
     }
+
+    // ③ 掌心瞄准环 (Palm Reticle)
+    const px = h.palm.x * vw, py = h.palm.y * vh;
+    octx.save();
+    octx.strokeStyle = strokeCol;
+    octx.lineWidth = 1.8;
+    octx.beginPath();
+    octx.arc(px, py, vw * 0.035, 0, Math.PI * 2);
+    octx.stroke();
+    octx.beginPath();
+    octx.arc(px, py, 2.5, 0, Math.PI * 2);
+    octx.fillStyle = strokeCol;
+    octx.fill();
+    octx.restore();
+
+    // ④ 刀尖核心聚光点
     const t = h.tip;
     octx.fillStyle = h.active ? (isEmerald ? '#34d399' : '#fbbf24') : '#94a3b8';
     octx.beginPath(); octx.arc(t.x * vw, t.y * vh, vw * 0.024, 0, Math.PI * 2); octx.fill();
+
+    // ⑤ 手势识别浮动角标徽章
+    const badgeText = gestureBadges[h.gesture] || '🗡️ 挥砍';
+    octx.save();
+    const bx = Math.max(40, Math.min(vw - 40, px));
+    const by = Math.max(22, py - vw * 0.08);
+    octx.font = '700 12px Inter, -apple-system, sans-serif';
+    const textW = octx.measureText(badgeText).width;
+    octx.fillStyle = 'rgba(15, 23, 42, 0.78)';
+    octx.beginPath();
+    octx.roundRect(bx - textW / 2 - 8, by - 12, textW + 16, 20, 10);
+    octx.fill();
+    octx.strokeStyle = strokeCol;
+    octx.lineWidth = 1;
+    octx.stroke();
+    octx.textAlign = 'center';
+    octx.fillStyle = '#ffffff';
+    octx.fillText(badgeText, bx, by + 2);
+    octx.restore();
   });
 }
 
@@ -1988,7 +2395,7 @@ function loop(now) {
   requestAnimationFrame(loop);
   const dt = Math.min((now - lastT) / 1000, 0.05);
   lastT = now;
-  detectHand(now);
+  detectHand(now, dt);
   if (state === 'playing') updateGame(dt, now);
   else if (state === 'menu') updateAmbient(dt);
   draw(now);
