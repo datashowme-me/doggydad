@@ -917,7 +917,7 @@ function drawComboBanners(now) {
 }
 
 /* ---------------- 几何 / 生成 / 碰撞 ---------------- */
-function fruitRadius() { return Math.max(26, Math.min(64, H * 0.055)); }
+function fruitRadius() { return Math.max(52, Math.min(128, H * 0.11)); }
 
 function spawnFruit() {
   const fi = (Math.random() * FRUITS.length) | 0;
