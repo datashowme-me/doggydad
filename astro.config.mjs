@@ -25,6 +25,9 @@ export default defineConfig({
         name: 'dev-sitemap-server',
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
+            if (req.url && req.url.includes('.task')) {
+              res.setHeader('Content-Type', 'application/octet-stream');
+            }
             if (req.url === '/sitemap-index.xml' || req.url === '/sitemap-0.xml') {
               const filePath = path.resolve(`./dist${req.url}`);
               if (fs.existsSync(filePath)) {
@@ -36,6 +39,14 @@ export default defineConfig({
               res.statusCode = 301;
               res.setHeader('Location', '/sitemap-index.xml');
               return res.end();
+            }
+            next();
+          });
+        },
+        configurePreviewServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && req.url.includes('.task')) {
+              res.setHeader('Content-Type', 'application/octet-stream');
             }
             next();
           });

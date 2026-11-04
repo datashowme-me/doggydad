@@ -116,6 +116,11 @@ const particles = [];    // 果汁粒子（有界对象池，最多 120）
 const splats = [];       // 果汁扩散冲击波（最多 20）
 const flashes = [];      // 刀锋切割光芒（最多 12）
 const pops = [];         // 得分飘字（有界对象池，最多 24）
+const wallSplats = [];   // 墙面果汁喷溅效果池（最多 25）
+const sparks = [];       // 刀芒斩击火花池（最多 70）
+const comboBanners = []; // 连击荣耀大横幅（最多 4）
+const screenShake = { intensity: 0, duration: 0, t: 0, timer: 0, x: 0, y: 0 }; // 屏幕打击感微震
+let lastTickSec = -1;    // 倒计时最后 10 秒音效上一次触发秒数
 /* ---------------- 刀芒状态（支持单手/双手双刀，每只手独立滤波与轨迹） ---------------- */
 function createBlade(id, color) {
   return {
@@ -1833,15 +1838,14 @@ async function validateCameraStream(stream, timeoutMs = CAMERA_TIMEOUT_MS) {
   try {
     await withTimeout(
       new Promise((resolve, reject) => {
-        if (probe.videoWidth > 0 && probe.readyState >= 2) return resolve();
-        const onReady = () => { cleanup(); resolve(); };
-        const onError = (e) => { cleanup(); reject(e); };
-        const cleanup = () => {
+        function cleanup() {
           probe.removeEventListener('loadedmetadata', onReady);
           probe.removeEventListener('loadeddata', onReady);
           probe.removeEventListener('canplay', onReady);
           probe.removeEventListener('error', onError);
-        };
+        }
+        function onReady() { cleanup(); resolve(); }
+        function onError(e) { cleanup(); reject(e); }
         probe.addEventListener('loadedmetadata', onReady, { once: true });
         probe.addEventListener('loadeddata', onReady, { once: true });
         probe.addEventListener('canplay', onReady, { once: true });
@@ -2048,52 +2052,55 @@ async function startHandMode() {
   const camHint = $('cam-status-hint');
   if (camHint) camHint.hidden = true;
 
-  // 1. 安全上下文校验（非 HTTPS 且非 localhost 无法调用摄像头）
-  if (typeof window !== 'undefined' && window.isSecureContext === false) {
-    console.warn('[FruitWave] 非安全上下文环境');
-    const err = new Error('insecure_context');
-    err.name = 'SecurityError';
-    throw err;
-  }
-
-  // 2. 预先检查权限状态，提供精准指引
-  let permState = 'prompt';
-  if (navigator.permissions && navigator.permissions.query) {
-    try {
-      const status = await navigator.permissions.query({ name: 'camera' });
-      permState = status.state;
-      if (permState === 'denied') {
-        const err = new Error('permission_denied');
-        err.name = 'NotAllowedError';
-        throw err;
-      }
-    } catch (e) {
-      if (e && e.name === 'NotAllowedError') throw e;
-    }
-  }
-
-  if (permState === 'granted') {
-    loadingText.textContent = '正在启动摄像头设备…';
-    if (subEl) subEl.textContent = '权限已就绪，正在连接视频设备…';
-  } else {
-    loadingText.textContent = '请允许使用摄像头';
-    if (subEl) subEl.textContent = '👉 请在浏览器地址栏 🔒 或上方弹窗中，点击「允许」';
-  }
-
-  // 权限请求可能因静默或被遮挡而挂起：分级动态提示
-  const permHint1 = setTimeout(() => {
-    if (subEl && loadingText.textContent.includes('摄像头')) {
-      subEl.textContent = '👉 若未看到弹窗，请查看浏览器地址栏最左侧 🔒 或最右侧的 🎥 图标';
-    }
-  }, 2500);
-
-  const permHint2 = setTimeout(() => {
-    if (subEl && loadingText.textContent.includes('摄像头')) {
-      subEl.textContent = '若设备被其他软件（微信/腾讯会议/OBS）占用，请先释放；或点击下方跳过';
-    }
-  }, 5500);
+  let permHint1 = null;
+  let permHint2 = null;
 
   try {
+    // 1. 安全上下文校验（非 HTTPS 且非 localhost 无法调用摄像头）
+    if (typeof window !== 'undefined' && window.isSecureContext === false) {
+      console.warn('[FruitWave] 非安全上下文环境');
+      const err = new Error('insecure_context');
+      err.name = 'SecurityError';
+      throw err;
+    }
+
+    // 2. 预先检查权限状态，提供精准指引
+    let permState = 'prompt';
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        const status = await navigator.permissions.query({ name: 'camera' });
+        permState = status.state;
+        if (permState === 'denied') {
+          const err = new Error('permission_denied');
+          err.name = 'NotAllowedError';
+          throw err;
+        }
+      } catch (e) {
+        if (e && e.name === 'NotAllowedError') throw e;
+      }
+    }
+
+    if (permState === 'granted') {
+      loadingText.textContent = '正在启动摄像头设备…';
+      if (subEl) subEl.textContent = '权限已就绪，正在连接视频设备…';
+    } else {
+      loadingText.textContent = '请允许使用摄像头';
+      if (subEl) subEl.textContent = '👉 请在浏览器地址栏 🔒 或上方弹窗中，点击「允许」';
+    }
+
+    // 权限请求可能因静默或被遮挡而挂起：分级动态提示
+    permHint1 = setTimeout(() => {
+      if (subEl && loadingText.textContent.includes('摄像头')) {
+        subEl.textContent = '👉 若未看到弹窗，请查看浏览器地址栏最左侧 🔒 或最右侧的 🎥 图标';
+      }
+    }, 2500);
+
+    permHint2 = setTimeout(() => {
+      if (subEl && loadingText.textContent.includes('摄像头')) {
+        subEl.textContent = '若设备被其他软件（微信/腾讯会议/OBS）占用，请先释放；或点击下方跳过';
+      }
+    }, 5500);
+
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no camera api');
     if (!camStream) camStream = await openCamera();
     clearTimeout(permHint1);
