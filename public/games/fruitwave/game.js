@@ -1962,8 +1962,7 @@ async function openCamera() {
   const epoch = camEpoch;
   let sawDenied = false;   // 任一尝试被系统拒绝（TCC 曾点过「不允许」）
   let allTimedOut = true;  // 所有尝试都只是超时（授权弹窗没人点 / 设备不吐帧）
-  // 验收标准：拿到流 + play() 能出画面。手机联动摄像头（Continuity Camera 等）
-  // 会授权成功但永远不吐帧，play() 等到第一帧才 resolve，必须限时并换设备。
+
   const accept = async (constraints, ms, tag) => {
     const ep = camEpoch;
     let s = null;
@@ -1999,20 +1998,20 @@ async function openCamera() {
     ids = list.filter((d) => d.kind === 'videoinput' && d.deviceId).map((d) => d.deviceId);
   } catch (e) { /* 忽略 */ }
 
-  // 尝试顺序：上次用过的设备 → 默认设备（带 facingMode: user）→ 其余设备（最多共 4 次）
+  // 尝试顺序：上次用过的设备 (快速验证 3s) → 默认设备（带 facingMode: user, 8s）→ 其余设备
   const tries = [];
   if (savedCamId) {
-    tries.push({ video: { deviceId: { ideal: savedCamId }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'saved' });
+    tries.push({ video: { deviceId: { ideal: savedCamId }, width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 3200, tag: 'saved' });
   }
-  tries.push({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, tag: 'default' });
+  tries.push({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 8000, tag: 'default' });
   for (const id of ids.slice(0, 3)) {
     if (id !== savedCamId) {
-      tries.push({ video: { deviceId: { ideal: id }, width: { ideal: 640 }, height: { ideal: 480 } }, tag: id.slice(0, 8) });
+      tries.push({ video: { deviceId: { ideal: id }, width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 4000, tag: id.slice(0, 8) });
     }
   }
 
   for (const t of tries.slice(0, 4)) {
-    const s = await accept({ audio: false, video: t.video }, 10000, t.tag);
+    const s = await accept({ audio: false, video: t.video }, t.timeoutMs || 8000, t.tag);
     if (s) {
       const actualId = s.getVideoTracks()[0] && s.getVideoTracks()[0].getSettings().deviceId;
       if (actualId) {
@@ -2030,21 +2029,68 @@ async function openCamera() {
 async function startHandMode() {
   ensureAudio();
   showPanel(panelLoading);
-  loadingText.textContent = '正在请求摄像头权限…';
+  loadingText.textContent = '正在准备摄像头…';
+  const subEl = $('loading-subtext');
+  if (subEl) {
+    subEl.textContent = '正在检测摄像头权限与设备状态…';
+    subEl.hidden = false;
+  }
   const camHint = $('cam-status-hint');
   if (camHint) camHint.hidden = true;
-  // 权限请求可能挂起（如 macOS 系统弹窗未被处理）：先给用户提示，超时后自动回退
-  const permHint = setTimeout(() => {
-    if (loadingText.textContent.includes('摄像头权限')) {
-      loadingText.textContent = '若浏览器或系统弹出授权提示，请点击「允许」…';
+
+  // 1. 安全上下文校验（非 HTTPS 且非 localhost 无法调用摄像头）
+  if (typeof window !== 'undefined' && window.isSecureContext === false) {
+    console.warn('[FruitWave] 非安全上下文环境');
+    const err = new Error('insecure_context');
+    err.name = 'SecurityError';
+    throw err;
+  }
+
+  // 2. 预先检查权限状态，提供精准指引
+  let permState = 'prompt';
+  if (navigator.permissions && navigator.permissions.query) {
+    try {
+      const status = await navigator.permissions.query({ name: 'camera' });
+      permState = status.state;
+      if (permState === 'denied') {
+        const err = new Error('permission_denied');
+        err.name = 'NotAllowedError';
+        throw err;
+      }
+    } catch (e) {
+      if (e && e.name === 'NotAllowedError') throw e;
     }
-  }, 4000);
+  }
+
+  if (permState === 'granted') {
+    loadingText.textContent = '正在启动摄像头设备…';
+    if (subEl) subEl.textContent = '权限已就绪，正在连接视频设备…';
+  } else {
+    loadingText.textContent = '请允许使用摄像头';
+    if (subEl) subEl.textContent = '👉 请在浏览器地址栏 🔒 或上方弹窗中，点击「允许」';
+  }
+
+  // 权限请求可能因静默或被遮挡而挂起：分级动态提示
+  const permHint1 = setTimeout(() => {
+    if (subEl && loadingText.textContent.includes('摄像头')) {
+      subEl.textContent = '👉 若未看到弹窗，请查看浏览器地址栏最左侧 🔒 或最右侧的 🎥 图标';
+    }
+  }, 2500);
+
+  const permHint2 = setTimeout(() => {
+    if (subEl && loadingText.textContent.includes('摄像头')) {
+      subEl.textContent = '若设备被其他软件（微信/腾讯会议/OBS）占用，请先释放；或点击下方跳过';
+    }
+  }, 5500);
+
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no camera api');
     if (!camStream) camStream = await openCamera();
+    clearTimeout(permHint1);
+    clearTimeout(permHint2);
+    if (subEl) subEl.textContent = '摄像头已连接，正在初始化手势识别引擎…';
     video.srcObject = camStream;
     await withTimeout(video.play(), CAMERA_TIMEOUT_MS, 'video play timeout');
-    clearTimeout(permHint);
     cameraStack.hidden = false;
     if (!handLandmarker) await loadLandmarker();
     await initCamPicker();
@@ -2054,28 +2100,35 @@ async function startHandMode() {
     startGame();
     toast('左手、右手或双手挥砍均可（食指或手刀），握拳停止');
   } catch (err) {
-    clearTimeout(permHint);
+    clearTimeout(permHint1);
+    clearTimeout(permHint2);
     console.warn('[FruitWave] 摄像头或手势模型启动失败：', err);
     teardownCamera();
     mode = 'pointer';
     resetBlades();
     startGame();
-    if (err && err.name === 'TimeoutError') {
-      toast('手势加载超时，已自动为您开启鼠标模式！', 4000);
+    if (err && (err.name === 'NotAllowedError' || err.message === 'permission_denied')) {
+      toast('摄像头未获授权，已切换鼠标模式。请在浏览器地址栏 🔒 允许权限', 4500);
       if (camHint) {
-        camHint.textContent = '⚠️ 模型或摄像头响应超时，已为您开启鼠标模式体验。';
+        camHint.innerHTML = '⚠️ <strong>摄像头权限未开启</strong>：请点击浏览器地址栏 🔒 或 🎥 图标允许访问，或刷新重试。';
         camHint.hidden = false;
       }
-    } else if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
-      toast('摄像头未获授权，已切换鼠标模式。请在浏览器地址栏 🔒 允许权限');
+    } else if (err && (err.name === 'SecurityError' || err.message === 'insecure_context')) {
+      toast('当前非 https/localhost 环境，浏览器限制摄像头，已切换鼠标模式', 4500);
       if (camHint) {
-        camHint.textContent = '⚠️ 摄像头权限未开启：请点击浏览器地址栏 🔒 图标允许访问，或在新标签页打开。';
+        camHint.innerHTML = '⚠️ <strong>安全策略限制</strong>：浏览器禁止在非安全网络（如局域网 IP）调用摄像头。请使用 <code>localhost:3000</code> 或 HTTPS 访问。';
+        camHint.hidden = false;
+      }
+    } else if (err && err.name === 'TimeoutError') {
+      toast('摄像头响应超时，已自动为您开启鼠标模式！', 4000);
+      if (camHint) {
+        camHint.innerHTML = '⚠️ <strong>摄像头响应超时</strong>：设备可能被其他应用（微信/会议软件/OBS）占用。已开启鼠标模式。';
         camHint.hidden = false;
       }
     } else {
       toast('未能启动手势摄像头，已为您开启鼠标模式！', 4000);
       if (camHint) {
-        camHint.textContent = '⚠️ 未能启动手势识别，已为您开启鼠标模式体验。';
+        camHint.innerHTML = '⚠️ 未能启动手势识别，已为您开启鼠标模式体验。';
         camHint.hidden = false;
       }
     }
