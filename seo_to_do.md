@@ -14,7 +14,9 @@
 - 文章页补充 `rel="prev"` / `rel="next"`、作者和更新时间元数据。
 - 文章页具备面包屑、目录、相关文章、相邻文章和作者介绍等内部链接入口。
 - Google Search Console 已验证站点并提交 `https://wordsmaster.app/sitemap-index.xml`。
-- GA4 数据流 `G-MH2WPDF6VY` 已收到站点过去 48 小时的数据。
+- 统一 Sitemap 体系：下线冗余伪 lastmod 的 `sitemap.xml.ts`，由 `@astrojs/sitemap` 统一生成权威 `sitemap-index.xml`；配置 Cloudflare Pages `301!` 永久重定向保持外部抓取兼容。
+- 优化 Sitemap 内容准确度：精准解析文章真实更新与发布日期（`lastmod`），避免全量静态打标为当天的作弊降权风险；历史文章（如早期图灵奖先驱）合理钳位基准日期。
+- `robots.txt` 统一宣告唯一的权威 Sitemap 索引地址 `https://wordsmaster.app/sitemap-index.xml`。
 - 关键词与内容集群规划已记录在 `seo_keyword_map.md`。
 
 ## 阶段一：索引基础（上线后立即执行）
