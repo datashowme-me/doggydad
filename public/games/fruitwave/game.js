@@ -930,7 +930,8 @@ function spawnFruit(customX = null, customVx = null, customVy = null) {
   const r = fruitRadius();
   const x = customX !== null ? customX : W * (0.15 + 0.7 * Math.random());
   const vx = customVx !== null ? customVx : W * (Math.random() - 0.5) * 0.32;
-  const vy = customVy !== null ? customVy : -H * (1.05 + 0.55 * Math.random());
+  // 基础向上初速度提升约 30.4%（对应滞空上升高度增加 70%）
+  const vy = customVy !== null ? customVy : -H * (1.38 + 0.68 * Math.random());
   fruits.push({
     fi,
     x,
@@ -976,7 +977,8 @@ function spawnFruitWave(progress = 0) {
     const clampedX = Math.max(W * 0.12, Math.min(W * 0.88, slotX));
     const centerBias = (W * 0.5 - clampedX) / W;
     const vx = centerBias * W * (0.16 + Math.random() * 0.22) + W * (Math.random() - 0.5) * 0.12;
-    const vy = -H * (1.02 + 0.52 * Math.random());
+    // 水果抛射高度增加 70%，进入中上空绝佳挥砍区域
+    const vy = -H * (1.35 + 0.68 * Math.random());
     spawnFruit(clampedX, vx, vy);
   }
 }
