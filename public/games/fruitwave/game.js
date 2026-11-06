@@ -22,6 +22,12 @@ const panelLoading = $('panel-loading');
 const loadingText = $('loading-text');
 const panelPause = $('panel-pause');
 const panelGameover = $('panel-gameover');
+const panelCamPermission = $('panel-cam-permission');
+const btnPermMouse = $('btn-perm-mouse');
+const btnPermBack = $('btn-perm-back');
+const btnPermStandalone = $('btn-perm-standalone');
+const iframeTip = $('iframe-tip');
+const btnMenuStandalone = $('btn-menu-standalone');
 const hudEl = $('hud');
 const hudTime = $('hud-time');
 const hudScore = $('hud-score');
@@ -1634,7 +1640,7 @@ function updateBest() {
 }
 
 function showPanel(p) {
-  for (const el of [panelMenu, panelLoading, panelPause, panelGameover]) {
+  for (const el of [panelMenu, panelLoading, panelPause, panelGameover, panelCamPermission]) {
     if (el) el.hidden = el !== p;
   }
   overlay.hidden = false;
@@ -1643,7 +1649,7 @@ function showPanel(p) {
 function hideOverlay() {
   overlay.hidden = true;
   overlay.style.display = 'none';
-  for (const el of [panelMenu, panelLoading, panelPause, panelGameover]) {
+  for (const el of [panelMenu, panelLoading, panelPause, panelGameover, panelCamPermission]) {
     if (el) el.hidden = true;
   }
 }
@@ -2162,42 +2168,33 @@ async function startHandMode() {
     clearTimeout(permHint2);
     console.warn('[FruitWave] 摄像头或手势模型启动失败：', err);
     teardownCamera();
+    const inIframe = typeof window !== 'undefined' && window.self !== window.top;
+    const curUrl = typeof window !== 'undefined' ? window.location.href : '/games/fruitwave/';
+    if (btnPermStandalone) btnPermStandalone.href = curUrl;
+
+    if (inIframe) {
+      // 在 AI Studio 预览小窗中因浏览器权限受限，显示指引面板让用户自选，而不是静默强制进鼠标模式
+      const permMsg = $('cam-permission-msg');
+      if (permMsg) {
+        permMsg.innerHTML = '在 <strong>AI Studio 预览小窗</strong> 中，受浏览器跨域安全限制无法直接调用摄像头设备。<br/><br/>👉 请点击下方按钮在独立新窗口打开，即可直接授权畅玩摄像头手势！';
+      }
+      showPanel(panelCamPermission);
+      return;
+    }
+
+    if (err && (err.name === 'NotAllowedError' || err.message === 'permission_denied')) {
+      const permMsg = $('cam-permission-msg');
+      if (permMsg) {
+        permMsg.innerHTML = '⚠️ <strong>摄像头权限未开启</strong>：请在浏览器地址栏 🔒 允许权限后重试，或使用鼠标模式体验。';
+      }
+      showPanel(panelCamPermission);
+      return;
+    }
+
     mode = 'pointer';
     resetBlades();
     startGame();
-    const inIframe = typeof window !== 'undefined' && window.self !== window.top;
-    if (err && (err.name === 'NotAllowedError' || err.message === 'permission_denied')) {
-      if (inIframe) {
-        toast('预览小窗未获摄像头授权。请在浏览器地址栏 🔒 允许，或点击上方「独立新窗口打开」', 5500);
-      } else {
-        toast('摄像头未获授权，已切换鼠标模式。请在浏览器地址栏 🔒 允许权限', 4500);
-      }
-      if (camHint) {
-        const curUrl = typeof window !== 'undefined' ? window.location.href : '/games/fruitwave/';
-        camHint.innerHTML = inIframe
-          ? `⚠️ <strong>预览小窗权限受限</strong>：浏览器可能限制了 iframe 摄像头调用。<br/><a href="${curUrl}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;color:#38bdf8;text-decoration:underline;font-weight:600;">↗️ 在新标签页独立打开（免受预览限制）</a>`
-          : '⚠️ <strong>摄像头权限未开启</strong>：请点击浏览器地址栏 🔒 或 🎥 图标允许访问，或刷新重试。';
-        camHint.hidden = false;
-      }
-    } else if (err && (err.name === 'SecurityError' || err.message === 'insecure_context')) {
-      toast('当前非 https/localhost 环境，浏览器限制摄像头，已切换鼠标模式', 4500);
-      if (camHint) {
-        camHint.innerHTML = '⚠️ <strong>安全策略限制</strong>：浏览器禁止在非安全网络（如局域网 IP）调用摄像头。请使用 <code>localhost:3000</code> 或 HTTPS 访问。';
-        camHint.hidden = false;
-      }
-    } else if (err && err.name === 'TimeoutError') {
-      toast('摄像头响应超时，已自动为您开启鼠标模式！', 4000);
-      if (camHint) {
-        camHint.innerHTML = '⚠️ <strong>摄像头响应超时</strong>：设备可能被其他应用（微信/会议软件/OBS）占用。已开启鼠标模式。';
-        camHint.hidden = false;
-      }
-    } else {
-      toast('未能启动手势摄像头，已为您开启鼠标模式！', 4000);
-      if (camHint) {
-        camHint.innerHTML = '⚠️ 未能启动手势识别，已为您开启鼠标模式体验。';
-        camHint.hidden = false;
-      }
-    }
+    toast('未能启动手势摄像头，已为您开启鼠标模式！', 4000);
   }
 }
 
@@ -2633,6 +2630,21 @@ function bindEvents() {
   $('go-restart').addEventListener('click', restartRound);
   $('go-menu').addEventListener('click', quitToMenu);
   btnSound.addEventListener('click', toggleSound);
+
+  if (btnPermMouse) {
+    btnPermMouse.addEventListener('click', () => {
+      ensureAudio();
+      mode = 'pointer';
+      resetBlades();
+      startGame();
+      toast('已切换为鼠标 / 触控板划屏模式，尽情切水果！');
+    });
+  }
+  if (btnPermBack) {
+    btnPermBack.addEventListener('click', () => {
+      showPanel(panelMenu);
+    });
+  }
 }
 
 function toggleSound() {
@@ -2664,6 +2676,13 @@ function init() {
   btnSound.textContent = soundOn ? '🔊' : '🔇';
   updateBest();
   requestAnimationFrame(loop);
+
+  if (typeof window !== 'undefined' && window.self !== window.top) {
+    if (iframeTip) iframeTip.hidden = false;
+    const curUrl = window.location.href;
+    if (btnMenuStandalone) btnMenuStandalone.href = curUrl;
+    if (btnPermStandalone) btnPermStandalone.href = curUrl;
+  }
 
   // 页面空闲时静默预加载手势模型，点击按钮时秒开
   if ('requestIdleCallback' in window) {

@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.5.0`;
+const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.6.0`;
 ---
 
 <BaseLayout
@@ -64,7 +64,34 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
           <div class="panel-best">🏆 最高分：<span id="best-menu">0</span></div>
           <button class="btn btn-primary" id="btn-camera-mode">🎥 摄像头手势模式</button>
           <button class="btn btn-secondary" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
+          <div id="iframe-tip" class="iframe-tip" hidden>
+            <span class="iframe-tip-icon">💡</span>
+            <div class="iframe-tip-body">
+              <span><strong>AI Studio 预览小窗提示</strong>：受浏览器安全策略限制，iframe 无法直接唤起摄像头。</span>
+              <a href="/games/fruitwave/" id="btn-menu-standalone" target="_blank" rel="noopener" class="iframe-tip-btn">
+                ↗️ 在独立新窗口打开（支持摄像头手势）
+              </a>
+            </div>
+          </div>
           <p id="cam-status-hint" class="panel-hint" style="color: #e11d48; font-weight: 500;" hidden></p>
+        </div>
+
+        <div class="panel" id="panel-cam-permission" hidden>
+          <div class="panel-title">📷 摄像头权限提示</div>
+          <p id="cam-permission-msg" class="panel-desc" style="max-width: 330px; line-height: 1.6; color: var(--color-text-muted); font-size: 0.92rem; margin: 12px auto 16px;">
+            在 AI Studio 预览小窗中，浏览器安全策略限制了嵌入 iframe 直接调用摄像头设备。
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 290px; margin: 0 auto;">
+            <a id="btn-perm-standalone" href="/games/fruitwave/" target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration: none; padding: 12px 16px; font-weight: 600;">
+              🚀 在独立新窗口打开（畅玩手势）
+            </a>
+            <button class="btn btn-secondary" id="btn-perm-mouse">
+              🖱️ 留在小窗，用鼠标玩
+            </button>
+            <button class="btn" id="btn-perm-back" style="font-size: 0.88rem; padding: 8px 12px;">
+              返回菜单
+            </button>
+          </div>
         </div>
 
         <div class="panel" id="panel-loading" hidden>
@@ -431,6 +458,51 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     font-size: 0.8rem;
     color: var(--color-text-muted);
     line-height: 1.5;
+  }
+
+  .iframe-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 0 6px;
+    padding: 10px 12px;
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px solid rgba(14, 165, 233, 0.25);
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: #38bdf8;
+    text-align: left;
+    line-height: 1.45;
+  }
+
+  .iframe-tip-icon {
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .iframe-tip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .iframe-tip-btn {
+    display: inline-flex;
+    align-items: center;
+    color: #ffffff !important;
+    background: #0284c7;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    width: fit-content;
+    transition: background 0.15s ease;
+  }
+
+  .iframe-tip-btn:hover {
+    background: #0369a1;
   }
 
   .btn {
