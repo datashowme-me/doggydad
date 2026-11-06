@@ -127,6 +127,7 @@ const sparks = [];       // 刀芒斩击火花池（最多 70）
 const comboBanners = []; // 连击荣耀大横幅（最多 4）
 const screenShake = { intensity: 0, duration: 0, t: 0, timer: 0, x: 0, y: 0 }; // 屏幕打击感微震
 let lastTickSec = -1;    // 倒计时最后 10 秒音效上一次触发秒数
+let bombFlashTimer = 0;  // 炸弹爆炸全屏闪光震感倒计时
 /* ---------------- 刀芒状态（支持单手/双手双刀，每只手独立滤波与轨迹） ---------------- */
 function createBlade(id, color) {
   return {
@@ -306,6 +307,91 @@ function makeSprite(f) {
   } else {
     drawDragonfruit(g, cx, cy, SPRITE_R);
   }
+  return c;
+}
+
+const bombSprite = makeBombSprite();
+
+function makeBombSprite() {
+  const c = document.createElement('canvas');
+  c.width = c.height = SPRITE_S;
+  const g = c.getContext('2d');
+  const cx = SPRITE_S / 2, cy = SPRITE_S / 2 + 10;
+  const r = SPRITE_R * 0.88;
+
+  // 1. 危险红色脉冲外晕
+  const aura = g.createRadialGradient(cx, cy, r * 0.4, cx, cy, r * 1.3);
+  aura.addColorStop(0, 'rgba(239, 68, 68, 0.32)');
+  aura.addColorStop(0.7, 'rgba(220, 38, 38, 0.1)');
+  aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  g.fillStyle = aura;
+  g.beginPath();
+  g.arc(cx, cy, r * 1.3, 0, Math.PI * 2);
+  g.fill();
+
+  // 2. 导火索引信绳子（弯曲麻绳）
+  g.save();
+  g.lineWidth = 7;
+  g.lineCap = 'round';
+  g.strokeStyle = '#d97706';
+  g.beginPath();
+  g.moveTo(cx, cy - r * 0.95);
+  g.bezierCurveTo(cx + r * 0.25, cy - r * 1.25, cx - r * 0.1, cy - r * 1.48, cx + r * 0.25, cy - r * 1.62);
+  g.stroke();
+  // 引信编织纹理
+  g.lineWidth = 2.5;
+  g.strokeStyle = '#fef3c7';
+  g.stroke();
+  g.restore();
+
+  // 3. 炸弹铁铸底座锁扣
+  const collarGrad = g.createLinearGradient(cx - r * 0.2, 0, cx + r * 0.2, 0);
+  collarGrad.addColorStop(0, '#475569');
+  collarGrad.addColorStop(0.5, '#94a3b8');
+  collarGrad.addColorStop(1, '#334155');
+  g.fillStyle = collarGrad;
+  g.beginPath();
+  g.roundRect(cx - r * 0.2, cy - r * 1.08, r * 0.4, r * 0.22, 4);
+  g.fill();
+
+  // 4. 重磅黑铁球体（多层次径向渐变，极具重工业质感）
+  g.save();
+  g.shadowColor = 'rgba(0, 0, 0, 0.65)';
+  g.shadowBlur = 24;
+  g.shadowOffsetY = 14;
+
+  const sphereGrad = g.createRadialGradient(cx - r * 0.32, cy - r * 0.38, r * 0.05, cx, cy, r);
+  sphereGrad.addColorStop(0, '#64748b'); // 高光铁灰
+  sphereGrad.addColorStop(0.25, '#334155'); // 中间深铁
+  sphereGrad.addColorStop(0.65, '#0f172a'); // 铸铁暗色
+  sphereGrad.addColorStop(1, '#020617'); // 边缘近纯黑
+  g.fillStyle = sphereGrad;
+  g.beginPath();
+  g.arc(cx, cy, r, 0, Math.PI * 2);
+  g.fill();
+  g.restore();
+
+  // 5. 球面反射高光弧
+  const gleam = g.createRadialGradient(cx - r * 0.32, cy - r * 0.38, 2, cx - r * 0.28, cy - r * 0.34, r * 0.45);
+  gleam.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+  gleam.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+  gleam.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  g.fillStyle = gleam;
+  g.beginPath();
+  g.arc(cx - r * 0.28, cy - r * 0.34, r * 0.45, 0, Math.PI * 2);
+  g.fill();
+
+  // 6. 危险警示骷髅符号（醒目、威慑）
+  g.save();
+  g.font = `bold ${Math.round(r * 0.85)}px sans-serif`;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.shadowColor = 'rgba(239, 68, 68, 0.85)';
+  g.shadowBlur = 12;
+  g.fillStyle = '#f87171';
+  g.fillText('☠️', cx, cy + r * 0.05);
+  g.restore();
+
   return c;
 }
 
@@ -665,11 +751,88 @@ function playThumbsUpChime() {
   });
 }
 
+// 9. 炸弹起飞低鸣声
+function playBombToss() {
+  if (!soundOn || !audioCtx) return;
+  const now = performance.now();
+  if (now - lastTossT < 180) return;
+  lastTossT = now;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(130, t);
+  o.frequency.exponentialRampToValueAtTime(45, t + 0.22);
+  g.gain.setValueAtTime(0.001, t);
+  g.gain.linearRampToValueAtTime(0.18, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  o.start(t);
+  o.stop(t + 0.24);
+}
+
+// 10. 炸弹剧烈爆炸复合重音（次声重低音 + 真实爆破白噪 + 金属震荡）
+function playBombExplosion() {
+  if (!soundOn || !audioCtx) return;
+  const t = audioCtx.currentTime;
+
+  // ① 极低频地动山摇重低音
+  const oBoom = audioCtx.createOscillator();
+  const gBoom = audioCtx.createGain();
+  oBoom.type = 'sawtooth';
+  oBoom.frequency.setValueAtTime(160, t);
+  oBoom.frequency.exponentialRampToValueAtTime(26, t + 0.55);
+  gBoom.gain.setValueAtTime(0.72, t);
+  gBoom.gain.exponentialRampToValueAtTime(0.001, t + 0.58);
+  oBoom.connect(gBoom);
+  gBoom.connect(audioCtx.destination);
+  oBoom.start(t);
+  oBoom.stop(t + 0.6);
+
+  // ② 剧烈白噪爆炸冲击
+  try {
+    const dur = 0.5;
+    const buf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * dur), audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      const k = i / data.length;
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - k, 1.4);
+    }
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(1200, t);
+    lp.frequency.exponentialRampToValueAtTime(80, t + dur);
+    const gNoise = audioCtx.createGain();
+    gNoise.gain.setValueAtTime(0.75, t);
+    gNoise.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(lp);
+    lp.connect(gNoise);
+    gNoise.connect(audioCtx.destination);
+    src.start(t);
+  } catch (e) {}
+
+  // ③ 刺耳金属爆碎脆鸣
+  const oMetal = audioCtx.createOscillator();
+  const gMetal = audioCtx.createGain();
+  oMetal.type = 'square';
+  oMetal.frequency.setValueAtTime(850, t);
+  oMetal.frequency.exponentialRampToValueAtTime(90, t + 0.18);
+  gMetal.gain.setValueAtTime(0.3, t);
+  gMetal.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+  oMetal.connect(gMetal);
+  gMetal.connect(audioCtx.destination);
+  oMetal.start(t);
+  oMetal.stop(t + 0.2);
+}
+
 /* ---------------- 背景果汁喷溅与流淌系统（Fruit Ninja 灵魂木墙水渍） ---------------- */
 function addWallSplat(x, y, fi) {
   const f = FRUITS[fi] || FRUITS[0];
-  const color = f.flesh || f.color;
-  const baseR = fruitRadius() * (1.1 + Math.random() * 0.45);
+  const color = fi === -1 ? 'rgba(20, 20, 25, 0.78)' : (f.flesh || f.color);
+  const baseR = fruitRadius() * (fi === -1 ? 1.6 : (1.1 + Math.random() * 0.45));
   const drips = [];
   const dripCount = (Math.random() * 3 + 1) | 0;
   for (let d = 0; d < dripCount; d++) {
@@ -933,6 +1096,7 @@ function spawnFruit(customX = null, customVx = null, customVy = null) {
   // 基础向上初速度提升约 30.4%（对应滞空上升高度增加 70%）
   const vy = customVy !== null ? customVy : -H * (1.38 + 0.68 * Math.random());
   fruits.push({
+    isBomb: false,
     fi,
     x,
     y: H + r * 1.4,
@@ -943,6 +1107,52 @@ function spawnFruit(customX = null, customVx = null, customVy = null) {
     vr: (Math.random() - 0.5) * 7,
   });
   if (state === 'playing') playFruitToss();
+}
+
+function spawnBomb(customX = null, customVx = null, customVy = null) {
+  const r = fruitRadius() * 0.95;
+  const x = customX !== null ? customX : W * (0.2 + 0.6 * Math.random());
+  const vx = customVx !== null ? customVx : W * (Math.random() - 0.5) * 0.28;
+  const vy = customVy !== null ? customVy : -H * (1.35 + 0.65 * Math.random());
+  fruits.push({
+    isBomb: true,
+    fi: -1,
+    x,
+    y: H + r * 1.4,
+    vx,
+    vy,
+    r,
+    rot: Math.random() * Math.PI * 2,
+    vr: (Math.random() - 0.5) * 5,
+  });
+  if (state === 'playing') playBombToss();
+}
+
+function drawBomb(f, s, now) {
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  ctx.rotate(f.rot);
+  ctx.drawImage(bombSprite, -s, -s, s * 2, s * 2);
+
+  // 导火索引信燃烧火花 (Sizzling Fuse Sparks)
+  const scale = s / (SPRITE_R * 0.88);
+  const fuseTipX = 0.25 * (SPRITE_R * 0.88) * scale;
+  const fuseTipY = (-1.62 * (SPRITE_R * 0.88) + 10) * scale;
+
+  ctx.translate(fuseTipX, fuseTipY);
+  const sparkCount = 3 + ((Math.random() * 3) | 0);
+  for (let i = 0; i < sparkCount; i++) {
+    const sa = Math.random() * Math.PI * 2;
+    const sDist = (Math.random() * 7 + 3) * (s / 70);
+    const sr = (Math.random() * 2.2 + 1.2) * (s / 70);
+    ctx.fillStyle = i % 2 === 0 ? '#fef08a' : '#f97316';
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(Math.cos(sa) * sDist, Math.sin(sa) * sDist, sr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function spawnFruitWave(progress = 0) {
@@ -969,6 +1179,16 @@ function spawnFruitWave(progress = 0) {
   waveCount = Math.min(waveCount, maxAllowed - fruits.length);
   if (waveCount <= 0) return;
 
+  // 炸弹生成判定：热身期过后（progress > 0.16 即约 15 秒后），同屏最多 1 颗炸弹，受概率控制随波次混入
+  let bombSlot = -1;
+  const activeBombs = fruits.filter(f => f.isBomb).length;
+  if (progress > 0.16 && activeBombs === 0) {
+    const bombChance = progress < 0.4 ? 0.22 : (progress < 0.7 ? 0.32 : 0.40);
+    if (Math.random() < bombChance) {
+      bombSlot = (Math.random() * waveCount) | 0;
+    }
+  }
+
   // 抛出位置在水平宽度上错开，带向中轴微聚拢的自然抛物线
   const slotWidth = 0.75 / Math.max(1, waveCount);
   const offsetBase = 0.12 + Math.random() * 0.08;
@@ -979,7 +1199,11 @@ function spawnFruitWave(progress = 0) {
     const vx = centerBias * W * (0.16 + Math.random() * 0.22) + W * (Math.random() - 0.5) * 0.12;
     // 水果抛射高度增加 70%，进入中上空绝佳挥砍区域
     const vy = -H * (1.35 + 0.68 * Math.random());
-    spawnFruit(clampedX, vx, vy);
+    if (i === bombSlot) {
+      spawnBomb(clampedX, vx, vy);
+    } else {
+      spawnFruit(clampedX, vx, vy);
+    }
   }
 }
 
@@ -997,8 +1221,85 @@ function segCircle(x0, y0, x1, y1, cx, cy, r) {
 function applyCut(x0, y0, x1, y1, cutter) {
   const reach = (cutter && cutter.reachScale) ? cutter.reachScale : 1.0;
   for (let i = fruits.length - 1; i >= 0; i--) {
-    if (segCircle(x0, y0, x1, y1, fruits[i].x, fruits[i].y, fruits[i].r * reach)) sliceFruit(i, cutter);
+    if (segCircle(x0, y0, x1, y1, fruits[i].x, fruits[i].y, fruits[i].r * reach)) {
+      if (fruits[i].isBomb) {
+        detonateBomb(i, cutter);
+      } else {
+        sliceFruit(i, cutter);
+      }
+    }
   }
+}
+
+function detonateBomb(i, cutter) {
+  const f = fruits[i];
+  fruits.splice(i, 1);
+
+  // 1. 触发次声级震耳爆破音
+  playBombExplosion();
+
+  // 2. 强震屏与全屏红白闪光
+  triggerScreenShake(26, 0.65);
+  bombFlashTimer = 0.45;
+
+  // 3. 墙面浓厚黑焦炭焦灼痕迹
+  addWallSplat(f.x, f.y, -1);
+
+  // 4. 强力烈焰冲击波圆环
+  splats.push({
+    x: f.x, y: f.y,
+    r: f.r * 0.35,
+    maxR: f.r * 4.4,
+    color: '#ef4444',
+    life: 0.52,
+    t: 0,
+  });
+
+  // 5. 烈火浓烟粒子喷涌
+  for (let p = 0; p < 45; p++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = W * (0.07 + 0.35 * Math.random());
+    const isFire = Math.random() < 0.62;
+    particles.push({
+      x: f.x, y: f.y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - H * (0.05 + 0.16 * Math.random()),
+      t: 0,
+      life: 0.45 + 0.42 * Math.random(),
+      r: (isFire ? 3.5 : 5.8) + 4.2 * Math.random(),
+      color: isFire ? (Math.random() < 0.5 ? '#f97316' : '#ef4444') : '#334155',
+    });
+  }
+
+  // 6. 铁壳碎屑与高能金黄星芒
+  spawnSparks(f.x, f.y, 35, '#fbbf24', 2.2);
+
+  // 7. 惩罚扣分与连击打断
+  score = Math.max(0, score - 10);
+  combo = 0;
+  comboTimer = 0;
+
+  // 8. 红色警告飘字
+  pops.push({
+    x: f.x,
+    y: f.y,
+    text: '-10 💣',
+    color: '#ef4444',
+    t: 0,
+  });
+
+  // 9. 炸弹震波向外推开同屏附近的水果
+  for (const other of fruits) {
+    const ddx = other.x - f.x, ddy = other.y - f.y;
+    const dist = Math.hypot(ddx, ddy) || 1;
+    if (dist < W * 0.48) {
+      const force = (1 - dist / (W * 0.48)) * W * 0.32;
+      other.vx += (ddx / dist) * force;
+      other.vy += (ddy / dist) * force - H * 0.08;
+    }
+  }
+
+  toast('💥 警告！误切炸弹，连击清零 -10分！', 2200);
 }
 
 // 借鉴 open-source-hands：双手合十全屏气刃爆破 (Clap Shockwave)
@@ -1011,13 +1312,24 @@ function triggerClapBlast() {
     t: 0, life: 0.65,
   });
   let cutCount = 0;
+  let defusedBombs = 0;
   for (let i = fruits.length - 1; i >= 0; i--) {
-    sliceFruit(i, { ...blades[0], hasPrev: true, px: fruits[i].x - 10, py: fruits[i].y, x: fruits[i].x + 10, y: fruits[i].y });
-    cutCount++;
+    if (fruits[i].isBomb) {
+      // 气刃可安全消解炸弹引信，消除同屏炸弹隐患！
+      const bomb = fruits[i];
+      fruits.splice(i, 1);
+      spawnSparks(bomb.x, bomb.y, 22, '#38bdf8', 1.6);
+      pops.push({ x: bomb.x, y: bomb.y, text: '💣 气刃化解', color: '#38bdf8', t: 0 });
+      defusedBombs++;
+    } else {
+      sliceFruit(i, { ...blades[0], hasPrev: true, px: fruits[i].x - 10, py: fruits[i].y, x: fruits[i].x + 10, y: fruits[i].y });
+      cutCount++;
+    }
   }
-  if (cutCount > 0) {
-    spawnComboBanner(Math.max(cutCount, 3), W / 2, H * 0.35);
-    toast(`👏 双手合十 · 气刃爆发！狂斩 ${cutCount} 颗水果！`, 3000);
+  if (cutCount > 0 || defusedBombs > 0) {
+    if (cutCount > 0) spawnComboBanner(Math.max(cutCount, 3), W / 2, H * 0.35);
+    const bombMsg = defusedBombs > 0 ? ` + 化解 ${defusedBombs} 枚炸弹` : '';
+    toast(`👏 双手合十 · 气刃爆发！狂斩 ${cutCount} 颗水果${bombMsg}！`, 3000);
   } else {
     toast(`👏 双手合十 · 气刃爆发！`, 2000);
   }
@@ -1125,9 +1437,31 @@ function updateFruits(dt) {
   for (let i = fruits.length - 1; i >= 0; i--) {
     const f = fruits[i];
     f.vy += g * dt; f.x += f.vx * dt; f.y += f.vy * dt; f.rot += f.vr * dt;
+
+    // 导火索引信沿途微弱掉落火星
+    if (f.isBomb && Math.random() < 0.35) {
+      const s = f.r * SPRITE_SCALE;
+      const scale = s / (SPRITE_R * 0.88);
+      const fuseRelX = 0.25 * (SPRITE_R * 0.88) * scale;
+      const fuseRelY = (-1.62 * (SPRITE_R * 0.88) + 10) * scale;
+      const fx = f.x + Math.cos(f.rot) * fuseRelX - Math.sin(f.rot) * fuseRelY;
+      const fy = f.y + Math.sin(f.rot) * fuseRelX + Math.cos(f.rot) * fuseRelY;
+      sparks.push({
+        x: fx, y: fy,
+        vx: (Math.random() - 0.5) * 35,
+        vy: (Math.random() - 0.5) * 35 - 18,
+        color: Math.random() < 0.5 ? '#f59e0b' : '#ef4444',
+        r: 1.5 + Math.random() * 1.8,
+        t: 0,
+        life: 0.18 + Math.random() * 0.15,
+      });
+    }
+
     if (f.y - f.r > H + f.r * 2 && f.vy > 0) {
+      const wasBomb = f.isBomb;
       fruits.splice(i, 1);
-      if (state === 'playing') combo = 0; // 漏掉水果，连击中断
+      // 漏掉水果，连击中断；若漏掉的是炸弹，属于避让成功，不中断连击！
+      if (state === 'playing' && !wasBomb) combo = 0;
     }
   }
 }
@@ -1261,6 +1595,9 @@ function updateGame(dt, now) {
     comboTimer -= dt;
     if (comboTimer <= 0) combo = 0;
   }
+  if (bombFlashTimer > 0) {
+    bombFlashTimer = Math.max(0, bombFlashTimer - dt);
+  }
   for (const b of blades) updateBlade(b, now, dt);
   updateFruits(dt);
   updateHalves(dt);
@@ -1292,7 +1629,7 @@ function updateAmbient(dt) { // 菜单背景：水果缓缓飞出
 /* ---------------- 绘制 ---------------- */
 function draw(now) {
   ctx.save();
-  if (screenShake.timer > 0) {
+  if (screenShake.x !== 0 || screenShake.y !== 0) {
     ctx.translate(screenShake.x, screenShake.y);
   }
 
@@ -1307,12 +1644,16 @@ function draw(now) {
   // 木质背景墙果汁浸染印痕与流淌泪滴（水果忍者经典木墙污渍）
   drawWallSplats();
 
-  // 1. 完整水果
+  // 1. 完整水果与炸弹
   for (const f of fruits) {
     const s = f.r * SPRITE_SCALE;
-    ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot);
-    ctx.drawImage(sprites[f.fi], -s, -s, s * 2, s * 2);
-    ctx.restore();
+    if (f.isBomb) {
+      drawBomb(f, s, now);
+    } else {
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot);
+      ctx.drawImage(sprites[f.fi], -s, -s, s * 2, s * 2);
+      ctx.restore();
+    }
   }
 
   // 2. 切开的果瓣（含真实剖面果肉与籽细节）
@@ -1403,17 +1744,19 @@ function draw(now) {
     }
   }
 
-  // 7. 得分飘字（带缩放弹性与柔光）
+  // 7. 得分飘字（带缩放弹性与柔光，支持炸弹扣分与气刃解构）
   for (const p of pops) {
     const k = p.t / 0.9;
     ctx.globalAlpha = Math.max(0, 1 - k);
     const scale = 1 + 0.28 * Math.sin(Math.min(1, k * 3) * Math.PI);
     ctx.font = `800 ${Math.round(19 * scale)}px Inter, -apple-system, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 4;
-    ctx.strokeText(`+${SCORE_PER_FRUIT}`, p.x, p.y - p.t * 50);
-    ctx.fillStyle = '#ffe14d';
-    ctx.fillText(`+${SCORE_PER_FRUIT}`, p.x, p.y - p.t * 50);
+    ctx.strokeStyle = 'rgba(0,0,0,0.65)'; ctx.lineWidth = 4;
+    const label = p.text || `+${SCORE_PER_FRUIT}`;
+    const col = p.color || '#ffe14d';
+    ctx.strokeText(label, p.x, p.y - p.t * 50);
+    ctx.fillStyle = col;
+    ctx.fillText(label, p.x, p.y - p.t * 50);
   }
   ctx.globalAlpha = 1;
   // 连击暴击大横幅与星芒爆炸
@@ -1443,6 +1786,17 @@ function draw(now) {
     ctx.shadowColor = 'rgba(0,0,0,0.8)';
     ctx.shadowBlur = 6;
     ctx.fillText('👍 保持点赞开局', 0, -52);
+    ctx.restore();
+  }
+
+  // 8. 炸弹爆炸全屏闪光震感
+  if (bombFlashTimer > 0) {
+    const k = Math.min(1, bombFlashTimer / 0.45);
+    ctx.save();
+    ctx.fillStyle = `rgba(239, 68, 68, ${k * 0.38})`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = `rgba(255, 255, 255, ${k * 0.24})`;
+    ctx.fillRect(0, 0, W, H);
     ctx.restore();
   }
 
@@ -1683,7 +2037,7 @@ function startGame() {
   score = 0; combo = 0; comboTimer = 0;
   remaining = ROUND_MS; spawnAcc = 0; ambientAcc = 0;
   fruits.length = 0; halves.length = 0; particles.length = 0; splats.length = 0; flashes.length = 0; pops.length = 0;
-  wallSplats.length = 0; sparks.length = 0; comboBanners.length = 0; screenShake.timer = 0; lastTickSec = -1;
+  wallSplats.length = 0; sparks.length = 0; comboBanners.length = 0; screenShake.timer = 0; lastTickSec = -1; bombFlashTimer = 0;
   resetBlades();
   pointerActive = false; lastHandT = 0;
   state = 'playing';

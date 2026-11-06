@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.7.0`;
+const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.8.0`;
 ---
 
 <BaseLayout
@@ -17,6 +17,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
     <div class="game-specs">
       <span>⏱️ 90 秒限时</span>
       <span>🍎 12 种水果</span>
+      <span>💣 避让炸弹</span>
       <span>🔥 连击倍增</span>
       <span>🎥 手势 / 鼠标双模</span>
       <a href="/games/fruitwave/" target="_blank" rel="noopener" class="game-spec-link" title="在独立新标签页打开，彻底避免 preview 小窗与 iframe 的权限拦截">↗️ 独立新窗口打开</a>
@@ -126,6 +127,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
       <h2>游戏指引</h2>
       <ul>
         <li>🎮 <strong>手势挥砍</strong>：支持单手、双手同屏挥刀，食指或手刀均可识别，握拳停止。</li>
+        <li>💣 <strong>小心炸弹</strong>：空中会混入带有引信火花的重磅炸弹！误切引发剧烈爆炸并扣 10 分清空连击；任其下落避让不扣分；亦可用双手合十气刃安全化解。</li>
         <li>📷 <strong>摄像头小窗</strong>：右上角实时预览，支持随时【收起】或【换位置】。</li>
         <li>⚡ <strong>多重连击</strong>：连续快速切中水果可触发高倍连击音效与震屏。</li>
         <li>🔒 <strong>本地安全</strong>：所有识别纯浏览器本地计算，零视频上传，保护隐私安全。</li>
