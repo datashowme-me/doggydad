@@ -40,6 +40,8 @@ const hudMode = $('hud-mode');
 const hudButtons = $('hud-buttons');
 const btnPause = $('btn-pause');
 const btnSound = $('btn-sound');
+const btnFullscreen = $('btn-fullscreen');
+const btnFullscreenMenu = $('btn-fullscreen-menu');
 const bestMenu = $('best-menu');
 const goScore = $('go-score');
 const goBest = $('go-best');
@@ -100,6 +102,9 @@ const FRUITS = [
 ];
 
 /* ---------------- 状态 ---------------- */
+// 全屏支持检测：iPhone Safari 没有 Fullscreen API（document.fullscreenEnabled 为 false），直接隐藏入口
+const FS_SUPPORTED = document.fullscreenEnabled !== false &&
+  !!(Element.prototype.requestFullscreen || Element.prototype.webkitRequestFullscreen);
 let state = 'menu';            // menu | playing | paused | gameover
 let mode = null;               // hand | pointer
 let W = 0, H = 0, dpr = 1;
@@ -138,7 +143,7 @@ function createBlade(id, color) {
     speed: 0,
     gesture: 'point', // 'point' | 'chop' | 'peace' | 'fist' | 'thumbs-up'
     reachScale: 1.0,  // 手刀斩模式可达 1.35x 判定范围
-    filter2d: new OneEuroFilter2D({ minCutoff: 1.1, beta: 5.5, dCutoff: 1.2 }),
+    filter2d: new OneEuroFilter2D({ minCutoff: 1.5, beta: 6.5, dCutoff: 1.2 }), // 儿童小手动作幅度小：提高低速响应（1.1→1.5Hz），减少跟手延迟
     oex: new OneEuroFilter(1.2, 0.05, 1),
     oey: new OneEuroFilter(1.2, 0.05, 1),
     trail: [],
@@ -2150,9 +2155,10 @@ async function loadLandmarker() {
     baseOptions: { modelAssetPath: modelPath, delegate: 'GPU' },
     runningMode: 'VIDEO',
     numHands: 2, // 允许同时追踪双手（支持左手/右手单手及双手双刀）
-    minHandDetectionConfidence: 0.45,
-    minHandPresenceConfidence: 0.45,
-    minTrackingConfidence: 0.45,
+    // 儿童小手在画面中占比小、置信度通常只有 0.35~0.45：从 0.45 放宽到 0.35，避免小手被整帧漏检
+    minHandDetectionConfidence: 0.35,
+    minHandPresenceConfidence: 0.35,
+    minTrackingConfidence: 0.35,
   };
 
   try {
@@ -2573,6 +2579,12 @@ function analyzeHand(lm) {
   };
   const handScale = Math.hypot(p9.x - p0.x, p9.y - p0.y) || 0.15;
 
+  // 儿童小手自适应系数：手部越小判定越宽松（成人手腕→中指根约 0.22 归一化距离，小手按比例放松阈值）
+  // kidK = 1.0 时与成人参数完全一致，仅在小手（<0.22）时逐步放宽至 0.75
+  const kidK = Math.max(0.75, Math.min(1.0, handScale / 0.22));
+  const extRatio = 1 + 0.05 * kidK;      // 指尖/PIP 距离比：成人 1.05，小手放宽至 1.0375
+  const scaleK = 0.92 + 0.08 * kidK;     // 相对手长阈值：成人 1.0，小手放宽至 0.98
+
   // 各手指末端与指节相对手腕的距离
   const dIndexTip = Math.hypot(p8.x - p0.x, p8.y - p0.y);
   const dIndexPip = Math.hypot(p6.x - p0.x, p6.y - p0.y);
@@ -2587,16 +2599,19 @@ function analyzeHand(lm) {
   const dPinkyTip = Math.hypot(p20.x - p0.x, p20.y - p0.y);
   const dPinkyPip = Math.hypot(p18.x - p0.x, p18.y - p0.y);
 
-  // 指尖伸直判定
-  const indexExtended = dIndexTip > dIndexPip * 1.05 && dIndexTip > handScale * 0.88;
-  const midExtended = dMidTip > dMidPip * 1.05 && dMidTip > handScale * 0.88;
-  const ringExtended = dRingTip > dRingPip * 1.05 && dRingTip > handScale * 0.82;
-  const pinkyExtended = dPinkyTip > dPinkyPip * 1.05 && dPinkyTip > handScale * 0.78;
+  // 指尖伸直判定（小手 landmark 噪声占比更大，阈值随 kidK 放宽）
+  const indexExtended = dIndexTip > dIndexPip * extRatio && dIndexTip > handScale * (0.88 * scaleK);
+  const midExtended = dMidTip > dMidPip * extRatio && dMidTip > handScale * (0.88 * scaleK);
+  const ringExtended = dRingTip > dRingPip * extRatio && dRingTip > handScale * (0.82 * scaleK);
+  const pinkyExtended = dPinkyTip > dPinkyPip * extRatio && dPinkyTip > handScale * (0.78 * scaleK);
 
   // 借鉴 open-source-hands：5 种核心手势识别（fist | thumbs-up | chop | peace | point）
   const fourCurled = !indexExtended && !midExtended && !ringExtended && !pinkyExtended;
   // 大拇指朝上且其余四指收拢 -> 点赞姿势
-  const isThumbsUp = fourCurled && (p4.y < p3.y - 0.03 || p4.y < p2.y - 0.045) && (p4.y < p0.y - handScale * 0.35);
+  // 原固定 0.03 / 0.045 像素偏移对小手太苛刻，改为「取固定阈值与手长比例阈值中更小者」：成人不变，小手自动放宽
+  const isThumbsUp = fourCurled &&
+    (p4.y < p3.y - Math.min(0.03, handScale * 0.18) || p4.y < p2.y - Math.min(0.045, handScale * 0.27)) &&
+    (p4.y < p0.y - handScale * 0.35);
   const isFist = fourCurled && !isThumbsUp;
   const isChop = indexExtended && midExtended && ringExtended && pinkyExtended;
   const isPeace = indexExtended && midExtended && !ringExtended && !pinkyExtended;
@@ -2651,6 +2666,7 @@ function analyzeHand(lm) {
     gesture,
     reachScale,
     isFist,
+    handScale,
     lm,
   };
 }
@@ -2685,12 +2701,17 @@ function detectHand(now, dt = 0.033) {
     if (analyzedHands.length >= 2) {
       const h0 = analyzedHands[0], h1 = analyzedHands[1];
       const palmDist = Math.hypot(h0.palm.x - h1.palm.x, h0.palm.y - h1.palm.y);
+      // 儿童小手自适应：手越小合掌速度越慢、掌心贴得更近，按平均手长同步放宽速度与贴近阈值
+      const scaleAvg = (h0.handScale + h1.handScale) / 2;
+      const scaleF = Math.max(0.55, Math.min(1.0, scaleAvg / 0.22));
+      const speedTh = 0.65 * scaleF;
+      const closeTh = 0.12 + 0.03 * scaleF;
       let closingSpeed = 0;
       if (lastHandsDist > 0 && dt > 0) {
         closingSpeed = (lastHandsDist - palmDist) / dt;
       }
       if (state === 'playing' && clapCooldown <= 0) {
-        if (palmDist < 0.18 && (closingSpeed > 0.65 || (lastHandsDist < 0.22 && palmDist < 0.13))) {
+        if (palmDist < 0.18 && (closingSpeed > speedTh || (lastHandsDist < 0.24 && palmDist < closeTh))) {
           triggerClapBlast();
           clapCooldown = 6.0;
         }
@@ -2883,6 +2904,52 @@ function resize() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
+/* ---------------- 全屏切换（游戏无法全屏修复：⛶ 按钮 + F 键 + iframe allow 支持） ---------------- */
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function toggleFullscreen() {
+  const shell = document.querySelector('.game-shell') || document.documentElement;
+  try {
+    if (isFullscreen()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) exit.call(document);
+    } else {
+      const req = shell.requestFullscreen || shell.webkitRequestFullscreen;
+      if (!req) {
+        toast('当前浏览器不支持全屏，请点右上角「独立新窗口打开」');
+        return;
+      }
+      const p = req.call(shell);
+      if (p && p.catch) {
+        p.catch(() => toast('浏览器阻止了全屏（嵌入窗口限制），请用「独立新窗口打开」'));
+      }
+    }
+  } catch (err) {
+    toast('当前环境不支持全屏');
+  }
+}
+
+function syncFullscreenUI() {
+  const on = isFullscreen();
+  if (btnFullscreen) {
+    btnFullscreen.textContent = on ? '🗗' : '⛶';
+    btnFullscreen.title = on ? '退出全屏 (F)' : '全屏 (F)';
+    btnFullscreen.classList.toggle('fs-active', on);
+  }
+  if (btnFullscreenMenu) {
+    btnFullscreenMenu.textContent = on ? '🗗 退出全屏' : '⛶ 全屏模式';
+    btnFullscreenMenu.classList.toggle('fs-active', on);
+  }
+}
+
+function onFsChange() {
+  syncFullscreenUI();
+  // 全屏切换后画布尺寸变化，下一帧重算画布分辨率
+  requestAnimationFrame(resize);
+}
+
 /* ---------------- 事件绑定 ---------------- */
 function canvasPos(e) {
   const rect = canvas.getBoundingClientRect();
@@ -2907,7 +2974,13 @@ function bindEvents() {
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
   window.addEventListener('keydown', (e) => {
-    if (e.code === 'KeyP' || e.code === 'Escape') {
+    if (e.code === 'KeyF') {
+      if (FS_SUPPORTED) toggleFullscreen();
+    } else if (e.code === 'KeyP') {
+      if (state === 'playing' || state === 'paused') togglePause();
+    } else if (e.code === 'Escape') {
+      // 全屏时 Esc 由浏览器原生退出全屏，不再触发游戏暂停
+      if (isFullscreen()) return;
       if (state === 'playing' || state === 'paused') togglePause();
     } else if (e.code === 'KeyM') {
       toggleSound();
@@ -2986,6 +3059,16 @@ function bindEvents() {
   $('go-restart').addEventListener('click', restartRound);
   $('go-menu').addEventListener('click', quitToMenu);
   btnSound.addEventListener('click', toggleSound);
+  if (btnFullscreen) btnFullscreen.addEventListener('click', toggleFullscreen);
+  if (btnFullscreenMenu) btnFullscreenMenu.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+  // 无全屏能力的环境（如 iPhone Safari）隐藏全屏入口，避免孩子点击无效按钮
+  if (!FS_SUPPORTED) {
+    if (btnFullscreen) btnFullscreen.hidden = true;
+    if (btnFullscreenMenu) btnFullscreenMenu.hidden = true;
+  }
+  syncFullscreenUI();
 
   if (btnPermMouse) {
     btnPermMouse.addEventListener('click', () => {

@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.8.0`;
+const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.9.0`;
 ---
 
 <BaseLayout
@@ -36,6 +36,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
       </div>
 
       <div class="hud-buttons" id="hud-buttons" hidden>
+        <button class="mini-btn" id="btn-fullscreen" title="全屏 (F)">⛶</button>
         <button class="mini-btn" id="btn-pause" title="暂停 (P)">⏸️</button>
         <button class="mini-btn" id="btn-sound" title="音效开关 (M)">🔊</button>
         <button class="mini-btn" id="btn-quit" title="退出到菜单">🚪</button>
@@ -65,6 +66,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
           <div class="panel-best">🏆 最高分：<span id="best-menu">0</span></div>
           <button class="btn btn-primary" id="btn-camera-mode">🎥 摄像头手势模式</button>
           <button class="btn btn-secondary" id="btn-pointer-mode">🖱️ 鼠标 / 触控板模式</button>
+          <button class="btn btn-secondary" id="btn-fullscreen-menu">⛶ 全屏模式</button>
           <div id="iframe-tip" class="iframe-tip" hidden>
             <span class="iframe-tip-icon">💡</span>
             <div class="iframe-tip-body">
@@ -131,6 +133,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
         <li>📷 <strong>摄像头小窗</strong>：右上角实时预览，支持随时【收起】或【换位置】。</li>
         <li>⚡ <strong>多重连击</strong>：连续快速切中水果可触发高倍连击音效与震屏。</li>
         <li>🔒 <strong>本地安全</strong>：所有识别纯浏览器本地计算，零视频上传，保护隐私安全。</li>
+        <li>👶 <strong>小手玩家</strong>：识别会自动适配小手（更宽松的检测置信度与手势判定）；把手凑近摄像头、动作稍慢一点，识别更稳定。</li>
       </ul>
     </div>
   </section>
@@ -271,6 +274,28 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
 
   .mini-btn:hover {
     background: rgba(30, 45, 80, 0.75);
+  }
+
+  .mini-btn.fs-active {
+    border-color: rgba(56, 189, 248, 0.7);
+    background: rgba(14, 116, 144, 0.45);
+    color: #7dd3fc;
+  }
+
+  /* 全屏时游戏外壳铺满整个屏幕，消除圆角与高度限制 */
+  .game-shell:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    min-height: 0;
+    max-height: none;
+    border-radius: 0;
+  }
+  .game-shell:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    min-height: 0;
+    max-height: none;
+    border-radius: 0;
   }
 
   .camera-stack {
