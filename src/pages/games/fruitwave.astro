@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.9.0`;
+const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwave/game.js?v=2.10.0`;
 ---
 
 <BaseLayout
@@ -133,7 +133,7 @@ const gameScript = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/games/fruitwa
         <li>📷 <strong>摄像头小窗</strong>：右上角实时预览，支持随时【收起】或【换位置】。</li>
         <li>⚡ <strong>多重连击</strong>：连续快速切中水果可触发高倍连击音效与震屏。</li>
         <li>🔒 <strong>本地安全</strong>：所有识别纯浏览器本地计算，零视频上传，保护隐私安全。</li>
-        <li>👶 <strong>小手玩家</strong>：识别会自动适配小手（更宽松的检测置信度与手势判定）；把手凑近摄像头、动作稍慢一点，识别更稳定。</li>
+        <li>👶 <strong>小手玩家</strong>：识别会自动适配小手（更宽松的检测置信度与手势判定）；够不到画面上方时，映射区会自动压缩你的活动范围，让小手也能切到高处水果；把手凑近摄像头、动作稍慢一点，识别更稳定。</li>
       </ul>
     </div>
   </section>

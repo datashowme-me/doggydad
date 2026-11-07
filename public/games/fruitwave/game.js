@@ -226,9 +226,64 @@ OneEuroFilter.prototype.filter = function (x, t) {
 /* ---------------- 借鉴 open-source-hands：交互舒适区 (DEFAULT_REGION) 映射 ---------------- */
 // 边缘补偿：玩家在摄像头取景框 0.08~0.92 范围内即可触及游戏画布 0~100% 边缘，避免手移出摄像头丢失定位
 const DEFAULT_REGION = { x0: 0.08, x1: 0.92, y0: 0.10, y1: 0.88 };
+
+/* ---------------- 儿童小手自适应映射区 (Adaptive Region) ----------------
+ * 小手离摄像头远 → 手在取景框内物理可达范围小 → 默认映射区放大倍数不足，
+ * 画面上方的果实够不到。仅当手很小时（handScale < 0.26），把映射区按
+ * 「实际观测到的活动范围」压缩，让小范围活动也能覆盖整个游戏画布；
+ * 成人大手保持 DEFAULT_REGION 完全不变。
+ */
+const ADAPT_MIN_SPAN = 0.35;   // 映射区最小跨度，防止静止手时过度放大
+const ADAPT_MARGIN = 0.04;     // 观测范围内缩边距，玩家不必贴到物理极限就能触及屏幕边缘
+const ADAPT_KID_SCALE_LO = 0.14; // handScale ≤ 此值 → 完全自适应（儿童小手）
+const ADAPT_KID_SCALE_HI = 0.26; // handScale ≥ 此值 → 保持默认（成人大手）
+let obsRegion = { x0: DEFAULT_REGION.x0, x1: DEFAULT_REGION.x1, y0: DEFAULT_REGION.y0, y1: DEFAULT_REGION.y1 };
+let adaptRegion = { ...DEFAULT_REGION };
+let lastObsT = 0;
+
+// 每帧用手掌原始坐标更新观测范围：向外扩张快（~0.1s），向内收缩慢（~4s），
+// 避免手短暂移开就丢掉已学到的活动范围
+function updateAdaptiveRegion(rawX, rawY, handScale, now) {
+  lastObsT = now;
+  const EX = 0.3, SH = 0.008;
+  obsRegion.x0 += (rawX - obsRegion.x0) * (rawX < obsRegion.x0 ? EX : SH);
+  obsRegion.x1 += (rawX - obsRegion.x1) * (rawX > obsRegion.x1 ? EX : SH);
+  obsRegion.y0 += (rawY - obsRegion.y0) * (rawY < obsRegion.y0 ? EX : SH);
+  obsRegion.y1 += (rawY - obsRegion.y1) * (rawY > obsRegion.y1 ? EX : SH);
+
+  // 儿童系数：小手 → 1（全自适应），大手 → 0（保持默认），中间线性过渡
+  const k = 1 - Math.max(0, Math.min(1, (handScale - ADAPT_KID_SCALE_LO) / (ADAPT_KID_SCALE_HI - ADAPT_KID_SCALE_LO)));
+
+  // 自适应范围取「观测范围内缩边距 ∩ 默认范围」：只会压缩映射区（放大增益），
+  // 且边距向内收缩，让孩子无需贴到物理极限就能触及屏幕边缘；成人大手 k=0 不受影响
+  let x0 = Math.max(DEFAULT_REGION.x0, obsRegion.x0 + ADAPT_MARGIN);
+  let x1 = Math.min(DEFAULT_REGION.x1, obsRegion.x1 - ADAPT_MARGIN);
+  let y0 = Math.max(DEFAULT_REGION.y0, obsRegion.y0 + ADAPT_MARGIN);
+  let y1 = Math.min(DEFAULT_REGION.y1, obsRegion.y1 - ADAPT_MARGIN);
+  // 观测范围过窄导致区间反转时，收敛到中点再交给跨度保护
+  if (x1 <= x0) { x0 = (x0 + x1) / 2; x1 = x0; }
+  if (y1 <= y0) { y0 = (y0 + y1) / 2; y1 = y0; }
+  // 最小跨度保护：手近乎静止时以中心对称撑开，防止映射增益爆炸
+  if (x1 - x0 < ADAPT_MIN_SPAN) { const c = (x0 + x1) / 2; x0 = c - ADAPT_MIN_SPAN / 2; x1 = c + ADAPT_MIN_SPAN / 2; }
+  if (y1 - y0 < ADAPT_MIN_SPAN) { const c = (y0 + y1) / 2; y0 = c - ADAPT_MIN_SPAN / 2; y1 = c + ADAPT_MIN_SPAN / 2; }
+
+  adaptRegion.x0 = DEFAULT_REGION.x0 + (x0 - DEFAULT_REGION.x0) * k;
+  adaptRegion.x1 = DEFAULT_REGION.x1 + (x1 - DEFAULT_REGION.x1) * k;
+  adaptRegion.y0 = DEFAULT_REGION.y0 + (y0 - DEFAULT_REGION.y0) * k;
+  adaptRegion.y1 = DEFAULT_REGION.y1 + (y1 - DEFAULT_REGION.y1) * k;
+}
+
+function resetAdaptiveRegion() {
+  obsRegion = { x0: DEFAULT_REGION.x0, x1: DEFAULT_REGION.x1, y0: DEFAULT_REGION.y0, y1: DEFAULT_REGION.y1 };
+  adaptRegion = { ...DEFAULT_REGION };
+  lastObsT = 0;
+}
+
 function toGameScreen(normX, normY) {
-  const cx = Math.max(0, Math.min(1, (normX - DEFAULT_REGION.x0) / (DEFAULT_REGION.x1 - DEFAULT_REGION.x0)));
-  const cy = Math.max(0, Math.min(1, (normY - DEFAULT_REGION.y0) / (DEFAULT_REGION.y1 - DEFAULT_REGION.y0)));
+  const r = adaptRegion;
+  const spanX = r.x1 - r.x0, spanY = r.y1 - r.y0;
+  const cx = Math.max(0, Math.min(1, spanX > 0 ? (normX - r.x0) / spanX : 0.5));
+  const cy = Math.max(0, Math.min(1, spanY > 0 ? (normY - r.y0) / spanY : 0.5));
   return { x: cx * W, y: cy * H };
 }
 
@@ -2520,6 +2575,7 @@ async function startHandMode() {
     cameraStack.hidden = false;
     if (!handLandmarker) await loadLandmarker();
     mode = 'hand';
+    resetAdaptiveRegion(); // 新手玩家：重新学习手的活动范围
     try { watchActiveCamera(camStream); } catch (e) {}
     resetBlades();
     startGame();
@@ -2560,7 +2616,7 @@ async function startHandMode() {
   }
 }
 
-function analyzeHand(lm) {
+function analyzeHand(lm, now) {
   const p0 = lm[0]; // 手腕
   // 大拇指
   const p2 = lm[2], p3 = lm[3], p4 = lm[4];
@@ -2578,6 +2634,9 @@ function analyzeHand(lm) {
     y: (p0.y + p5.y + p9.y + p17.y) / 4,
   };
   const handScale = Math.hypot(p9.x - p0.x, p9.y - p0.y) || 0.15;
+
+  // 儿童小手自适应映射区：用原始掌心坐标更新活动范围（成人大手自动保持默认映射区）
+  updateAdaptiveRegion(palm.x, palm.y, handScale, now);
 
   // 儿童小手自适应系数：手部越小判定越宽松（成人手腕→中指根约 0.22 归一化距离，小手按比例放松阈值）
   // kidK = 1.0 时与成人参数完全一致，仅在小手（<0.22）时逐步放宽至 0.75
@@ -2695,7 +2754,7 @@ function detectHand(now, dt = 0.033) {
     lastHandT = now;
 
     // 分析所有检测到的手部（支持左手、右手、双手）
-    const analyzedHands = landmarks.map((lm) => analyzeHand(lm));
+    const analyzedHands = landmarks.map((lm) => analyzeHand(lm, now));
 
     // 借鉴 open-source-hands：双手击掌合十检测（Clap Motion -> 全屏气刃爆破）
     if (analyzedHands.length >= 2) {
@@ -2775,6 +2834,8 @@ function detectHand(now, dt = 0.033) {
   } else {
     handPresent = false;
     lastHandsDist = -1;
+    // 手离开画面超过 1.5 秒：重置自适应映射区，下次换人/换手重新学习
+    if (lastObsT > 0 && now - lastObsT > 1500) resetAdaptiveRegion();
     thumbsUpTimer = 0;
     thumbsUpHandPos = null;
     for (const b of blades) {
