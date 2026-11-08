@@ -86,6 +86,39 @@ const HAND_MODEL = new URL('vendor/models/hand_landmarker.task', SCRIPT_BASE).hr
 const CAMERA_TIMEOUT_MS = 10000;
 const MODEL_STEP_TIMEOUT_MS = 8000;
 
+// 针对第三方超清/外置/虚拟摄像头性能优化的视频流约束（640x480 @ 30fps）
+// 严防 1080p/4K 导致 USB 传输抖动、WebGL 纹理上传过重及 WASM 推理线程阻塞
+const CAMERA_VIDEO_CONSTRAINTS = {
+  width: { ideal: 640, max: 960 },
+  height: { ideal: 480, max: 540 },
+  frameRate: { ideal: 30, max: 30 },
+};
+
+let detectCanvas = null;
+let detectCtx = null;
+
+// 动态降采样保护：针对固定 1080p/4K 输出且不服从 getUserMedia 约束的特殊第三方摄像头（如 OBS 虚拟摄像头、部分外置采集卡）
+// 将输入帧等比等宽压缩至 480 宽以内，MediaPipe 像素处理量暴降 75% 以上，彻底杜绝帧率骤降与游戏卡顿
+function getDetectSource() {
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (!vw || !vh || video.readyState < 2) return video;
+  if (vw <= 640 && vh <= 480) return video;
+
+  const targetW = 480;
+  const targetH = Math.max(1, Math.round((vh / vw) * targetW));
+  if (!detectCanvas) {
+    detectCanvas = document.createElement('canvas');
+    detectCtx = detectCanvas.getContext('2d', { willReadFrequently: false });
+  }
+  if (detectCanvas.width !== targetW || detectCanvas.height !== targetH) {
+    detectCanvas.width = targetW;
+    detectCanvas.height = targetH;
+  }
+  detectCtx.drawImage(video, 0, 0, targetW, targetH);
+  return detectCanvas;
+}
+
 const FRUITS = [
   { name: '西瓜',   emoji: '🍉', color: '#22c55e', flesh: '#ff2d55', rind: '#15803d', seeds: true,  juice: ['#ff2a5f', '#ff477e', '#ffe4e6', '#22c55e'] },
   { name: '草莓',   emoji: '🍓', color: '#f43f5e', flesh: '#ff244a', rind: '#be123c', seeds: false, juice: ['#ff2247', '#ff6b8b', '#fff1f2', '#facc15'] },
@@ -2404,11 +2437,15 @@ async function switchCamera(id) {
     stream = await requestCameraStream(
       {
         audio: false,
-        video: { deviceId: { exact: id }, width: { ideal: 640 }, height: { ideal: 480 } },
+        video: { deviceId: { exact: id }, ...CAMERA_VIDEO_CONSTRAINTS },
       },
       requestId,
       epoch,
     );
+    const track = stream.getVideoTracks()[0];
+    if (track && track.applyConstraints) {
+      try { await track.applyConstraints(CAMERA_VIDEO_CONSTRAINTS); } catch (e) { /* 忽略 */ }
+    }
     await validateCameraStream(stream);
     if (requestId !== cameraRequestSeq || epoch !== camEpoch) throw abortError();
     camStream = stream;
@@ -2481,24 +2518,29 @@ async function openCamera() {
     ids = list.filter((d) => d.kind === 'videoinput' && d.deviceId).map((d) => d.deviceId);
   } catch (e) { /* 忽略 */ }
 
-  // 尝试顺序：上次用过的设备 (快速验证 3s) → 默认设备（带 facingMode: user, 8s）→ 其余设备 → 宽松通用约束
+  // 尝试顺序：上次用过的设备 (快速验证 3s) → 默认设备（带 facingMode: user, 8s）→ 其余设备 → 约束降级
   const tries = [];
   if (savedCamId) {
-    tries.push({ video: { deviceId: { ideal: savedCamId }, width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 3200, tag: 'saved' });
+    tries.push({ video: { deviceId: { ideal: savedCamId }, ...CAMERA_VIDEO_CONSTRAINTS }, timeoutMs: 3200, tag: 'saved' });
   }
-  tries.push({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 8000, tag: 'default' });
+  tries.push({ video: { facingMode: 'user', ...CAMERA_VIDEO_CONSTRAINTS }, timeoutMs: 8000, tag: 'default' });
   for (const id of ids.slice(0, 3)) {
     if (id !== savedCamId) {
-      tries.push({ video: { deviceId: { ideal: id }, width: { ideal: 640 }, height: { ideal: 480 } }, timeoutMs: 4000, tag: id.slice(0, 8) });
+      tries.push({ video: { deviceId: { ideal: id }, ...CAMERA_VIDEO_CONSTRAINTS }, timeoutMs: 4000, tag: id.slice(0, 8) });
     }
   }
+  tries.push({ video: { ...CAMERA_VIDEO_CONSTRAINTS }, timeoutMs: 6000, tag: 'constrained' });
   tries.push({ video: true, timeoutMs: 6000, tag: 'simple' });
 
   for (const t of tries.slice(0, 5)) {
     if (sawDenied) break; // 若明确被系统/用户拒绝授权，无需轮询其他设备
     const s = await accept({ audio: false, video: t.video }, t.timeoutMs || 8000, t.tag);
     if (s) {
-      const actualId = s.getVideoTracks()[0] && s.getVideoTracks()[0].getSettings().deviceId;
+      const track = s.getVideoTracks()[0];
+      if (track && track.applyConstraints) {
+        try { await track.applyConstraints(CAMERA_VIDEO_CONSTRAINTS); } catch (e) { /* 忽略 */ }
+      }
+      const actualId = track && track.getSettings().deviceId;
       if (actualId) {
         savedCamId = actualId;
         try { localStorage.setItem('fruitwave-cam', savedCamId); } catch (e) { /* 忽略 */ }
@@ -2733,13 +2775,19 @@ function analyzeHand(lm, now) {
 // 节流到约 30fps 的本地手势推理（支持单手/双手同屏识别 + 击掌 + 点赞开局）
 function detectHand(now, dt = 0.033) {
   if (mode !== 'hand' || !handLandmarker || video.readyState < 2) return;
-  if (video.currentTime === lastVideoTime) return;
+
+  // 1. 节流检测：手势推理保持在 30fps（约 30ms 间隔），保障主游戏渲染 60fps 丝滑
+  if (now - lastDetect < 30) return;
+
+  // 2. 检查摄像头帧是否有更新（必须在节流检查之后判断，否则外置摄像头时钟抖动会连续误吞新帧导致降频至 15fps）
+  if (video.currentTime === lastVideoTime && now - lastDetect < 90) return;
   lastVideoTime = video.currentTime;
-  if (now - lastDetect < 33) return;
   lastDetect = now;
+
   let res;
   try {
-    res = handLandmarker.detectForVideo(video, now);
+    const src = getDetectSource();
+    res = handLandmarker.detectForVideo(src, now);
     detectErrors = 0;
   } catch (e) {
     if (++detectErrors > 10) {
@@ -2861,9 +2909,15 @@ const HAND_CONNECTIONS = [
 
 // 借鉴 open-source-hands：赛博霓虹双色手部骨架 + 手势指示胶囊徽标
 function drawSkeletons(analyzedHands) {
-  const vw = video.videoWidth, vh = video.videoHeight;
-  if (!vw) return;
-  if (camOverlay.width !== vw) { camOverlay.width = vw; camOverlay.height = vh; }
+  const rawW = video.videoWidth || 320, rawH = video.videoHeight || 240;
+  // 预览小窗固定渲染上限在 480x360 以内，避免第三方 1080p/4K 摄像头导致画布过大引发绘制与阴影卡顿
+  const scale = Math.min(1, 480 / Math.max(rawW, rawH));
+  const vw = Math.round(rawW * scale);
+  const vh = Math.round(rawH * scale);
+  if (camOverlay.width !== vw || camOverlay.height !== vh) {
+    camOverlay.width = vw;
+    camOverlay.height = vh;
+  }
   octx.clearRect(0, 0, vw, vh);
 
   const gestureBadges = {
